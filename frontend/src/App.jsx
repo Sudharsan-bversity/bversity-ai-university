@@ -242,6 +242,20 @@ const SUBJECTS = [
   { id: 'longevity_science',  name: 'Longevity Science',                           tutor: 'Dr. Yuki Tanaka',     role: 'Senior Research Scientist',                       org: 'Calico Life Sciences',           color: '#4338CA', description: 'Hallmarks of aging, cellular senescence, epigenetic clocks, longevity pathways, proteostasis, and the geroscience clinical pipeline' },
 ];
 
+const SUBJECT_HOURS = {
+  bioinformatics:      25,
+  genomics:            22,
+  drug_discovery:      28,
+  clinical_trials:     20,
+  genai_ml:            24,
+  biotech_business:    18,
+  cell_gene_therapy:   22,
+  protein_engineering: 20,
+  rna_therapeutics:    20,
+  biomanufacturing:    18,
+  longevity_science:   16,
+};
+
 const CLUSTER_COLORS = {
   'Science & Technical':  '#00A896',
   'Business & Commercial': '#0066CC',
@@ -595,7 +609,7 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
             </div>
           </div>
           <div className="profile-field">
-            <label>Note for your tutors <span className="onboarding-optional">(optional)</span></label>
+            <label>Note for your industry experts <span className="onboarding-optional">(optional)</span></label>
             <textarea className="profile-textarea" rows={3} placeholder="Learning style, prior knowledge, topics you want to focus on…" value={tutorNote} onChange={e => setTutorNote(e.target.value)} />
           </div>
         </div>
@@ -711,7 +725,7 @@ function OnboardingView({ student, onComplete }) {
         {step === 1 && (
           <>
             <h2 className="onboarding-heading">Welcome to Bversity, {student.name.split(' ')[0]}!</h2>
-            <p className="onboarding-sub">Let's set up your profile so your AI tutors can teach to exactly where you are right now.</p>
+            <p className="onboarding-sub">Let's set up your profile so your AI industry experts can teach to exactly where you are right now.</p>
             <div className="onboarding-fields">
               <div className="onboarding-field">
                 <label>Which college or university are you at?</label>
@@ -742,7 +756,7 @@ function OnboardingView({ student, onComplete }) {
         {step === 2 && (
           <>
             <h2 className="onboarding-heading">What drives you?</h2>
-            <p className="onboarding-sub">Your tutors will use this to make every lesson feel relevant to where you're headed.</p>
+            <p className="onboarding-sub">Your experts will use this to make every lesson feel relevant to where you're headed.</p>
             <div className="onboarding-fields">
               <div className="onboarding-field">
                 <label>Where do you want your career to go?</label>
@@ -763,7 +777,7 @@ function OnboardingView({ student, onComplete }) {
                 </div>
               </div>
               <div className="onboarding-field">
-                <label>Anything your tutors should know? <span className="onboarding-optional">(optional)</span></label>
+                <label>Anything your experts should know? <span className="onboarding-optional">(optional)</span></label>
                 <textarea className="onboarding-textarea"
                   placeholder="Learning style, prior knowledge, topics to focus on…"
                   value={tutorNote} onChange={e => setTutorNote(e.target.value)} rows={2}
@@ -913,7 +927,7 @@ function WelcomeScreen({ onGetStarted }) {
           </h1>
           <p className="welcome-subline">
             Master bioinformatics, genomics, drug discovery, and more
-            through one-on-one AI tutoring with expert-trained models.
+            through one-on-one sessions with AI-powered industry experts.
           </p>
           <div className="welcome-cta-row">
             <button className="welcome-cta" onClick={onGetStarted}>
@@ -1117,7 +1131,7 @@ function LoginView({ onLogin, onBack }) {
           <p className="login-subline">Industry faculty from Broad Institute, Illumina, Genentech, and Novartis — teaching the exact curriculum your career requires.</p>
           <div className="login-features">
             <div className="login-feature"><span className="login-feature-dot" />Career-mapped curriculum — only what you need to know</div>
-            <div className="login-feature"><span className="login-feature-dot" />AI tutors that adapt to your pace and prior knowledge</div>
+            <div className="login-feature"><span className="login-feature-dot" />AI industry experts that adapt to your pace and prior knowledge</div>
             <div className="login-feature"><span className="login-feature-dot" />Real-world capstone projects, marked by faculty</div>
           </div>
           <div className="login-chips">
@@ -1235,7 +1249,7 @@ function CareerSelectView({ student, currentCareerId, onSelect, onBack }) {
       </div>
       <div className="career-select-hero">
         <h1>Choose your career destination</h1>
-        <p>Your AI tutors will connect every concept they teach to how it's actually used in your target role — making your learning specific and purposeful.</p>
+        <p>Your AI industry experts will connect every concept they teach to how it's actually used in your target role — making your learning specific and purposeful.</p>
       </div>
       {clusters.map(cluster => {
         const clusterCareers = careers.filter(c => c.cluster === cluster);
@@ -1699,7 +1713,7 @@ function CareerChangeView({ student, careerProfile, onProceed, onTalkToTutor, on
         </div>
 
         <h2 className="career-change-heading">Before you change paths…</h2>
-        <p className="career-change-sub">Help us understand why you want to switch. This helps your tutors and helps us improve Bversity.</p>
+        <p className="career-change-sub">Help us understand why you want to switch. This helps your experts and helps us improve Bversity.</p>
 
         <div className="career-change-reasons">
           {CHANGE_REASONS.map(r => (
@@ -1741,7 +1755,7 @@ function CareerChangeView({ student, careerProfile, onProceed, onTalkToTutor, on
             {saving ? 'Saving...' : 'Continue to change path →'}
           </button>
           <button className="career-change-tutor-btn" onClick={onTalkToTutor}>
-            Talk to my tutor first
+            Talk to my expert first
           </button>
         </div>
       </div>
@@ -3457,10 +3471,18 @@ function CertificateView({ student, subject, onBack, onStudy }) {
 
   const handleLinkedIn = () => {
     if (!cert) return;
-    const text = encodeURIComponent(
-      `I just completed "${cert.subject_name}" at Bversity — India's AI Native University for Biotech & Life Sciences! Credential ID: BVG-${cert.credential_id}`
-    );
-    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=https://bversity.io&summary=${text}`, '_blank');
+    const verifyUrl = `https://university.bversity.io/verify/BVG-${cert.credential_id}`;
+    const date = cert.completion_date ? new Date(cert.completion_date) : new Date();
+    const params = new URLSearchParams({
+      startTask: 'CERTIFICATION_NAME',
+      name: `${cert.subject_name} — Bversity`,
+      organizationName: 'Bversity',
+      issueYear: String(date.getFullYear()),
+      issueMonth: String(date.getMonth() + 1),
+      certUrl: verifyUrl,
+      certId: `BVG-${cert.credential_id}`,
+    });
+    window.open(`https://www.linkedin.com/profile/add?${params.toString()}`, '_blank');
   };
 
   if (loading) return <div className="certificate-view"><div className="certificate-loading">Verifying certificate eligibility…</div></div>;
@@ -3506,9 +3528,8 @@ function CertificateView({ student, subject, onBack, onStudy }) {
       <div className="certificate-parchment">
         <div className="cert-inner-border">
 
-          {/* Bversity logo */}
           <div className="cert-p-logo">
-            <div className="cert-p-logo-wordmark">Bv<span>≈</span>rsity</div>
+            <img src="/logo-3.png" alt="Bversity" className="cert-p-logo-img" />
             <div className="cert-p-logo-sub">School of Biosciences</div>
           </div>
 
@@ -3568,11 +3589,251 @@ function CertificateView({ student, subject, onBack, onStudy }) {
           ⬇ Download PDF
         </button>
         <button className="cert-action-btn cert-action-linkedin" onClick={handleLinkedIn}>
-          Share on LinkedIn
+          Add to LinkedIn Profile
+        </button>
+        <button className="cert-action-btn cert-action-copy" onClick={() => {
+          navigator.clipboard.writeText(`https://university.bversity.io/verify/BVG-${cert.credential_id}`);
+        }}>
+          Copy shareable link
         </button>
       </div>
       <div className="cert-credential-note">
-        Issued {dateLabel} · Credential no. BVG-{cert.credential_id}
+        Issued {dateLabel} · Credential no. BVG-{cert.credential_id} ·{' '}
+        <a href={`/verify/BVG-${cert.credential_id}`} target="_blank" rel="noreferrer" className="cert-verify-link">
+          Verify online
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ── Public Certificate (shareable verify page) ─────────────────────────────
+
+function PublicCertificateView({ credentialId }) {
+  const [cert, setCert] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/verify/${credentialId}`)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(d => { setCert(d); setLoading(false); })
+      .catch(() => { setNotFound(true); setLoading(false); });
+  }, [credentialId]);
+
+  if (loading) return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8f7f2' }}>
+      <div style={{ color: '#666', fontSize: '0.9rem' }}>Verifying certificate…</div>
+    </div>
+  );
+
+  if (notFound) return (
+    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f8f7f2', gap: '1rem' }}>
+      <div style={{ fontSize: '1rem', fontWeight: 600, color: '#333' }}>Certificate not found</div>
+      <div style={{ fontSize: '0.83rem', color: '#888' }}>The credential ID BVG-{credentialId} does not exist in our records.</div>
+      <a href="/" style={{ marginTop: '0.5rem', fontSize: '0.82rem', color: '#00A896' }}>Go to Bversity →</a>
+    </div>
+  );
+
+  const dateLabel = cert.completion_date
+    ? new Date(cert.completion_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+    : '';
+
+  return (
+    <div className="certificate-view" style={{ minHeight: '100vh', background: '#f8f7f2' }}>
+      <div className="cert-public-header">
+        <img src="/logo-3.png" alt="Bversity" style={{ height: '36px' }} />
+        <div className="cert-public-verified-badge">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          Verified Certificate
+        </div>
+      </div>
+
+      <div className="certificate-parchment">
+        <div className="cert-inner-border">
+          <div className="cert-p-logo">
+            <img src="/logo-3.png" alt="Bversity" className="cert-p-logo-img" />
+            <div className="cert-p-logo-sub">School of Biosciences</div>
+          </div>
+          <div className="cert-p-heading">CERTIFICATE</div>
+          <div className="cert-p-subheading">of Completion</div>
+          <div className="cert-p-divider" />
+          <div className="cert-p-certify-text">This is to certify that</div>
+          <div className="cert-p-student-name">{cert.student_name}</div>
+          <div className="cert-p-name-underline" />
+          <div className="cert-p-awarded-text">
+            has successfully completed all academic requirements and is hereby awarded the
+          </div>
+          <div className="cert-p-course">{cert.subject_name.toUpperCase()}</div>
+          <div className="cert-p-recognition">
+            in recognition of their perseverance, commitment, and scholarly achievement.
+            We celebrate this milestone and encourage you to carry forward the knowledge,
+            skills, and values acquired here, as you embark on the next chapter of your journey.
+          </div>
+          <div className="cert-p-sig-row">
+            <div className="cert-p-sig-person">
+              <div className="cert-p-sig-line" />
+              <div className="cert-p-sig-name">Raghul Jaganathan</div>
+              <div className="cert-p-sig-title">Chief Academic Officer,<br />Bversity School of Bioscience</div>
+            </div>
+            <div className="cert-p-seal">
+              <div className="cert-p-seal-icon"><IcoCertificate /></div>
+              <div className="cert-p-seal-text">BVERSITY{'\n'}WITH HONORS</div>
+            </div>
+            <div className="cert-p-sig-person">
+              <div className="cert-p-sig-line" />
+              <div className="cert-p-sig-name">Sudharsan V</div>
+              <div className="cert-p-sig-title">Chief Executive Officer,<br />Bversity School of Bioscience</div>
+            </div>
+          </div>
+          <div className="cert-p-cert-no">Graduation certificate no. BVG-{cert.credential_id}</div>
+          <div className="cert-p-legal">
+            Certificate by Bversity school of Bioscience (an entity by TABS Learning private limited. CIN : U80903TN2021PTC144439)
+          </div>
+        </div>
+      </div>
+
+      <div className="cert-public-footer">
+        <div className="cert-public-meta">
+          Issued {dateLabel} · Credential no. BVG-{cert.credential_id}
+        </div>
+        <a href="https://university.bversity.io" className="cert-public-cta">
+          Learn at Bversity →
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ── Learning Path Track ────────────────────────────────────────────────────
+
+function LearningPathTrack({ student, career, careerSubjects, progress, statuses, activeCount, onCardClick, onPause }) {
+  const completedCount = careerSubjects.filter(s => statuses[s.id]?.status === 'completed').length;
+  const totalSubjects  = careerSubjects.length;
+  const pathPct        = totalSubjects > 0 ? Math.round((completedCount / totalSubjects) * 100) : 0;
+
+  return (
+    <div className="lp-section">
+      <div className="lp-header">
+        <div className="lp-header-left">
+          <h2 className="lp-title">Your Learning Path</h2>
+          <p className="lp-subtitle">{career.title} · {totalSubjects} subjects · {careerSubjects.reduce((sum, s) => sum + (SUBJECT_HOURS[s.id] || 20), 0)} hrs estimated</p>
+        </div>
+        <div className="lp-progress-pill">
+          <span className="lp-progress-num">{completedCount}/{totalSubjects}</span>
+          <span className="lp-progress-label">completed</span>
+          <div className="lp-progress-bar-track">
+            <div className="lp-progress-bar-fill" style={{ width: `${pathPct}%` }} />
+          </div>
+        </div>
+      </div>
+
+      <div className="lp-track">
+        {careerSubjects.map((s, idx) => {
+          const st        = statuses[s.id]?.status;
+          const prog      = progress[s.id];
+          const covered   = prog?.covered_count  ?? 0;
+          const mastered  = prog?.mastered_count ?? 0;
+          const total     = prog?.total ?? 36;
+          const mastPct   = total > 0 ? Math.round((mastered / total) * 100) : 0;
+          const covPct    = total > 0 ? Math.round((covered  / total) * 100) : 0;
+          const started   = covered > 0;
+          const isActive  = st === 'active';
+          const isPaused  = st === 'paused';
+          const isDone    = st === 'completed';
+          const isLocked  = !isActive && !isPaused && !isDone;
+          const isCurrent = isActive || (isPaused && !isDone);
+          const hours     = SUBJECT_HOURS[s.id] || 20;
+
+          let stepState = 'locked';
+          if (isDone)   stepState = 'done';
+          else if (isActive) stepState = 'active';
+          else if (isPaused) stepState = 'paused';
+
+          let ctaLabel = 'Unlock to start';
+          if (isActive)  ctaLabel = started ? 'Continue →' : 'Start →';
+          if (isPaused)  ctaLabel = 'Resume →';
+          if (isDone)    ctaLabel = 'Review →';
+          if (isLocked && activeCount >= 2) ctaLabel = 'Pause a subject first';
+
+          return (
+            <div key={s.id} className={`lp-step lp-step--${stepState}`}>
+              <div className="lp-step-left">
+                <div className="lp-step-circle" style={isDone ? { background: s.color, borderColor: s.color } : isCurrent ? { borderColor: s.color, color: s.color } : {}}>
+                  {isDone ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    <span>{idx + 1}</span>
+                  )}
+                </div>
+                {idx < careerSubjects.length - 1 && (
+                  <div className="lp-step-line" style={isDone ? { background: s.color } : {}} />
+                )}
+              </div>
+
+              <div className="lp-step-card" onClick={() => onCardClick(s)} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && onCardClick(s)}>
+                <div className="lp-step-card-top">
+                  <div className="lp-step-icon" style={{ color: isDone || isActive ? s.color : undefined }}>
+                    {SUBJECT_ICONS[s.id]}
+                  </div>
+                  <div className="lp-step-meta">
+                    <div className="lp-step-name">{s.name}</div>
+                    <div className="lp-step-info">
+                      <span>{total} concepts</span>
+                      <span className="lp-dot">·</span>
+                      <span>~{hours} hrs</span>
+                      <span className="lp-dot">·</span>
+                      <span style={{ color: s.color }}>{s.tutor}</span>
+                    </div>
+                  </div>
+                  <div className="lp-step-badges">
+                    {isDone   && <span className="lp-badge lp-badge--done">Completed</span>}
+                    {isActive && <span className="lp-badge lp-badge--active">In Progress</span>}
+                    {isPaused && <span className="lp-badge lp-badge--paused">Paused</span>}
+                    {isLocked && <span className="lp-badge lp-badge--locked">Locked</span>}
+                  </div>
+                </div>
+
+                {started && !isDone && (
+                  <div className="lp-step-progress">
+                    <div className="lp-step-bar-track">
+                      <div className="lp-step-bar-cov"  style={{ width: `${covPct}%`,  background: s.color + '40' }} />
+                      <div className="lp-step-bar-mast" style={{ width: `${mastPct}%`, background: s.color }} />
+                    </div>
+                    <span className="lp-step-pct" style={{ color: s.color }}>{mastered}/{total} mastered</span>
+                  </div>
+                )}
+                {isDone && (
+                  <div className="lp-step-progress">
+                    <div className="lp-step-bar-track">
+                      <div className="lp-step-bar-mast" style={{ width: '100%', background: s.color }} />
+                    </div>
+                    <span className="lp-step-pct" style={{ color: s.color }}>All {total} concepts mastered</span>
+                  </div>
+                )}
+
+                <div className="lp-step-footer">
+                  <span className="lp-step-desc">{s.description}</span>
+                  {!isLocked && (
+                    <button className="lp-step-cta" style={{ color: s.color, borderColor: s.color + '55' }}
+                      onClick={e => { e.stopPropagation(); onCardClick(s); }}>
+                      {ctaLabel}
+                    </button>
+                  )}
+                  {isActive && (
+                    <button className="lp-step-pause" onClick={e => { e.stopPropagation(); onPause(s); }}>
+                      Pause
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -3645,12 +3906,12 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
         {isFirstTime ? (
           <>
             <h1>Welcome to Bversity, <span>{student.name.split(' ')[0]}</span></h1>
-            <p>Your AI tutors will guide you through a structured curriculum adapted to you. Pick a subject to begin.</p>
+            <p>Your AI industry experts will guide you through a structured curriculum adapted to you. Pick a subject to begin.</p>
           </>
         ) : (
           <>
             <h1>Welcome back, <span>{student.name.split(' ')[0]}</span></h1>
-            <p>Your tutors remember where you left off. Pick a subject to continue.</p>
+            <p>Your experts remember where you left off. Pick a subject to continue.</p>
           </>
         )}
         {career ? (
@@ -3663,7 +3924,7 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
           </div>
         ) : (
           <div className="career-path-nudge" onClick={onViewPath} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && onViewPath()}>
-            <span className="career-path-nudge-icon"><IcoTarget /></span> Set your career destination — your tutors will personalise your learning path
+            <span className="career-path-nudge-icon"><IcoTarget /></span> Set your career destination — your experts will personalise your learning path
           </div>
         )}
         {activeCount > 0 && (
@@ -3677,26 +3938,16 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
 
       {career ? (
         <>
-          <div className="subjects-section">
-            <div className="subjects-section-header">
-              <h2 className="subjects-section-title">Your {career.title} Curriculum</h2>
-              <p className="subjects-section-sub">These subjects are core to your career path — work through them in order.</p>
-            </div>
-            <div className="subjects-grid">
-              {careerSubjects.map(s => (
-                <SubjectCard
-                  key={s.id}
-                  subject={s}
-                  progress={progress[s.id]}
-                  status={statuses[s.id]?.status}
-                  isRecommended={true}
-                  activeCount={activeCount}
-                  onClick={() => handleCardClick(s)}
-                  onPause={() => onPauseSubject(s)}
-                />
-              ))}
-            </div>
-          </div>
+          <LearningPathTrack
+            student={student}
+            career={career}
+            careerSubjects={careerSubjects}
+            progress={progress}
+            statuses={statuses}
+            activeCount={activeCount}
+            onCardClick={handleCardClick}
+            onPause={onPauseSubject}
+          />
 
           {exploreSubjects.length > 0 && (
             <div className="subjects-section subjects-section--explore">
@@ -3922,7 +4173,7 @@ function SubjectUnlockModal({ subject, mode, statuses, progress, student, isReco
           <>
             <div className="unlock-modal-body">
               <h3>Resume {subject.name}?</h3>
-              <p>You paused this subject earlier. Pick up right where you left off — your tutor remembers everything.</p>
+              <p>You paused this subject earlier. Pick up right where you left off — your expert remembers everything.</p>
             </div>
             <div className="unlock-modal-actions">
               <button className="unlock-modal-cancel" onClick={onCancel}>Not now</button>
@@ -4047,7 +4298,7 @@ function SubjectPauseView({ subject, student, onPaused, onCancel }) {
         </div>
 
         <h2 className="career-change-heading">Why are you pausing?</h2>
-        <p className="career-change-sub">Help your tutor understand. You can resume this subject any time.</p>
+        <p className="career-change-sub">Help your expert understand. You can resume this subject any time.</p>
 
         <div className="career-change-reasons">
           {PAUSE_REASONS.map(r => (
@@ -4514,7 +4765,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
 
       {isMock && (
         <div className="mock-banner">
-          <strong>Mock mode:</strong> Add your <code>ANTHROPIC_API_KEY</code> to <code>.env</code> to enable live AI tutoring.
+          <strong>Mock mode:</strong> Add your <code>ANTHROPIC_API_KEY</code> to <code>.env</code> to enable live AI expert sessions.
         </div>
       )}
 
@@ -4766,8 +5017,10 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
 
 export default function App() {
   const isAdminMode = window.location.hash === '#admin';
-
   if (isAdminMode) return <AdminView onBack={() => { window.location.hash = ''; }} />;
+
+  const verifyMatch = window.location.pathname.match(/^\/verify\/(?:BVG-)?([A-Z0-9]+)$/i);
+  if (verifyMatch) return <PublicCertificateView credentialId={verifyMatch[1].toUpperCase()} />;
 
   const [student, setStudent] = useState(getStoredStudent);
   const [screen, setScreen] = useState('welcome');

@@ -3052,12 +3052,38 @@ def get_certificate(student_id: str, subject_id: str):
         "student_name": student["name"],
         "subject_id": subject_id,
         "subject_name": SUBJECTS[subject_id]["name"],
-        "subject_tutor": SUBJECTS[subject_id]["tutor"],
+        "subject_expert": SUBJECTS[subject_id].get("tutor_name", ""),
         "concepts_covered": covered_count,
         "total_concepts": total,
         "completion_date": completion_date[:10],
         "credential_id": credential_id,
         "eligible": True,
+    }
+
+
+@app.get("/verify/{credential_id}")
+def verify_certificate(credential_id: str):
+    conn = get_db()
+    row = conn.execute(
+        """SELECT sc.student_id, sc.subject_id, sc.completed_at, s.name AS student_name
+           FROM subject_completions sc
+           JOIN students s ON s.id = sc.student_id
+           WHERE sc.credential_id = ?""",
+        (credential_id.upper(),)
+    ).fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(status_code=404, detail="Certificate not found")
+    subject = SUBJECTS.get(row["subject_id"], {})
+    return {
+        "student_name": row["student_name"],
+        "subject_id": row["subject_id"],
+        "subject_name": subject.get("name", row["subject_id"]),
+        "subject_expert": subject.get("tutor_name", ""),
+        "completion_date": row["completed_at"][:10] if row["completed_at"] else "",
+        "credential_id": credential_id.upper(),
+        "eligible": True,
+        "verified": True,
     }
 
 
