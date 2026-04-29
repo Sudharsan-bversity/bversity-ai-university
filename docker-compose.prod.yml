@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+    volumes:
+      - db_data:/data
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_PATH=/data/bversity.db
+      - SUBMISSIONS_DIR=/data/submissions
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL}
+      - ADMIN_KEY=${ADMIN_KEY}
+      - CHAT_RATE_LIMIT=${CHAT_RATE_LIMIT:-40}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-*}
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  db_data:
