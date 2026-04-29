@@ -3366,8 +3366,43 @@ class AccessWaitlistRequest(BaseModel):
     country: str = ""
     reason: str = ""
 
+async def send_waitlist_confirmation_email(to_email: str, name: str, position: int) -> bool:
+    first = name.split()[0]
+    body = (
+        _heading(f"You're on the Bversity waitlist, {first}!") +
+        _para(f"Thank you for your interest in Bversity — the world's first AI-Native Biotech University. "
+              f"We've received your application and you are <strong>#{position} on the waitlist</strong>.") +
+        _divider() +
+        _para("<strong>What happens next?</strong><br>"
+              "Our team reviews applications every week. When your spot opens up, you'll receive an email "
+              "with a link to activate your account and start learning immediately.") +
+        _para("In the meantime, explore what you'll be learning at "
+              "<a href='https://university.bversity.io' style='color:#00A896'>university.bversity.io</a>.") +
+        _divider() +
+        _small("Questions? Reply to this email — we read every one.")
+    )
+    return await _send_email(to_email, f"You're #{position} on the Bversity waitlist!", _email_wrap(body))
+
+async def send_access_granted_email(to_email: str, name: str) -> bool:
+    first = name.split()[0]
+    body = (
+        _heading(f"Your Bversity access is approved, {first}!") +
+        _para("Great news — we've reviewed your application and you've been granted access to Bversity. "
+              "You can now log in and start learning from the world's first AI-Native Biotech University.") +
+        _btn("Access Bversity Now →", "https://university.bversity.io") +
+        _divider() +
+        _para("<strong>How to get started:</strong><br>"
+              "1. Click the button above to open the platform.<br>"
+              "2. Enter your email address to receive a one-time verification code.<br>"
+              "3. Enter the code to log in — no password needed.<br>"
+              "4. Pick a subject and start your first AI tutoring session.") +
+        _divider() +
+        _small("Your email address is already approved. If you have any trouble logging in, reply to this email.")
+    )
+    return await _send_email(to_email, f"Your Bversity access is approved, {first}! 🎉", _email_wrap(body))
+
 @app.post("/request-access")
-def request_access(req: AccessWaitlistRequest):
+async def request_access(req: AccessWaitlistRequest, background_tasks: BackgroundTasks):
     if not req.name.strip() or not req.email.strip():
         raise HTTPException(status_code=400, detail="Name and email are required")
     conn = get_db()
@@ -3384,6 +3419,7 @@ def request_access(req: AccessWaitlistRequest):
     conn.commit()
     count = conn.execute("SELECT COUNT(*) as n FROM access_requests").fetchone()["n"]
     conn.close()
+    background_tasks.add_task(send_waitlist_confirmation_email, req.email.strip().lower(), req.name.strip(), count)
     return {"ok": True, "already_submitted": False, "position": count}
 
 @app.get("/waitlist-count")
@@ -3404,7 +3440,7 @@ def admin_get_access_requests(x_admin_key: str = Header(None)):
     return [dict(r) for r in rows]
 
 @app.post("/admin/approve-request/{request_id}")
-def admin_approve_request(request_id: str, x_admin_key: str = Header(None)):
+async def admin_approve_request(request_id: str, background_tasks: BackgroundTasks, x_admin_key: str = Header(None)):
     require_admin(x_admin_key)
     conn = get_db()
     req = conn.execute("SELECT * FROM access_requests WHERE id = ?", (request_id,)).fetchone()
@@ -3416,7 +3452,10 @@ def admin_approve_request(request_id: str, x_admin_key: str = Header(None)):
         conn.execute("INSERT INTO approved_emails (email, added_at) VALUES (?, ?)", (req["email"], datetime.utcnow().isoformat()))
     conn.execute("UPDATE access_requests SET status = 'approved' WHERE id = ?", (request_id,))
     conn.commit()
+    name  = req["name"]
+    email = req["email"]
     conn.close()
+    background_tasks.add_task(send_access_granted_email, email, name)
     return {"ok": True}
 
 @app.post("/admin/reject-request/{request_id}")
