@@ -154,6 +154,9 @@ def init_db():
         CREATE TABLE IF NOT EXISTS platform_feedback (
             id          TEXT PRIMARY KEY,
             student_id  TEXT NOT NULL,
+            q1          TEXT,
+            q2          TEXT,
+            q3          TEXT,
             rating      INTEGER NOT NULL,
             comment     TEXT,
             submitted_at TEXT NOT NULL
@@ -164,6 +167,18 @@ def init_db():
             questions_json  TEXT NOT NULL,
             generated_at    TEXT NOT NULL,
             PRIMARY KEY (subject_id, module_id)
+        );
+        CREATE TABLE IF NOT EXISTS access_requests (
+            id           TEXT PRIMARY KEY,
+            name         TEXT NOT NULL,
+            email        TEXT NOT NULL UNIQUE,
+            phone        TEXT,
+            university   TEXT,
+            year_of_study TEXT,
+            country      TEXT,
+            reason       TEXT,
+            status       TEXT NOT NULL DEFAULT 'pending',
+            submitted_at TEXT NOT NULL
         );
     """)
     for col in [
@@ -1298,17 +1313,23 @@ def build_system_prompt(subject: dict, student_name: str, is_first_visit: bool,
     voice_block = f"""
 
 ━━ HOW TO SPEAK TO {student_name} ━━
-You are in a live one-on-one conversation with a student. Speak like a human tutor, not a content generator.
+You are in a live one-on-one conversation. Speak like a human tutor, not a content generator.
 
-No markdown headers (##, ###). No emojis.
-Never open with filler: not "Great question!", not "Absolutely!", not "Sure!" — just answer.
-Short paragraphs: two to four sentences. One idea at a time.
-Bold a technical term only the first time you introduce it.
-When explaining something that has 3 or more discrete named items — hallmarks, steps, mechanisms, criteria, phases, types — use a bullet list. Format each bullet as: - **Term**: one sentence explanation. Otherwise write in prose.
-Numbered lists only for strict sequences (e.g. protocol steps). Bullets for everything else enumerable.
-End most responses with one question that moves {student_name} forward.
-Code blocks are fine for actual code or CLI commands. Inline backticks for technical names.
-Sound like someone who finds this genuinely fascinating."""
+FORMATTING RULES — follow strictly:
+- No markdown headers (##, ###). No emojis.
+- NEVER use em dashes (—) or long dashes anywhere in your response. Use a comma, colon, or rewrite the sentence instead.
+- Never open with filler: not "Great question!", not "Absolutely!", not "Sure!" — just answer.
+- Default to bullet points over prose paragraphs. If you are explaining something, list it. If you are describing a process, list it. Only write prose when it's a direct personal remark to {student_name} or a single-sentence answer.
+- Format content bullets as: - **Key term or idea**: explanation. Bold the key term.
+- For important points that {student_name} must remember, bold the whole phrase, not just the term: e.g. **This is the most important thing to understand here.**
+- Numbered lists only for strict sequences (protocol steps, ordered processes). Bullets for everything else.
+- Keep individual bullet points concise: one to two sentences max.
+- End most responses with one question that moves {student_name} forward.
+- Code blocks for actual code or CLI. Inline backticks for technical names.
+
+PERSONALISATION RULES:
+- Use {student_name}'s name naturally in your responses — not every sentence, but often enough that it feels like a real conversation. E.g. "So {student_name}, here's what makes this tricky..." or "The key insight for you, {student_name}, is..."
+- Make it feel like you are talking directly to one person, not broadcasting to a class."""
 
     curriculum = effective_curriculum(subject["id"], career)
     covered_set = set(covered_ids)
@@ -1319,7 +1340,7 @@ Sound like someone who finds this genuinely fascinating."""
         if c["id"] in mastered_set:    status = "✓✓"
         elif c["id"] in covered_set:   status = "✓ "
         else:                          status = "○ "
-        curriculum_lines.append(f"  {status} {i}. {c['name']} — {c['desc']}")
+        curriculum_lines.append(f"  {status} {i}. {c['name']}: {c['desc']}")
         if next_concept is None and c["id"] not in covered_set:
             next_concept = c
 
@@ -3297,6 +3318,9 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
 
 class FeedbackRequest(BaseModel):
     student_id: str
+    q1: str = ""
+    q2: str = ""
+    q3: str = ""
     rating: int
     comment: str = ""
 
@@ -3310,8 +3334,8 @@ def submit_feedback(req: FeedbackRequest):
         conn.close()
         return {"ok": True}
     conn.execute(
-        "INSERT INTO platform_feedback (id, student_id, rating, comment, submitted_at) VALUES (?, ?, ?, ?, ?)",
-        (str(uuid.uuid4()), req.student_id, req.rating, req.comment.strip(), datetime.utcnow().isoformat()),
+        "INSERT INTO platform_feedback (id, student_id, q1, q2, q3, rating, comment, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        (str(uuid.uuid4()), req.student_id, req.q1.strip(), req.q2.strip(), req.q3.strip(), req.rating, req.comment.strip(), datetime.utcnow().isoformat()),
     )
     conn.commit()
     conn.close()
@@ -3322,10 +3346,84 @@ def admin_get_feedback(x_admin_key: str = Header(None)):
     require_admin(x_admin_key)
     conn = get_db()
     rows = conn.execute("""
-        SELECT f.id, f.student_id, s.name, s.email, f.rating, f.comment, f.submitted_at
+        SELECT f.id, f.student_id, s.name, s.email, f.q1, f.q2, f.q3, f.rating, f.comment, f.submitted_at
         FROM platform_feedback f
         LEFT JOIN students s ON s.id = f.student_id
         ORDER BY f.submitted_at DESC
     """).fetchall()
     conn.close()
     return [dict(r) for r in rows]
+
+
+# ── Waitlist / Access Requests ────────────────────────────────────────────────
+
+class AccessWaitlistRequest(BaseModel):
+    name: str
+    email: str
+    phone: str = ""
+    university: str = ""
+    year_of_study: str = ""
+    country: str = ""
+    reason: str = ""
+
+@app.post("/request-access")
+def request_access(req: AccessWaitlistRequest):
+    if not req.name.strip() or not req.email.strip():
+        raise HTTPException(status_code=400, detail="Name and email are required")
+    conn = get_db()
+    existing = conn.execute("SELECT id FROM access_requests WHERE email = ?", (req.email.strip().lower(),)).fetchone()
+    if existing:
+        count = conn.execute("SELECT COUNT(*) as n FROM access_requests").fetchone()["n"]
+        conn.close()
+        return {"ok": True, "already_submitted": True, "position": count}
+    request_id = str(uuid.uuid4())
+    conn.execute(
+        "INSERT INTO access_requests (id, name, email, phone, university, year_of_study, country, reason, status, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)",
+        (request_id, req.name.strip(), req.email.strip().lower(), req.phone.strip(), req.university.strip(), req.year_of_study.strip(), req.country.strip(), req.reason.strip(), datetime.utcnow().isoformat()),
+    )
+    conn.commit()
+    count = conn.execute("SELECT COUNT(*) as n FROM access_requests").fetchone()["n"]
+    conn.close()
+    return {"ok": True, "already_submitted": False, "position": count}
+
+@app.get("/waitlist-count")
+def waitlist_count():
+    conn = get_db()
+    count = conn.execute("SELECT COUNT(*) as n FROM access_requests").fetchone()["n"]
+    conn.close()
+    return {"count": count}
+
+@app.get("/admin/access-requests")
+def admin_get_access_requests(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT * FROM access_requests ORDER BY submitted_at DESC"
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+@app.post("/admin/approve-request/{request_id}")
+def admin_approve_request(request_id: str, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    req = conn.execute("SELECT * FROM access_requests WHERE id = ?", (request_id,)).fetchone()
+    if not req:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Request not found")
+    existing = conn.execute("SELECT email FROM approved_emails WHERE email = ?", (req["email"],)).fetchone()
+    if not existing:
+        conn.execute("INSERT INTO approved_emails (email, added_at) VALUES (?, ?)", (req["email"], datetime.utcnow().isoformat()))
+    conn.execute("UPDATE access_requests SET status = 'approved' WHERE id = ?", (request_id,))
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+@app.post("/admin/reject-request/{request_id}")
+def admin_reject_request(request_id: str, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    conn.execute("UPDATE access_requests SET status = 'rejected' WHERE id = ?", (request_id,))
+    conn.commit()
+    conn.close()
+    return {"ok": True}

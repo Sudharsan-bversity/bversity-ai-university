@@ -356,16 +356,7 @@ function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfil
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <svg className="sidebar-waves" viewBox="0 0 52 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M0,3 Q13,-1 26,3 Q39,7 52,3 L52,12 Q39,16 26,12 Q13,8 0,12 Z" fill="#72CFC0"/>
-          <path d="M0,13 Q13,9 26,13 Q39,17 52,13 L52,22 Q39,26 26,22 Q13,18 0,22 Z" fill="#2EA08F"/>
-          <path d="M0,23 Q13,19 26,23 Q39,27 52,23 L52,32 Q39,36 26,32 Q13,28 0,32 Z" fill="#402E32"/>
-        </svg>
-        <div className="sidebar-logo-sep" />
-        <div className="sidebar-wordmark">
-          <span className="sidebar-bversity">Bversity</span>
-          <span className="sidebar-school">School of Bioscience</span>
-        </div>
+        <img src="/logo-3.png" alt="Bversity" className="sidebar-logo-img" />
       </div>
 
       <nav className="sidebar-nav">
@@ -888,51 +879,67 @@ function OnboardingView({ student, onComplete }) {
 // ── Welcome Screen ─────────────────────────────────────────────────────────
 
 function WelcomeScreen({ onGetStarted }) {
+  const [waitlistCount, setWaitlistCount] = useState(null);
+  const [showWaitlist, setShowWaitlist]   = useState(false);
+
+  useEffect(() => {
+    fetch('/api/waitlist-count')
+      .then(r => r.json())
+      .then(d => setWaitlistCount(d.count))
+      .catch(() => {});
+  }, []);
+
+  if (showWaitlist) {
+    return <WaitlistForm onBack={() => setShowWaitlist(false)} onCountUpdate={setWaitlistCount} />;
+  }
+
   return (
     <div className="welcome-screen">
-      <div className="welcome-bg-blob" />
+      <video className="welcome-video-bg" autoPlay muted loop playsInline>
+        <source src="/hero-video.mp4" type="video/mp4" />
+      </video>
+      <div className="welcome-video-overlay" />
 
       <header className="welcome-header">
-        <div className="welcome-brand">
-          <svg viewBox="0 0 52 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="welcome-waves">
-            <path d="M0,3 Q13,-1 26,3 Q39,7 52,3 L52,12 Q39,16 26,12 Q13,8 0,12 Z" fill="#72CFC0"/>
-            <path d="M0,13 Q13,9 26,13 Q39,17 52,13 L52,22 Q39,26 26,22 Q13,18 0,22 Z" fill="#2EA08F"/>
-            <path d="M0,23 Q13,19 26,23 Q39,27 52,23 L52,32 Q39,36 26,32 Q13,28 0,32 Z" fill="#402E32"/>
-          </svg>
-          <div className="welcome-wordmark">
-            <span className="welcome-bversity">Bversity</span>
-            <span className="welcome-school">School of Bioscience</span>
-          </div>
-        </div>
-        <div className="welcome-invite-badge">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-          </svg>
-          Invite-only
-        </div>
+        <img src="/logo-3.png" alt="Bversity" className="welcome-logo-img" />
       </header>
 
-      <div className="welcome-hero">
-        <div className="welcome-tag">AI-Native · Biotech & Life Sciences</div>
-        <h1 className="welcome-headline">
-          Learn from the world's best<br />
-          <span className="welcome-headline-accent">biotech AI tutors</span>
-        </h1>
-        <p className="welcome-subline">
-          Master bioinformatics, genomics, drug discovery, and more —
-          through one-on-one AI tutoring sessions with expert-trained models.
-        </p>
-        <button className="welcome-cta" onClick={onGetStarted}>
-          Access your courses
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M5 12h14M12 5l7 7-7 7"/>
-          </svg>
-        </button>
+      <div className="welcome-content-block">
+        <div className="welcome-hero">
+          <div className="welcome-tag">AI-Native University · Biotech &amp; Life Sciences</div>
+          <h1 className="welcome-headline">
+            Learn from the world's first<br />
+            <span className="welcome-headline-accent">AI-Native Biotech University</span>
+          </h1>
+          <p className="welcome-subline">
+            Master bioinformatics, genomics, drug discovery, and more
+            through one-on-one AI tutoring with expert-trained models.
+          </p>
+          <div className="welcome-cta-row">
+            <button className="welcome-cta" onClick={onGetStarted}>
+              Access your courses
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+            <button className="welcome-cta-ghost" onClick={() => setShowWaitlist(true)}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              Request Access
+            </button>
+          </div>
+          {waitlistCount !== null && waitlistCount > 0 && (
+            <p className="welcome-waitlist-count">
+              Join {waitlistCount} {waitlistCount === 1 ? 'person' : 'people'} already on the waitlist
+            </p>
+          )}
+        </div>
 
-        <div className="welcome-subjects">
+        <div className="welcome-subjects-bar">
           {SUBJECTS.map(s => (
-            <span key={s.id} className="welcome-subject-pill" style={{ background: s.color + '12', color: s.color, borderColor: s.color + '30' }}>
-              <span className="welcome-pill-icon" style={{ color: s.color }}>{SUBJECT_ICONS[s.id]}</span>
+            <span key={s.id} className="welcome-subject-pill">
+              <span className="welcome-pill-icon">{SUBJECT_ICONS[s.id]}</span>
               {s.name}
             </span>
           ))}
@@ -942,6 +949,117 @@ function WelcomeScreen({ onGetStarted }) {
       <footer className="welcome-footer">
         Powered by Anthropic Claude · Built for the next generation of biotech leaders
       </footer>
+    </div>
+  );
+}
+
+// ── Waitlist Form ────────────────────────────────────────────────────────────
+
+function WaitlistForm({ onBack, onCountUpdate }) {
+  const [form, setForm] = useState({ name: '', email: '', phone: '', university: '', year_of_study: '', country: '', reason: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted]   = useState(null);
+  const [error, setError]           = useState('');
+
+  function set(field, val) { setForm(prev => ({ ...prev, [field]: val })); }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (!form.name.trim() || !form.email.trim()) { setError('Name and email are required'); return; }
+    setSubmitting(true); setError('');
+    try {
+      const res = await fetch('/api/request-access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Something went wrong');
+      setSubmitted(data);
+      if (onCountUpdate) onCountUpdate(data.position);
+    } catch (err) { setError(err.message); }
+    finally { setSubmitting(false); }
+  }
+
+  if (submitted) {
+    return (
+      <div className="waitlist-screen">
+        <div className="waitlist-card">
+          <div className="waitlist-success-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#16c1ad" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+          <h2 className="waitlist-success-title">You're on the waitlist!</h2>
+          <p className="waitlist-success-pos">You are <strong>#{submitted.position}</strong> on the waitlist</p>
+          <p className="waitlist-success-sub">We'll send you an invite to <strong>{form.email}</strong> when your spot opens up. We review applications every week.</p>
+          <button className="waitlist-back-btn" onClick={onBack}>Back to home</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="waitlist-screen">
+      <video className="welcome-video-bg" autoPlay muted loop playsInline>
+        <source src="/hero-video.mp4" type="video/mp4" />
+      </video>
+      <div className="welcome-video-overlay" />
+      <div className="waitlist-card">
+        <button className="waitlist-back-link" onClick={onBack}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Back
+        </button>
+        <img src="/logo-3.png" alt="Bversity" className="waitlist-logo" />
+        <h2 className="waitlist-title">Request Access</h2>
+        <p className="waitlist-subtitle">Tell us a bit about yourself and we'll review your application.</p>
+
+        <form className="waitlist-form" onSubmit={handleSubmit}>
+          <div className="waitlist-row">
+            <div className="waitlist-field">
+              <label>Full Name *</label>
+              <input value={form.name} onChange={e => set('name', e.target.value)} placeholder="Your full name" required />
+            </div>
+            <div className="waitlist-field">
+              <label>Email *</label>
+              <input type="email" value={form.email} onChange={e => set('email', e.target.value)} placeholder="your@email.com" required />
+            </div>
+          </div>
+          <div className="waitlist-row">
+            <div className="waitlist-field">
+              <label>Phone Number</label>
+              <input type="tel" value={form.phone} onChange={e => set('phone', e.target.value)} placeholder="+1 234 567 890" />
+            </div>
+            <div className="waitlist-field">
+              <label>Country</label>
+              <input value={form.country} onChange={e => set('country', e.target.value)} placeholder="Where are you from?" />
+            </div>
+          </div>
+          <div className="waitlist-row">
+            <div className="waitlist-field">
+              <label>University / Institution</label>
+              <input value={form.university} onChange={e => set('university', e.target.value)} placeholder="Your university or workplace" />
+            </div>
+            <div className="waitlist-field">
+              <label>Year of Study</label>
+              <select value={form.year_of_study} onChange={e => set('year_of_study', e.target.value)}>
+                <option value="">Select year</option>
+                {YEAR_OPTIONS.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="waitlist-field waitlist-field-full">
+            <label>Why do you want access?</label>
+            <textarea value={form.reason} onChange={e => set('reason', e.target.value)} placeholder="Tell us about your goals, what you're hoping to learn, or what drew you to Bversity..." rows={4} />
+          </div>
+          {error && <p className="waitlist-error">{error}</p>}
+          <button type="submit" className="waitlist-submit" disabled={submitting}>
+            {submitting ? 'Submitting...' : 'Join the Waitlist →'}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
@@ -993,16 +1111,7 @@ function LoginView({ onLogin, onBack }) {
       <div className="login-left">
         <div className="login-left-inner">
           <div className="login-brand">
-            <svg className="logo-waves login-logo-waves" viewBox="0 0 52 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0,3 Q13,-1 26,3 Q39,7 52,3 L52,12 Q39,16 26,12 Q13,8 0,12 Z" fill="#72CFC0"/>
-              <path d="M0,13 Q13,9 26,13 Q39,17 52,13 L52,22 Q39,26 26,22 Q13,18 0,22 Z" fill="#2EA08F"/>
-              <path d="M0,23 Q13,19 26,23 Q39,27 52,23 L52,32 Q39,36 26,32 Q13,28 0,32 Z" fill="#402E32"/>
-            </svg>
-            <div className="logo-divider login-logo-divider" />
-            <div className="logo-wordmark">
-              <span className="logo-bversity login-logo-bversity">Bversity</span>
-              <span className="logo-school login-logo-school">School of Bioscience</span>
-            </div>
+            <img src="/logo-3.png" alt="Bversity" className="login-logo-img" />
           </div>
           <h2 className="login-headline">Learn biotech like you're already working in it.</h2>
           <p className="login-subline">Industry faculty from Broad Institute, Illumina, Genentech, and Novartis — teaching the exact curriculum your career requires.</p>
@@ -1894,27 +2003,53 @@ function CapstoneView({ subject, student, onBack }) {
 
 // ── Feedback Modal ──────────────────────────────────────────────────────────
 
+const FEEDBACK_Q1_OPTIONS = [
+  'Preparing for a job or internship',
+  'Supplementing my college coursework',
+  'Exploring biotech as a career',
+  'Upskilling while working',
+  'Just curious / exploring',
+];
+const FEEDBACK_Q2_OPTIONS = [
+  'The AI tutor explaining concepts',
+  'The structured learning path',
+  'The quizzes testing my knowledge',
+  'The career roadmap',
+  'The certificate at the end',
+];
+const FEEDBACK_Q3_OPTIONS = [
+  'Much better than what I\'ve used before',
+  'About the same',
+  'Worse in some ways',
+  'This is my first structured learning tool',
+];
+
 function FeedbackModal({ studentId, onClose }) {
+  const [q1, setQ1]           = useState('');
+  const [q2, setQ2]           = useState('');
+  const [q3, setQ3]           = useState('');
   const [rating, setRating]   = useState(0);
   const [hovered, setHovered] = useState(0);
   const [comment, setComment] = useState('');
   const [saving, setSaving]   = useState(false);
   const [done, setDone]       = useState(false);
 
+  const canSubmit = q1 && q2 && q3 && rating > 0;
+
   async function handleSubmit(e) {
     e.preventDefault();
-    if (rating === 0) return;
+    if (!canSubmit) return;
     setSaving(true);
     try {
       await fetch('/api/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ student_id: studentId, rating, comment }),
+        body: JSON.stringify({ student_id: studentId, q1, q2, q3, rating, comment }),
       });
     } catch {}
     setSaving(false);
     setDone(true);
-    setTimeout(onClose, 1800);
+    setTimeout(onClose, 2000);
   }
 
   return (
@@ -1926,37 +2061,74 @@ function FeedbackModal({ studentId, onClose }) {
             <p>Thank you for your feedback!</p>
           </div>
         ) : (
-          <>
-            <h3 className="feedback-modal-title">How's your experience so far?</h3>
-            <p className="feedback-modal-sub">You've been learning for 30 minutes — we'd love your thoughts.</p>
-            <div className="feedback-stars">
-              {[1,2,3,4,5].map(n => (
-                <button
-                  key={n}
-                  type="button"
-                  className={`feedback-star ${n <= (hovered || rating) ? 'active' : ''}`}
-                  onMouseEnter={() => setHovered(n)}
-                  onMouseLeave={() => setHovered(0)}
-                  onClick={() => setRating(n)}
-                >★</button>
-              ))}
+          <form onSubmit={handleSubmit}>
+            <h3 className="feedback-modal-title">Quick feedback</h3>
+            <p className="feedback-modal-sub">You've been learning for 30 minutes — takes less than a minute.</p>
+
+            <div className="feedback-question">
+              <p className="feedback-q-label">Why are you using this platform?</p>
+              <div className="feedback-options">
+                {FEEDBACK_Q1_OPTIONS.map(opt => (
+                  <button key={opt} type="button"
+                    className={`feedback-option ${q1 === opt ? 'selected' : ''}`}
+                    onClick={() => setQ1(opt)}>{opt}</button>
+                ))}
+              </div>
             </div>
-            <form onSubmit={handleSubmit}>
+
+            <div className="feedback-question">
+              <p className="feedback-q-label">What's been most valuable?</p>
+              <div className="feedback-options">
+                {FEEDBACK_Q2_OPTIONS.map(opt => (
+                  <button key={opt} type="button"
+                    className={`feedback-option ${q2 === opt ? 'selected' : ''}`}
+                    onClick={() => setQ2(opt)}>{opt}</button>
+                ))}
+              </div>
+            </div>
+
+            <div className="feedback-question">
+              <p className="feedback-q-label">How does this compare to other learning resources?</p>
+              <div className="feedback-options">
+                {FEEDBACK_Q3_OPTIONS.map(opt => (
+                  <button key={opt} type="button"
+                    className={`feedback-option ${q3 === opt ? 'selected' : ''}`}
+                    onClick={() => setQ3(opt)}>{opt}</button>
+                ))}
+              </div>
+            </div>
+
+            <div className="feedback-question">
+              <p className="feedback-q-label">Overall rating</p>
+              <div className="feedback-stars">
+                {[1,2,3,4,5].map(n => (
+                  <button key={n} type="button"
+                    className={`feedback-star ${n <= (hovered || rating) ? 'active' : ''}`}
+                    onMouseEnter={() => setHovered(n)}
+                    onMouseLeave={() => setHovered(0)}
+                    onClick={() => setRating(n)}>★</button>
+                ))}
+              </div>
+            </div>
+
+            <div className="feedback-question">
+              <p className="feedback-q-label">One thing you'd change <span className="feedback-optional">(optional)</span></p>
               <textarea
                 className="feedback-textarea"
-                placeholder="What can we improve? (optional)"
+                placeholder="Your answer…"
                 value={comment}
                 onChange={e => setComment(e.target.value)}
-                rows={3}
+                rows={2}
               />
-              <div className="feedback-modal-actions">
-                <button type="button" className="feedback-skip-btn" onClick={onClose}>Skip</button>
-                <button type="submit" className="feedback-submit-btn" disabled={rating === 0 || saving}>
-                  {saving ? 'Sending…' : 'Submit'}
-                </button>
-              </div>
-            </form>
-          </>
+            </div>
+
+            <div className="feedback-modal-actions">
+              <button type="button" className="feedback-skip-btn" onClick={onClose}>Skip</button>
+              <button type="submit" className="feedback-submit-btn" disabled={!canSubmit || saving}>
+                {saving ? 'Sending…' : 'Submit'}
+              </button>
+            </div>
+          </form>
         )}
       </div>
     </div>
@@ -2007,6 +2179,9 @@ function AdminView({ onBack }) {
   const [analyticsHeatSubject, setAnalyticsHeatSubject] = useState('');
   const [analyticsHeatmap, setAnalyticsHeatmap]       = useState([]);
   const [feedbackList, setFeedbackList]               = useState([]);
+  const [waitlistRequests, setWaitlistRequests]       = useState([]);
+  const [waitlistLoading, setWaitlistLoading]         = useState(false);
+  const [waitlistAction, setWaitlistAction]           = useState(null);
 
   async function handleAuth(e) {
     e.preventDefault();
@@ -2188,6 +2363,33 @@ function AdminView({ onBack }) {
     } catch {}
   }
 
+  async function loadWaitlist() {
+    setWaitlistLoading(true);
+    try {
+      const r = await fetch('/api/admin/access-requests', { headers: { 'X-Admin-Key': adminKey } });
+      if (r.ok) setWaitlistRequests(await r.json());
+    } catch {}
+    finally { setWaitlistLoading(false); }
+  }
+
+  async function handleWaitlistApprove(id) {
+    setWaitlistAction(id + '_approve');
+    try {
+      const r = await fetch(`/api/admin/approve-request/${id}`, { method: 'POST', headers: { 'X-Admin-Key': adminKey } });
+      if (r.ok) setWaitlistRequests(prev => prev.map(w => w.id === id ? { ...w, status: 'approved' } : w));
+    } catch {}
+    finally { setWaitlistAction(null); }
+  }
+
+  async function handleWaitlistReject(id) {
+    setWaitlistAction(id + '_reject');
+    try {
+      const r = await fetch(`/api/admin/reject-request/${id}`, { method: 'POST', headers: { 'X-Admin-Key': adminKey } });
+      if (r.ok) setWaitlistRequests(prev => prev.map(w => w.id === id ? { ...w, status: 'rejected' } : w));
+    } catch {}
+    finally { setWaitlistAction(null); }
+  }
+
   async function handleDownload(id, filename) {
     try {
       const res = await fetch(`/api/admin/submissions/${id}/download`, {
@@ -2229,15 +2431,7 @@ function AdminView({ onBack }) {
       <div className="admin-auth-screen">
         <div className="admin-auth-card">
           <div className="admin-auth-brand">
-            <svg className="admin-auth-waves" viewBox="0 0 52 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M0,3 Q13,-1 26,3 Q39,7 52,3 L52,12 Q39,16 26,12 Q13,8 0,12 Z" fill="#72CFC0"/>
-              <path d="M0,13 Q13,9 26,13 Q39,17 52,13 L52,22 Q39,26 26,22 Q13,18 0,22 Z" fill="#2EA08F"/>
-              <path d="M0,23 Q13,19 26,23 Q39,27 52,23 L52,32 Q39,36 26,32 Q13,28 0,32 Z" fill="#402E32"/>
-            </svg>
-            <div className="admin-auth-wordmark">
-              <span className="admin-auth-bversity">Bversity</span>
-              <span className="admin-auth-school">School of Bioscience</span>
-            </div>
+            <img src="/logo-1.png" alt="Bversity" className="admin-auth-logo-img" />
           </div>
 
           <div className="admin-auth-divider" />
@@ -2313,6 +2507,12 @@ function AdminView({ onBack }) {
           <button className={`admin-tab ${tab === 'emails' ? 'active' : ''}`} onClick={() => { setTab('emails'); loadEmailPreview(); }}>Emails</button>
           <button className={`admin-tab ${tab === 'access' ? 'active' : ''}`} onClick={() => setTab('access')}>Access</button>
           <button className={`admin-tab ${tab === 'feedback' ? 'active' : ''}`} onClick={() => { setTab('feedback'); loadFeedback(); }}>Feedback</button>
+          <button className={`admin-tab ${tab === 'waitlist' ? 'active' : ''}`} onClick={() => { setTab('waitlist'); loadWaitlist(); }}>
+            Waitlist
+            {waitlistRequests.filter(w => w.status === 'pending').length > 0 && (
+              <span className="admin-tab-badge">{waitlistRequests.filter(w => w.status === 'pending').length}</span>
+            )}
+          </button>
         </div>
       </div>
 
@@ -2894,6 +3094,66 @@ function AdminView({ onBack }) {
         </div>
       )}
 
+      {tab === 'waitlist' && (
+        <div className="admin-content">
+          <div className="feedback-admin-section">
+            <h3 className="access-title">Waitlist Requests</h3>
+            <p className="access-subtitle">
+              {waitlistRequests.length} total · {waitlistRequests.filter(w => w.status === 'pending').length} pending review
+            </p>
+            {waitlistLoading ? (
+              <p className="access-empty">Loading...</p>
+            ) : waitlistRequests.length === 0 ? (
+              <p className="access-empty">No requests yet. Share the waitlist link to start collecting applications.</p>
+            ) : (
+              <div className="waitlist-admin-list">
+                {waitlistRequests.map(w => (
+                  <div key={w.id} className={`waitlist-admin-row waitlist-status-${w.status}`}>
+                    <div className="waitlist-admin-header">
+                      <div className="waitlist-admin-identity">
+                        <span className="waitlist-admin-name">{w.name}</span>
+                        <span className="waitlist-admin-email">{w.email}</span>
+                        {w.phone && <span className="waitlist-admin-phone">{w.phone}</span>}
+                      </div>
+                      <span className={`waitlist-admin-status waitlist-status-badge-${w.status}`}>{w.status}</span>
+                    </div>
+                    <div className="waitlist-admin-details">
+                      {w.university && <span><strong>University:</strong> {w.university}</span>}
+                      {w.year_of_study && <span><strong>Year:</strong> {w.year_of_study}</span>}
+                      {w.country && <span><strong>Country:</strong> {w.country}</span>}
+                      <span><strong>Applied:</strong> {new Date(w.submitted_at).toLocaleDateString()}</span>
+                    </div>
+                    {w.reason && (
+                      <div className="waitlist-admin-reason">
+                        <strong>Why they want access:</strong> {w.reason}
+                      </div>
+                    )}
+                    {w.status === 'pending' && (
+                      <div className="waitlist-admin-actions">
+                        <button
+                          className="waitlist-approve-btn"
+                          disabled={waitlistAction === w.id + '_approve'}
+                          onClick={() => handleWaitlistApprove(w.id)}
+                        >
+                          {waitlistAction === w.id + '_approve' ? 'Approving...' : '✓ Approve & Grant Access'}
+                        </button>
+                        <button
+                          className="waitlist-reject-btn"
+                          disabled={waitlistAction === w.id + '_reject'}
+                          onClick={() => handleWaitlistReject(w.id)}
+                        >
+                          {waitlistAction === w.id + '_reject' ? 'Rejecting...' : '✕ Reject'}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {tab === 'feedback' && (
         <div className="admin-content">
           <div className="feedback-admin-section">
@@ -2909,11 +3169,14 @@ function AdminView({ onBack }) {
                       <span className="feedback-admin-name">{f.name || 'Unknown'}</span>
                       <span className="feedback-admin-email">{f.email}</span>
                       <span className="feedback-admin-date">{new Date(f.submitted_at).toLocaleDateString()}</span>
+                      <span className="feedback-admin-stars">{'★'.repeat(f.rating)}{'☆'.repeat(5 - f.rating)}</span>
                     </div>
-                    <div className="feedback-admin-stars">
-                      {'★'.repeat(f.rating)}{'☆'.repeat(5 - f.rating)}
+                    <div className="feedback-admin-answers">
+                      {f.q1 && <div className="feedback-admin-answer"><span className="feedback-admin-q">Why using platform:</span> {f.q1}</div>}
+                      {f.q2 && <div className="feedback-admin-answer"><span className="feedback-admin-q">Most valuable:</span> {f.q2}</div>}
+                      {f.q3 && <div className="feedback-admin-answer"><span className="feedback-admin-q">vs. other resources:</span> {f.q3}</div>}
+                      {f.comment && <div className="feedback-admin-answer"><span className="feedback-admin-q">Would change:</span> <em>"{f.comment}"</em></div>}
                     </div>
-                    {f.comment && <p className="feedback-admin-comment">"{f.comment}"</p>}
                   </div>
                 ))}
               </div>
