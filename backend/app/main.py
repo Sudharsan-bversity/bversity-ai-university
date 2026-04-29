@@ -151,6 +151,13 @@ def init_db():
             credential_id TEXT NOT NULL,
             PRIMARY KEY (student_id, subject_id)
         );
+        CREATE TABLE IF NOT EXISTS platform_feedback (
+            id          TEXT PRIMARY KEY,
+            student_id  TEXT NOT NULL,
+            rating      INTEGER NOT NULL,
+            comment     TEXT,
+            submitted_at TEXT NOT NULL
+        );
         CREATE TABLE IF NOT EXISTS module_quiz_questions (
             subject_id      TEXT NOT NULL,
             module_id       TEXT NOT NULL,
@@ -3284,3 +3291,41 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
         "modules_completed":       modules_completed,
         "subject_completed":       subject_completed,
     }
+
+
+# ── Platform Feedback ─────────────────────────────────────────────────────────
+
+class FeedbackRequest(BaseModel):
+    student_id: str
+    rating: int
+    comment: str = ""
+
+@app.post("/feedback")
+def submit_feedback(req: FeedbackRequest):
+    if req.rating < 1 or req.rating > 5:
+        raise HTTPException(status_code=400, detail="Rating must be 1-5")
+    conn = get_db()
+    existing = conn.execute("SELECT id FROM platform_feedback WHERE student_id = ?", (req.student_id,)).fetchone()
+    if existing:
+        conn.close()
+        return {"ok": True}
+    conn.execute(
+        "INSERT INTO platform_feedback (id, student_id, rating, comment, submitted_at) VALUES (?, ?, ?, ?, ?)",
+        (str(uuid.uuid4()), req.student_id, req.rating, req.comment.strip(), datetime.utcnow().isoformat()),
+    )
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+@app.get("/admin/feedback")
+def admin_get_feedback(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT f.id, f.student_id, s.name, s.email, f.rating, f.comment, f.submitted_at
+        FROM platform_feedback f
+        LEFT JOIN students s ON s.id = f.student_id
+        ORDER BY f.submitted_at DESC
+    """).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]

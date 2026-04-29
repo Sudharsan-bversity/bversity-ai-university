@@ -1892,6 +1892,77 @@ function CapstoneView({ subject, student, onBack }) {
   );
 }
 
+// ── Feedback Modal ──────────────────────────────────────────────────────────
+
+function FeedbackModal({ studentId, onClose }) {
+  const [rating, setRating]   = useState(0);
+  const [hovered, setHovered] = useState(0);
+  const [comment, setComment] = useState('');
+  const [saving, setSaving]   = useState(false);
+  const [done, setDone]       = useState(false);
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    if (rating === 0) return;
+    setSaving(true);
+    try {
+      await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: studentId, rating, comment }),
+      });
+    } catch {}
+    setSaving(false);
+    setDone(true);
+    setTimeout(onClose, 1800);
+  }
+
+  return (
+    <div className="feedback-modal-overlay" onClick={onClose}>
+      <div className="feedback-modal" onClick={e => e.stopPropagation()}>
+        {done ? (
+          <div className="feedback-modal-done">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <p>Thank you for your feedback!</p>
+          </div>
+        ) : (
+          <>
+            <h3 className="feedback-modal-title">How's your experience so far?</h3>
+            <p className="feedback-modal-sub">You've been learning for 30 minutes — we'd love your thoughts.</p>
+            <div className="feedback-stars">
+              {[1,2,3,4,5].map(n => (
+                <button
+                  key={n}
+                  type="button"
+                  className={`feedback-star ${n <= (hovered || rating) ? 'active' : ''}`}
+                  onMouseEnter={() => setHovered(n)}
+                  onMouseLeave={() => setHovered(0)}
+                  onClick={() => setRating(n)}
+                >★</button>
+              ))}
+            </div>
+            <form onSubmit={handleSubmit}>
+              <textarea
+                className="feedback-textarea"
+                placeholder="What can we improve? (optional)"
+                value={comment}
+                onChange={e => setComment(e.target.value)}
+                rows={3}
+              />
+              <div className="feedback-modal-actions">
+                <button type="button" className="feedback-skip-btn" onClick={onClose}>Skip</button>
+                <button type="submit" className="feedback-submit-btn" disabled={rating === 0 || saving}>
+                  {saving ? 'Sending…' : 'Submit'}
+                </button>
+              </div>
+            </form>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Admin View ─────────────────────────────────────────────────────────────
 
 function AdminView({ onBack }) {
@@ -1935,6 +2006,7 @@ function AdminView({ onBack }) {
   const [analyticsLoading, setAnalyticsLoading]       = useState(false);
   const [analyticsHeatSubject, setAnalyticsHeatSubject] = useState('');
   const [analyticsHeatmap, setAnalyticsHeatmap]       = useState([]);
+  const [feedbackList, setFeedbackList]               = useState([]);
 
   async function handleAuth(e) {
     e.preventDefault();
@@ -2109,6 +2181,13 @@ function AdminView({ onBack }) {
     } catch {}
   }
 
+  async function loadFeedback() {
+    try {
+      const r = await fetch('/api/admin/feedback', { headers: { 'X-Admin-Key': adminKey } });
+      if (r.ok) setFeedbackList(await r.json());
+    } catch {}
+  }
+
   async function handleDownload(id, filename) {
     try {
       const res = await fetch(`/api/admin/submissions/${id}/download`, {
@@ -2233,6 +2312,7 @@ function AdminView({ onBack }) {
           <button className={`admin-tab ${tab === 'analytics' ? 'active' : ''}`} onClick={() => { setTab('analytics'); loadAnalytics(); }}>Analytics</button>
           <button className={`admin-tab ${tab === 'emails' ? 'active' : ''}`} onClick={() => { setTab('emails'); loadEmailPreview(); }}>Emails</button>
           <button className={`admin-tab ${tab === 'access' ? 'active' : ''}`} onClick={() => setTab('access')}>Access</button>
+          <button className={`admin-tab ${tab === 'feedback' ? 'active' : ''}`} onClick={() => { setTab('feedback'); loadFeedback(); }}>Feedback</button>
         </div>
       </div>
 
@@ -2810,6 +2890,34 @@ function AdminView({ onBack }) {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {tab === 'feedback' && (
+        <div className="admin-content">
+          <div className="feedback-admin-section">
+            <h3 className="access-title">Student Feedback</h3>
+            <p className="access-subtitle">{feedbackList.length} response{feedbackList.length !== 1 ? 's' : ''} collected after 30 min of platform use.</p>
+            {feedbackList.length === 0 ? (
+              <p className="access-empty">No feedback submitted yet.</p>
+            ) : (
+              <div className="feedback-admin-list">
+                {feedbackList.map(f => (
+                  <div key={f.id} className="feedback-admin-row">
+                    <div className="feedback-admin-meta">
+                      <span className="feedback-admin-name">{f.name || 'Unknown'}</span>
+                      <span className="feedback-admin-email">{f.email}</span>
+                      <span className="feedback-admin-date">{new Date(f.submitted_at).toLocaleDateString()}</span>
+                    </div>
+                    <div className="feedback-admin-stars">
+                      {'★'.repeat(f.rating)}{'☆'.repeat(5 - f.rating)}
+                    </div>
+                    {f.comment && <p className="feedback-admin-comment">"{f.comment}"</p>}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -4408,6 +4516,7 @@ export default function App() {
   const [view, setView] = useState('home');
   const [isReturning, setIsReturning] = useState(!!getStoredStudent());
   const [careerProfile, setCareerProfile] = useState(null);
+  const [showFeedback, setShowFeedback] = useState(false);
 
   const [showOnboarding, setShowOnboarding] = useState(false);
 
@@ -4424,6 +4533,22 @@ export default function App() {
     const s = getStoredStudent();
     if (s) fetchCareerProfile(s.id);
   }, []);
+
+  useEffect(() => {
+    if (!student) return;
+    const doneKey = `bv_feedback_done_${student.id}`;
+    const timeKey = `bv_time_spent_${student.id}`;
+    if (localStorage.getItem(doneKey)) return;
+    const interval = setInterval(() => {
+      const spent = parseInt(localStorage.getItem(timeKey) || '0', 10) + 60;
+      localStorage.setItem(timeKey, String(spent));
+      if (spent >= 1800) {
+        clearInterval(interval);
+        setShowFeedback(true);
+      }
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [student]);
 
   function handleLogin(data) {
     const s = { id: data.student_id || data.id, name: data.name };
@@ -4612,6 +4737,15 @@ export default function App() {
         />
       )}
       </main>
+      {showFeedback && student && (
+        <FeedbackModal
+          studentId={student.id}
+          onClose={() => {
+            setShowFeedback(false);
+            localStorage.setItem(`bv_feedback_done_${student.id}`, '1');
+          }}
+        />
+      )}
     </div>
   );
 }

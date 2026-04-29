@@ -5743,3 +5743,76 @@ body {
 .admin-ai-crit-name { font-weight: 600; color: var(--text-secondary); grid-column: 1; }
 .admin-ai-crit-marks { font-weight: 700; color: #a08eff; text-align: right; grid-column: 2; grid-row: 1; }
 .admin-ai-crit-comment { color: var(--text-muted); grid-column: 1 / -1; line-height: 1.4; }
+
+/* ── Feedback Modal ───────────────────────────────────────────────────────── */
+.feedback-modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000; padding: 1rem;
+}
+.feedback-modal {
+  background: var(--bg-white); border-radius: 16px;
+  padding: 2rem; width: 100%; max-width: 420px;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+}
+.feedback-modal-title {
+  font-size: 1.2rem; font-weight: 700; color: var(--text-primary);
+  margin: 0 0 0.4rem;
+}
+.feedback-modal-sub {
+  font-size: 0.88rem; color: var(--text-secondary); margin: 0 0 1.4rem;
+}
+.feedback-stars {
+  display: flex; gap: 6px; margin-bottom: 1.2rem;
+}
+.feedback-star {
+  background: none; border: none; cursor: pointer;
+  font-size: 2rem; color: var(--border); transition: color 0.1s;
+  line-height: 1; padding: 0;
+}
+.feedback-star.active { color: #f5a623; }
+.feedback-textarea {
+  width: 100%; border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 10px 12px; font-size: 0.9rem; color: var(--text-primary);
+  background: var(--bg); resize: none; box-sizing: border-box;
+  font-family: inherit; margin-bottom: 1rem;
+}
+.feedback-textarea:focus { outline: none; border-color: var(--teal); }
+.feedback-modal-actions {
+  display: flex; gap: 10px; justify-content: flex-end;
+}
+.feedback-skip-btn {
+  background: none; border: 1.5px solid var(--border); border-radius: 8px;
+  padding: 9px 18px; font-size: 0.88rem; color: var(--text-secondary);
+  cursor: pointer; font-weight: 600;
+}
+.feedback-submit-btn {
+  background: var(--teal); color: #fff; border: none; border-radius: 8px;
+  padding: 9px 22px; font-size: 0.88rem; font-weight: 700; cursor: pointer;
+}
+.feedback-submit-btn:disabled { opacity: 0.55; cursor: default; }
+.feedback-modal-done {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 0.8rem; padding: 1rem 0;
+  font-size: 1rem; font-weight: 600; color: var(--text-primary);
+}
+
+/* ── Admin Feedback Tab ───────────────────────────────────────────────────── */
+.feedback-admin-section { max-width: 700px; }
+.feedback-admin-list { display: flex; flex-direction: column; gap: 12px; margin-top: 1rem; }
+.feedback-admin-row {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 16px;
+}
+.feedback-admin-meta {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+.feedback-admin-name { font-weight: 700; font-size: 0.9rem; color: var(--text-primary); }
+.feedback-admin-email { font-size: 0.82rem; color: var(--text-secondary); }
+.feedback-admin-date { font-size: 0.78rem; color: var(--text-muted); margin-left: auto; }
+.feedback-admin-stars { color: #f5a623; font-size: 1.1rem; margin-bottom: 6px; }
+.feedback-admin-comment {
+  font-size: 0.88rem; color: var(--text-secondary);
+  font-style: italic; margin: 0; line-height: 1.5;
+}
