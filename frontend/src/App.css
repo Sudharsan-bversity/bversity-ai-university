@@ -917,21 +917,22 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255,255,255,0.07);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 20px;
-  padding: 5px 13px;
+  background: none;
+  border: none;
+  border-radius: 0;
+  padding: 3px 10px;
   font-size: 0.78rem;
-  font-weight: 500;
-  color: rgba(255,255,255,0.75);
+  font-weight: 400;
+  color: rgba(255,255,255,0.5);
   white-space: nowrap;
-  backdrop-filter: blur(6px);
+  cursor: default;
+  user-select: none;
 }
 
 .welcome-pill-icon {
   display: inline-flex;
   align-items: center;
-  opacity: 0.8;
+  opacity: 0.5;
 }
 
 .welcome-pill-icon svg { width: 12px; height: 12px; }
