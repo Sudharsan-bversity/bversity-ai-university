@@ -162,6 +162,61 @@ const CAREER_ICONS = {
       <polyline points="17 6 23 6 23 12"/>
     </svg>
   ),
+  medical_affairs_associate: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+    </svg>
+  ),
+  genomics_commercial_specialist: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M7 20l4-16m2 16l4-16"/>
+      <path d="M3 8h18M3 16h18"/>
+    </svg>
+  ),
+  biotech_product_manager: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+      <polyline points="2 17 12 22 22 17"/>
+      <polyline points="2 12 12 17 22 12"/>
+    </svg>
+  ),
+  life_sciences_consultant: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/>
+      <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0018 8 6 6 0 006 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 018.91 14"/>
+    </svg>
+  ),
+  biotech_venture_analyst: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="1" x2="12" y2="23"/>
+      <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+    </svg>
+  ),
+  licensing_partnerships: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/>
+    </svg>
+  ),
+  ai_drug_discovery: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="4" r="2"/><circle cx="4" cy="20" r="2"/><circle cx="20" cy="20" r="2"/>
+      <path d="M12 6l-6.5 12M12 6l6.5 12M6 18h12"/>
+    </svg>
+  ),
+  precision_medicine_specialist: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1" fill="currentColor"/>
+      <line x1="12" y1="2" x2="12" y2="7"/><line x1="12" y1="17" x2="12" y2="22"/>
+      <line x1="2" y1="12" x2="7" y2="12"/><line x1="17" y1="12" x2="22" y2="12"/>
+    </svg>
+  ),
+  biotech_founder: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/>
+      <path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/>
+      <path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0M15 21v-5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/>
+    </svg>
+  ),
 };
 
 const IcoLock = () => (
@@ -335,7 +390,7 @@ function subjectById(id) { return SUBJECTS.find(s => s.id === id); }
 
 // ── Sidebar ────────────────────────────────────────────────────────────────
 
-function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfile, onCommunity, onLogout, hasCareer, avatarColor }) {
+function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfile, onCommunity, onPrograms, onLogout, hasCareer, avatarColor }) {
   const navItems = [
     {
       id: 'home',
@@ -365,12 +420,20 @@ function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfil
       onClick: onCommunity,
       active: view === 'community',
     },
+    {
+      id: 'programs',
+      label: 'Degree Programs',
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>,
+      onClick: onPrograms,
+      active: view === 'programs',
+      badge: 'Admissions Open',
+    },
   ];
 
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <img src="/logo-3.png" alt="Bversity" className="sidebar-logo-img" />
+        <img src="/logo-1.png" alt="Bversity" className="sidebar-logo-img" />
       </div>
 
       <nav className="sidebar-nav">
@@ -382,6 +445,7 @@ function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfil
           >
             <span className="sidebar-item-icon">{item.icon}</span>
             <span className="sidebar-item-label">{item.label}</span>
+            {item.badge && <span className="sidebar-item-badge">{item.badge}</span>}
           </button>
         ))}
       </nav>
@@ -892,9 +956,111 @@ function OnboardingView({ student, onComplete }) {
 
 // ── Welcome Screen ─────────────────────────────────────────────────────────
 
+function HowItWorksOverlay({ onClose, onGetStarted, onRequestAccess }) {
+  return (
+    <div className="hiw-backdrop" onClick={onClose}>
+      <div className="hiw-panel" onClick={e => e.stopPropagation()}>
+        <button className="hiw-close" onClick={onClose}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+
+        <div className="hiw-header">
+          <div className="hiw-tag">Bversity Adaptive Learning Intelligence</div>
+          <h2 className="hiw-title">The world's first AI-Native University for Biotech &amp; Life Sciences</h2>
+          <p className="hiw-desc">
+            A new kind of university built for the AI era. Not lectures, not video courses, not a fixed curriculum. Bversity is designed from the ground up to be living, adaptive, and career-first. The university of what's next, built to accelerate your career readiness in the fast-evolving life sciences industry.
+          </p>
+        </div>
+
+        <div className="hiw-section-label">This is where Bversity will lead you to</div>
+        <div className="hiw-use-cases">
+          <div className="hiw-use-case">
+            <div className="hiw-uc-icon">🧭</div>
+            <div className="hiw-uc-body">
+              <div className="hiw-uc-title">Career Direction</div>
+              <div className="hiw-uc-desc">Not sure what your biology degree leads to? Explore real career paths in biotech, from Drug Discovery Scientist to Bioinformatics Engineer, and find exactly where you fit.</div>
+            </div>
+          </div>
+          <div className="hiw-use-case">
+            <div className="hiw-uc-icon">🏭</div>
+            <div className="hiw-uc-body">
+              <div className="hiw-uc-title">Industry Readiness</div>
+              <div className="hiw-uc-desc">Build the domain knowledge that companies actually look for. Go beyond university theory and learn how clinical trials, genomics pipelines, and drug discovery work in the real world.</div>
+            </div>
+          </div>
+          <div className="hiw-use-case">
+            <div className="hiw-uc-icon">⚡</div>
+            <div className="hiw-uc-body">
+              <div className="hiw-uc-title">Stay Ahead of Emerging Fields</div>
+              <div className="hiw-uc-desc">Longevity science, AI in drug discovery, RNA therapeutics. Bversity keeps you current on the fastest-moving areas of biotech that are reshaping the industry right now.</div>
+            </div>
+          </div>
+          <div className="hiw-use-case">
+            <div className="hiw-uc-icon">🚀</div>
+            <div className="hiw-uc-body">
+              <div className="hiw-uc-title">Become a Forward Deployed Engineer</div>
+              <div className="hiw-uc-desc">The most in-demand hybrid role in biotech. Bridge science and technology, and deploy AI solutions directly inside pharma and biotech companies alongside scientists.</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="hiw-section-label">How it works</div>
+        <div className="hiw-steps">
+          <div className="hiw-step">
+            <div className="hiw-step-num">1</div>
+            <div className="hiw-step-text">
+              <strong>Pick your career path</strong>
+              <span>Choose the role you're building towards from curated biotech career tracks.</span>
+            </div>
+          </div>
+          <div className="hiw-step">
+            <div className="hiw-step-num">2</div>
+            <div className="hiw-step-text">
+              <strong>See exactly what it takes</strong>
+              <span>Your personalized learning track shows every skill and subject you need — in the right order.</span>
+            </div>
+          </div>
+          <div className="hiw-step">
+            <div className="hiw-step-num">3</div>
+            <div className="hiw-step-text">
+              <strong>Learn through Bversity</strong>
+              <span>Bversity's adaptive learning intelligence guides you through each subject with interactive, expert-level depth.</span>
+            </div>
+          </div>
+          <div className="hiw-step">
+            <div className="hiw-step-num">4</div>
+            <div className="hiw-step-text">
+              <strong>Graduate career-ready</strong>
+              <span>Earn verified credentials, build a portfolio of domain knowledge, and walk into interviews with confidence.</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="hiw-footer-ctas">
+          <button className="welcome-cta" onClick={onRequestAccess}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            Request Access
+          </button>
+          <button className="welcome-cta-ghost" onClick={onGetStarted}>
+            Sign In
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function WelcomeScreen({ onGetStarted }) {
   const [waitlistCount, setWaitlistCount] = useState(null);
   const [showWaitlist, setShowWaitlist]   = useState(false);
+  const [showHowItWorks, setShowHowItWorks] = useState(false);
 
   useEffect(() => {
     fetch('/api/waitlist-count')
@@ -916,6 +1082,7 @@ function WelcomeScreen({ onGetStarted }) {
 
       <header className="welcome-header">
         <img src="/logo-3.png" alt="Bversity" className="welcome-logo-img" />
+        <button className="welcome-signin-btn" onClick={onGetStarted}>Sign In</button>
       </header>
 
       <div className="welcome-content-block">
@@ -930,8 +1097,8 @@ function WelcomeScreen({ onGetStarted }) {
             through one-on-one sessions with AI-powered industry experts.
           </p>
           <div className="welcome-cta-row">
-            <button className="welcome-cta" onClick={onGetStarted}>
-              Access your courses
+            <button className="welcome-cta" onClick={() => setShowHowItWorks(true)}>
+              How it works
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M5 12h14M12 5l7 7-7 7"/>
               </svg>
@@ -963,6 +1130,14 @@ function WelcomeScreen({ onGetStarted }) {
       <footer className="welcome-footer">
         Powered by Anthropic Claude · Built for the next generation of biotech leaders
       </footer>
+
+      {showHowItWorks && (
+        <HowItWorksOverlay
+          onClose={() => setShowHowItWorks(false)}
+          onGetStarted={onGetStarted}
+          onRequestAccess={() => { setShowHowItWorks(false); setShowWaitlist(true); }}
+        />
+      )}
     </div>
   );
 }
@@ -1206,12 +1381,90 @@ function LoginView({ onLogin, onBack }) {
   );
 }
 
+// ── Career Preview Modal ───────────────────────────────────────────────────
+
+function CareerPreviewModal({ career, currentCareerId, saving, onConfirm, onClose }) {
+  const color = CLUSTER_COLORS[career.cluster] || '#00A896';
+  const relevantSubjects = SUBJECTS.filter(s => (career.relevant_subjects || []).includes(s.id));
+  const totalHours = relevantSubjects.reduce((sum, s) => sum + (SUBJECT_HOURS[s.id] || 20), 0);
+  const isCurrentPath = currentCareerId === career.id;
+
+  return (
+    <div className="cpv-backdrop" onClick={onClose}>
+      <div className="cpv-panel" onClick={e => e.stopPropagation()}>
+        <button className="cpv-close" onClick={onClose}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+
+        <div className="cpv-header">
+          <div className="cpv-cluster-badge" style={{ color, background: color + '18', border: `1px solid ${color}44` }}>
+            {career.cluster}
+          </div>
+          <div className="cpv-icon-wrap" style={{ color }}>
+            {CAREER_ICONS[career.id]}
+          </div>
+          <h2 className="cpv-title">{career.title}</h2>
+          <div className="cpv-salary-row">
+            <div className="cpv-salary-item">
+              <span className="cpv-salary-flag">🇺🇸</span>
+              <span className="cpv-salary-label">US Market</span>
+              <span className="cpv-salary-value">{career.salary_range}</span>
+            </div>
+            {career.salary_range_india && (
+              <div className="cpv-salary-item">
+                <span className="cpv-salary-flag">🇮🇳</span>
+                <span className="cpv-salary-label">India Market</span>
+                <span className="cpv-salary-value">{career.salary_range_india}</span>
+              </div>
+            )}
+          </div>
+          <p className="cpv-desc">{career.description}</p>
+        </div>
+
+        <div className="cpv-subjects-label">
+          Subjects in this path
+          <span className="cpv-hours-pill">{totalHours} hrs total</span>
+        </div>
+        <div className="cpv-subjects">
+          {relevantSubjects.map((s, i) => (
+            <div key={s.id} className="cpv-subject-row">
+              <span className="cpv-subject-num">{i + 1}</span>
+              <span className="cpv-subject-icon" style={{ color: s.color }}>{SUBJECT_ICONS[s.id]}</span>
+              <span className="cpv-subject-name">{s.name}</span>
+              <span className="cpv-subject-hrs">{SUBJECT_HOURS[s.id] || 20}h</span>
+            </div>
+          ))}
+        </div>
+
+        {career.min_qualification && (
+          <div className="cpv-qual">Minimum qualification: <strong>{career.min_qualification}</strong></div>
+        )}
+
+        <div className="cpv-actions">
+          <button className="cpv-cancel" onClick={onClose}>Cancel</button>
+          <button
+            className="cpv-confirm"
+            style={{ background: color, boxShadow: `0 4px 16px ${color}44` }}
+            onClick={() => onConfirm(career.id)}
+            disabled={!!saving}
+          >
+            {saving ? 'Setting path...' : isCurrentPath ? 'Current path' : 'Choose this path →'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Career Select ──────────────────────────────────────────────────────────
 
 function CareerSelectView({ student, currentCareerId, onSelect, onBack }) {
   const [careers, setCareers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(null);
+  const [preview, setPreview] = useState(null);
 
   useEffect(() => {
     fetch('/api/careers').then(r => r.json()).then(data => {
@@ -1220,7 +1473,7 @@ function CareerSelectView({ student, currentCareerId, onSelect, onBack }) {
     }).catch(() => setLoading(false));
   }, []);
 
-  async function handleSelect(careerId) {
+  async function handleConfirm(careerId) {
     setSaving(careerId);
     try {
       const res = await fetch(`/api/profile/${student.id}`, {
@@ -1266,22 +1519,25 @@ function CareerSelectView({ student, currentCareerId, onSelect, onBack }) {
                   key={career.id}
                   className={`career-card ${currentCareerId === career.id ? 'selected' : ''}`}
                   style={{ '--career-color': color }}
-                  onClick={() => handleSelect(career.id)}
+                  onClick={() => setPreview(career)}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSelect(career.id)}
+                  onKeyDown={(e) => e.key === 'Enter' && setPreview(career)}
                 >
                   <div className="career-card-top">
                     <span className="career-card-icon">{CAREER_ICONS[career.id]}</span>
                     <div className="career-card-meta">
                       <div className="career-card-title">{career.title}</div>
-                      <div className="career-card-salary">{career.salary_range}</div>
+                      <div className="career-card-salary">
+                        <span className="career-card-salary-us">🇺🇸 {career.salary_range}</span>
+                        {career.salary_range_india && <span className="career-card-salary-in">🇮🇳 {career.salary_range_india}</span>}
+                      </div>
                     </div>
                     {currentCareerId === career.id && <span className="career-selected-check">✓</span>}
                   </div>
                   <p className="career-card-desc">{career.description}</p>
                   <div className="career-card-cta">
-                    {saving === career.id ? 'Setting path...' : currentCareerId === career.id ? 'Current path' : 'Choose this path →'}
+                    {currentCareerId === career.id ? 'Current path' : 'View path →'}
                   </div>
                 </div>
               ))}
@@ -1289,6 +1545,16 @@ function CareerSelectView({ student, currentCareerId, onSelect, onBack }) {
           </div>
         );
       })}
+
+      {preview && (
+        <CareerPreviewModal
+          career={preview}
+          currentCareerId={currentCareerId}
+          saving={saving}
+          onConfirm={handleConfirm}
+          onClose={() => setPreview(null)}
+        />
+      )}
     </div>
   );
 }
@@ -1344,8 +1610,13 @@ function CareerMapView({ student, careerProfile, onBack, onChangePath, onStudy }
         <p className="career-map-desc">{career.description}</p>
         <div className="career-hero-badges">
           <div className="career-salary-badge" style={{ borderColor: clusterColor, color: clusterColor }}>
-            {career.salary_range}
+            🇺🇸 {career.salary_range}
           </div>
+          {career.salary_range_india && (
+            <div className="career-salary-badge" style={{ borderColor: clusterColor, color: clusterColor }}>
+              🇮🇳 {career.salary_range_india}
+            </div>
+          )}
           {career.min_qualification && (
             <div className={`career-qual-badge ${career.min_qualification === 'BTech / BSc' ? 'qual-btech' : career.min_qualification === 'Any background' ? 'qual-any' : 'qual-msc'}`}>
               {career.min_qualification === 'BTech / BSc' ? 'Starts with BTech / BSc' :
@@ -1539,6 +1810,109 @@ function LearnerPopup({ learner, onClose }) {
             <span className="map-popup-no-links">No links added yet</span>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Degree Programs ────────────────────────────────────────────────────────
+
+function DegreeProgramsView() {
+  const programs = [
+    {
+      id: 'msc',
+      degree: 'M.Sc',
+      title: 'M.Sc Biotechnology',
+      specialization: 'Specializations in Genomics, AI/ML & Clinical Ops',
+      duration: '2 Years Full-Time',
+      format: 'Campus + Industry Immersion',
+      intake: 'August 2026',
+      deadline: 'Round 1 closes April 30, 2026',
+      description: "India's first industry-immersive M.Sc built with CROs and GCCs. Year 1 is campus-based academics; Year 2 is fully work-embedded with real capstone projects in drug discovery, variant-calling pipelines, and clinical datasets.",
+      highlights: ['85% placed within 6 months', '50+ life sciences placement partners', '14-day international immersion in France', 'Industry co-designed modules'],
+      stat: '85% placed',
+      image: 'https://images.unsplash.com/photo-1576086213369-97a306d36557?w=800&h=320&fit=crop&q=80',
+      color: '#0d9e8c',
+      tag: 'Admissions Open',
+      url: 'https://bversity.io/msc-biotech',
+    },
+    {
+      id: 'bsc',
+      degree: 'B.Sc (Hons)',
+      title: 'B.Sc (Hons) Bioengineering',
+      specialization: 'Tracks: GenAI & ML for Life Sciences · Bioinformatics & Genomics',
+      duration: '4 Years Full-Time',
+      format: 'Campus + 1 Year Industry Residency',
+      intake: 'August 2026',
+      deadline: 'Applications close June 30, 2026',
+      description: "India's first B.Sc built for the era of AI-powered biology. 67% of the degree is hands-on through labs, projects, and industry work. Choose between a Research track (MSc/PhD) or Industry track (direct placement) in your final semester.",
+      highlights: ['67% hands-on labs & projects', '4 capstone project options', '14-day international immersion in France', 'Curriculum updated every 6 months'],
+      stat: '67% hands-on',
+      image: 'https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=800&h=320&fit=crop&q=80',
+      color: '#4338CA',
+      tag: 'Admissions Open',
+      url: 'https://bversity.io/bsc-biotech',
+    },
+  ];
+
+  return (
+    <div className="deg-view">
+      <div className="deg-hero">
+        <div className="deg-hero-tag">Degree Programs by Bversity</div>
+        <h1 className="deg-hero-title">Earn a degree from the world's first AI-Native Biotech University</h1>
+        <p className="deg-hero-sub">Fully online, career-mapped, and powered by Bversity's adaptive learning intelligence. Recognised credentials for the next generation of life sciences professionals.</p>
+      </div>
+
+      <div className="deg-cards">
+        {programs.map(p => (
+          <div key={p.id} className="deg-card" style={{ '--deg-color': p.color }}>
+            <div className="deg-card-banner">
+              <img src={p.image} alt={p.title} className="deg-card-banner-img" />
+              <div className="deg-card-banner-overlay" style={{ background: `linear-gradient(to top, ${p.color}ee 0%, ${p.color}88 40%, transparent 100%)` }} />
+              <div className="deg-card-banner-content">
+                <div className="deg-card-tag">{p.tag}</div>
+                <div className="deg-badge">{p.degree}</div>
+              </div>
+            </div>
+            <div className="deg-card-body">
+              <h2 className="deg-card-title">{p.title}</h2>
+              <div className="deg-card-spec">{p.specialization}</div>
+              <p className="deg-card-desc">{p.description}</p>
+              <div className="deg-card-meta">
+                <div className="deg-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  {p.duration}
+                </div>
+                <div className="deg-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                  Intake: {p.intake}
+                </div>
+                <div className="deg-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                  {p.format}
+                </div>
+              </div>
+              <div className="deg-highlights">
+                {p.highlights.map(h => (
+                  <div key={h} className="deg-highlight-item">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    {h}
+                  </div>
+                ))}
+              </div>
+              <div className="deg-card-footer">
+                <div className="deg-deadline">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  {p.deadline}
+                </div>
+                <a href={p.url} target="_blank" rel="noreferrer" className="deg-apply-btn" style={{ background: p.color }}>
+                  Learn more
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </a>
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -5162,6 +5536,7 @@ export default function App() {
         onCareerPath={handleCareerPath}
         onProfile={() => setView('profile')}
         onCommunity={() => setView('community')}
+        onPrograms={() => setView('programs')}
         onLogout={handleLogout}
         hasCareer={!!careerProfile?.career_id}
         avatarColor={careerProfile?.avatar_color}
@@ -5219,6 +5594,8 @@ export default function App() {
           student={student}
           onAddLocation={() => setView('profile')}
         />
+      ) : view === 'programs' ? (
+        <DegreeProgramsView />
       ) : view === 'career-select' ? (
         <CareerSelectView
           student={student}
