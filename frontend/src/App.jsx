@@ -4573,6 +4573,202 @@ const PAUSE_REASONS = [
   { id: 'career_changed', label: 'Career goals changed',        sub: 'This subject is less relevant now' },
 ];
 
+// ── Share Card ────────────────────────────────────────────────────────────────
+
+function drawRoundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.arcTo(x + w, y, x + w, y + r, r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+  ctx.lineTo(x + r, y + h);
+  ctx.arcTo(x, y + h, x, y + h - r, r);
+  ctx.lineTo(x, y + r);
+  ctx.arcTo(x, y, x + r, y, r);
+  ctx.closePath();
+}
+
+function generateShareCard({ name, careerTitle, score, completed, total, streak }) {
+  const W = 1200, H = 630;
+  const canvas = document.createElement('canvas');
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext('2d');
+
+  // Background
+  const bg = ctx.createLinearGradient(0, 0, W, H);
+  bg.addColorStop(0, '#0b1f2e');
+  bg.addColorStop(0.55, '#091e18');
+  bg.addColorStop(1, '#081510');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Teal glow (right side)
+  ctx.save();
+  ctx.globalAlpha = 0.15;
+  const glow = ctx.createRadialGradient(960, 200, 0, 960, 200, 420);
+  glow.addColorStop(0, '#16c1ad');
+  glow.addColorStop(1, 'rgba(22,193,173,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+
+  // Vertical divider
+  ctx.strokeStyle = 'rgba(22,193,173,0.15)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(760, 80); ctx.lineTo(760, H - 80); ctx.stroke();
+
+  // ── LEFT COLUMN ──────────────────────────────────────────
+  const TEAL = '#16c1ad';
+  const LX = 72;
+
+  // Accent bar
+  ctx.fillStyle = TEAL;
+  ctx.fillRect(LX, 64, 52, 4);
+
+  // Brand
+  ctx.fillStyle = TEAL;
+  ctx.font = 'bold 20px system-ui,-apple-system,sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('BVERSITY AI UNIVERSITY', LX, 105);
+
+  // Intro
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.font = '28px system-ui,-apple-system,sans-serif';
+  ctx.fillText(`Hi, I’m ${name.split(' ')[0]}`, LX, 195);
+
+  ctx.fillStyle = 'rgba(255,255,255,0.42)';
+  ctx.font = '24px system-ui,-apple-system,sans-serif';
+  ctx.fillText('Training to become a', LX, 238);
+
+  // Career title (word-wrapped)
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 56px system-ui,-apple-system,sans-serif';
+  const maxTitleW = 640;
+  const words = careerTitle.split(' ');
+  let line = '', ty = 318;
+  for (const w of words) {
+    const test = line ? `${line} ${w}` : w;
+    if (ctx.measureText(test).width > maxTitleW && line) {
+      ctx.fillText(line, LX, ty); line = w; ty += 68;
+    } else { line = test; }
+  }
+  ctx.fillText(line, LX, ty);
+
+  // Stats row
+  const statsY = 490;
+  const statItems = [
+    { val: `${score}%`,          lbl: 'Career Ready'  },
+    { val: `${completed}/${total}`, lbl: 'Subjects Done' },
+    ...(streak > 0 ? [{ val: `🔥 ${streak}`, lbl: 'Day Streak' }] : []),
+  ];
+  statItems.forEach((s, i) => {
+    const bx = LX + i * 190;
+    ctx.fillStyle = 'rgba(255,255,255,0.07)';
+    drawRoundRect(ctx, bx, statsY, 172, 88, 12); ctx.fill();
+    ctx.fillStyle = TEAL;
+    ctx.font = 'bold 28px system-ui,-apple-system,sans-serif';
+    ctx.fillText(s.val, bx + 16, statsY + 40);
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.font = '14px system-ui,-apple-system,sans-serif';
+    ctx.fillText(s.lbl, bx + 16, statsY + 65);
+  });
+
+  // Bottom tagline
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.font = '16px system-ui,-apple-system,sans-serif';
+  ctx.fillText('university.bversity.io', LX, H - 44);
+
+  // ── RIGHT COLUMN ─────────────────────────────────────────
+  const cx = 980, cy = 290, radius = 148, sw = 18;
+  const circ = 2 * Math.PI * radius;
+
+  // Track circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.lineWidth = sw;
+  ctx.stroke();
+
+  // Progress arc
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, -Math.PI / 2, -Math.PI / 2 + (score / 100) * Math.PI * 2);
+  ctx.strokeStyle = TEAL;
+  ctx.lineWidth = sw;
+  ctx.lineCap = 'round';
+  ctx.stroke();
+
+  // Score text
+  ctx.fillStyle = '#ffffff';
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 68px system-ui,-apple-system,sans-serif';
+  ctx.fillText(`${score}%`, cx, cy + 22);
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.font = '20px system-ui,-apple-system,sans-serif';
+  ctx.fillText('Career Ready', cx, cy + 58);
+
+  // Label below circle
+  ctx.fillStyle = 'rgba(255,255,255,0.3)';
+  ctx.font = '15px system-ui,-apple-system,sans-serif';
+  ctx.fillText('AI-native Biotech & Life Sciences', cx, H - 44);
+  ctx.textAlign = 'left';
+
+  return canvas;
+}
+
+function ShareCardModal({ student, careerProfile, progress, onClose }) {
+  const canvasRef = useRef(null);
+  const career = careerProfile?.career;
+  const readiness = computeReadiness(careerProfile, progress);
+  const score     = readiness?.score ?? 10;
+  const completed = readiness?.completed ?? 0;
+  const total     = readiness?.total ?? (career?.relevant_subjects?.length ?? 0);
+  const streak    = careerProfile?.streak_count ?? 0;
+  const careerTitle = career?.title ?? 'Life Sciences Professional';
+
+  useEffect(() => {
+    const c = generateShareCard({ name: student.name, careerTitle, score, completed, total, streak });
+    const preview = canvasRef.current;
+    if (!preview) return;
+    preview.width = c.width; preview.height = c.height;
+    preview.getContext('2d').drawImage(c, 0, 0);
+  }, []);
+
+  function handleDownload() {
+    const c = generateShareCard({ name: student.name, careerTitle, score, completed, total, streak });
+    const a = document.createElement('a');
+    a.download = 'bversity-journey.png';
+    a.href = c.toDataURL('image/png');
+    a.click();
+  }
+
+  const liUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent('https://university.bversity.io')}`;
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="share-card-modal" onClick={e => e.stopPropagation()}>
+        <div className="share-card-modal-header">
+          <h2>Share your journey</h2>
+          <button className="share-card-modal-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="share-card-preview-wrap">
+          <canvas ref={canvasRef} className="share-card-canvas" />
+        </div>
+        <p className="share-card-hint">Download the image and attach it to your LinkedIn post.</p>
+        <div className="share-card-actions">
+          <button className="share-card-download-btn" onClick={handleDownload}>↓ Download PNG</button>
+          <a className="share-card-linkedin-btn" href={liUrl} target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+            Share on LinkedIn
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── End Share Card ─────────────────────────────────────────────────────────────
+
 function computeReadiness(careerProfile, progress) {
   if (!careerProfile?.career) return null;
   const ids = careerProfile.career.relevant_subjects || [];
@@ -4647,6 +4843,7 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
   const [progress, setProgress]   = useState({});
   const [statuses, setStatuses]   = useState({});
   const [unlocking, setUnlocking] = useState(null); // { subject, mode: 'unlock'|'resume'|'at_cap' }
+  const [showShare, setShowShare] = useState(false);
 
   function refreshStatuses() {
     fetch(`/api/subjects/status/${student.id}`).then(r => r.json()).then(setStatuses).catch(() => {});
@@ -4718,12 +4915,18 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
           </>
         )}
         {career ? (
-          <div className="career-path-badge" onClick={onViewPath} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && onViewPath()}>
-            <span className="cpb-icon">{CAREER_ICONS[career.id]}</span>
-            <div className="cpb-text">
-              <div className="cpb-title">{career.title}</div>
-              <div className="cpb-sub">Your career destination · view path →</div>
+          <div className="career-path-badge-row">
+            <div className="career-path-badge" onClick={onViewPath} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && onViewPath()}>
+              <span className="cpb-icon">{CAREER_ICONS[career.id]}</span>
+              <div className="cpb-text">
+                <div className="cpb-title">{career.title}</div>
+                <div className="cpb-sub">Your career destination · view path →</div>
+              </div>
             </div>
+            <button className="share-journey-btn" onClick={() => setShowShare(true)} title="Share on LinkedIn">
+              <svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              Share journey
+            </button>
           </div>
         ) : (
           <div className="career-path-nudge" onClick={onViewPath} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && onViewPath()}>
@@ -4814,6 +5017,15 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
           onAfterUnlock={handleAfterUnlock}
           onPauseActive={handlePauseFromModal}
           onCancel={() => setUnlocking(null)}
+        />
+      )}
+
+      {showShare && (
+        <ShareCardModal
+          student={student}
+          careerProfile={careerProfile}
+          progress={progress}
+          onClose={() => setShowShare(false)}
         />
       )}
     </div>
