@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import uuid, os, re, io, sqlite3, shutil, random, hashlib, json, time, collections
+import urllib.request, urllib.parse, xml.etree.ElementTree as ET
 from datetime import datetime, timedelta
 from typing import Optional
 from dotenv import load_dotenv
@@ -179,6 +180,14 @@ def init_db():
             reason       TEXT,
             status       TEXT NOT NULL DEFAULT 'pending',
             submitted_at TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS session_summaries (
+            id            INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id    TEXT NOT NULL,
+            subject_id    TEXT NOT NULL,
+            summary       TEXT NOT NULL,
+            message_count INTEGER DEFAULT 0,
+            created_at    TEXT NOT NULL
         );
     """)
     for col in [
@@ -1328,29 +1337,51 @@ def has_materials(subject_id: str, conn) -> bool:
 
 def build_system_prompt(subject: dict, student_name: str, is_first_visit: bool,
                         covered_ids: list, mastered_ids: list, rag_context: str = "",
-                        career: dict = None) -> str:
+                        career: dict = None, session_memory: str = "") -> str:
     base = subject["system_prompt"]
 
     voice_block = f"""
 
-━━ HOW TO SPEAK TO {student_name} ━━
-You are in a live one-on-one conversation. Speak like a human tutor, not a content generator.
+━━ TEACHING METHOD ━━
+You follow a strict 3-step loop for every concept. Never skip a step.
+
+STEP 1 — TEACH
+Introduce the concept with bullet points, bolded key terms, and a real-world example.
+Emit one concept card immediately after your explanation (see CARD FORMAT below).
+End with a check-in question that requires {student_name} to demonstrate understanding, not just say "yes".
+Bad: "Does that make sense?" Good: "So based on that, what do you think happens to the mRNA if the LNP doesn't escape the endosome?"
+
+STEP 2 — CONFIRM
+Read {student_name}'s answer carefully.
+- If it is vague, short, or uses generic language without specifics: push back. "You said X, can you be more specific? What exactly does Y mean here?" Do NOT move on.
+- If it demonstrates genuine understanding: affirm briefly and move to Step 3.
+
+STEP 3 — CHALLENGE
+Raise the stakes with an application question using a real-world scenario.
+Use "what would go wrong if...", a clinical case, or a named drug/company as the hook.
+Example: "Moderna's early LNP had a serious tolerability problem. Based on what you just told me about ionizable lipids, what do you think caused it?"
+The challenge is not optional. It cements the concept before you move to the next one.
+After the student answers the challenge, transition naturally to the next concept.
+
+CARD FORMAT — emit once per new concept, in STEP 1 only:
+On its own line, immediately after your explanation:
+<<<CARD:{{"title":"concept name","what":"one sentence: what it is, no jargon","why":"one sentence: why it matters for {student_name} specifically, tied to their career","how":["**Bold term**: one sentence explanation","**Bold term**: one sentence explanation","**Bold term**: one sentence explanation"],"example":"one specific drug, company, trial, or clinical story — make it real","remember":"the single most important insight about this concept — write it as a complete sentence"}}>>>
+Rules: valid JSON only, no line breaks inside the JSON, emit ONLY for new concepts in STEP 1, never in STEP 2 or STEP 3, maximum one card per response.
 
 FORMATTING RULES — follow strictly:
 - No markdown headers (##, ###). No emojis.
-- NEVER use em dashes (—) or long dashes anywhere in your response. Use a comma, colon, or rewrite the sentence instead.
-- Never open with filler: not "Great question!", not "Absolutely!", not "Sure!" — just answer.
-- Default to bullet points over prose paragraphs. If you are explaining something, list it. If you are describing a process, list it. Only write prose when it's a direct personal remark to {student_name} or a single-sentence answer.
-- Format content bullets as: - **Key term or idea**: explanation. Bold the key term.
-- For important points that {student_name} must remember, bold the whole phrase, not just the term: e.g. **This is the most important thing to understand here.**
-- Numbered lists only for strict sequences (protocol steps, ordered processes). Bullets for everything else.
-- Keep individual bullet points concise: one to two sentences max.
-- End most responses with one question that moves {student_name} forward.
-- Code blocks for actual code or CLI. Inline backticks for technical names.
+- NEVER use em dashes (—) or long dashes. Use a comma, colon, or rewrite the sentence instead.
+- Never open with filler: not "Great question!", not "Absolutely!", not "Sure!" — just respond.
+- Bullet points over prose. Format as: - **Key term**: explanation. Bold the key term.
+- For critical points {student_name} must remember: bold the entire phrase: **This is the most important thing to understand here.**
+- Numbered lists only for strict sequences. Bullets for everything else.
+- Keep bullets concise: one to two sentences max.
+- Inline backticks for technical names and drug names.
 
-PERSONALISATION RULES:
-- Use {student_name}'s name naturally in your responses — not every sentence, but often enough that it feels like a real conversation. E.g. "So {student_name}, here's what makes this tricky..." or "The key insight for you, {student_name}, is..."
-- Make it feel like you are talking directly to one person, not broadcasting to a class."""
+PERSONALISATION:
+- Use {student_name}'s name naturally — not every sentence, but enough that it feels personal.
+- "So {student_name}, here's what makes this tricky..." or "The key insight for you, {student_name}, is..."
+- Make it feel like you are talking to one person, not broadcasting to a class."""
 
     curriculum = effective_curriculum(subject["id"], career)
     covered_set = set(covered_ids)
@@ -1376,6 +1407,15 @@ Progress: {covered_count}/{total} covered, {mastered_count}/{total} mastered
 
 {chr(10).join(curriculum_lines)}
 (✓✓ = mastered   ✓ = covered   ○ = not yet covered)"""
+
+    memory_block = ""
+    if session_memory:
+        memory_block = f"""
+
+━━ PREVIOUS SESSION MEMORY for {student_name} ━━
+{session_memory}
+
+Use this to personalise your teaching today. Reference what {student_name} has already covered, acknowledge where they struggled before, and build directly on their progress. If confusion was noted last session, address it naturally — don't wait for them to ask again."""
 
     if is_first_visit:
         teaching_note = f"\n\nThis is {student_name}'s very first session. Greet them warmly by name, ask 2–3 questions about their background and goals, then naturally guide them toward concept 1: \"{curriculum[0]['name']}\". Keep it conversational."
@@ -1414,6 +1454,13 @@ End every response with (on its own line):
 <<<CONCEPTS:concept_id1,concept_id2>>>
 Valid IDs: {concept_ids_list}
 Only tag concepts SUBSTANTIVELY taught in THIS response. If none: <<<CONCEPTS:>>>
+This line is stripped before {student_name} sees the response.
+
+━━ DEFINITION TAGGING (required when bolding terms) ━━
+Whenever your response contains bolded terms (**term**), also end with (on its own line):
+<<<DEFS:{{"exact bolded term": "one sentence, plain language, no jargon", "another term": "definition"}}>>>
+Include ALL bolded terms from this response. Use the exact same spelling and capitalisation as bolded. Maximum 6 terms.
+If no bolded terms: omit this tag entirely.
 This line is stripped before {student_name} sees the response."""
 
     career_tagging = ""
@@ -1424,7 +1471,7 @@ If {student_name} mentions a career interest or aspiration, identify the closest
 Valid career IDs: {" | ".join(CAREERS.keys())}
 Only tag when the student clearly states a career aspiration. Tag at most once per response."""
 
-    return base + voice_block + curriculum_block + teaching_note + career_block + rag_block + tagging + career_tagging
+    return base + voice_block + curriculum_block + memory_block + teaching_note + career_block + rag_block + tagging + career_tagging
 
 
 def build_quiz_prompt(subject: dict, student_name: str, covered_ids: list, mastered_ids: list, career: dict = None) -> str:
@@ -1931,9 +1978,19 @@ def get_profile(student_id: str):
         "SELECT career_id, college, year_of_study, aspirations, motivation, tutor_note, onboarded_at, avatar_color, linkedin_url, github_url, city, state, show_on_map FROM student_profile WHERE student_id = ?",
         (student_id,)
     ).fetchone()
+    student_row = conn.execute("SELECT email FROM students WHERE id = ?", (student_id,)).fetchone()
+    waitlist_row = None
+    if student_row:
+        waitlist_row = conn.execute(
+            "SELECT university, year_of_study FROM access_requests WHERE email = ?",
+            (student_row["email"],)
+        ).fetchone()
     conn.close()
+    waitlist_university = waitlist_row["university"] if waitlist_row else None
+    waitlist_year = waitlist_row["year_of_study"] if waitlist_row else None
     if not row:
-        return {"career_id": None, "career": None, "onboarded": False}
+        return {"career_id": None, "career": None, "onboarded": False,
+                "waitlist_university": waitlist_university, "waitlist_year_of_study": waitlist_year}
     return {
         "career_id": row["career_id"],
         "career": CAREERS.get(row["career_id"]) if row["career_id"] else None,
@@ -1949,6 +2006,8 @@ def get_profile(student_id: str):
         "city": row["city"],
         "state": row["state"],
         "show_on_map": row["show_on_map"] if row["show_on_map"] is not None else 1,
+        "waitlist_university": waitlist_university,
+        "waitlist_year_of_study": waitlist_year,
     }
 
 class OnboardingRequest(BaseModel):
@@ -3213,13 +3272,14 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
     )
     conn.commit()
 
-    rag_context = retrieve_context(req.subject_id, req.message, conn)
-    using_rag   = bool(rag_context)
+    rag_context    = retrieve_context(req.subject_id, req.message, conn)
+    using_rag      = bool(rag_context)
+    session_memory = get_session_memory(req.student_id, req.subject_id, conn)
 
     if req.quiz_mode:
         system = build_quiz_prompt(subject, student["name"], covered_ids, mastered_ids, career)
     else:
-        system = build_system_prompt(subject, student["name"], is_first_visit, covered_ids, mastered_ids, rag_context, career)
+        system = build_system_prompt(subject, student["name"], is_first_visit, covered_ids, mastered_ids, rag_context, career, session_memory)
 
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if api_key:
@@ -3475,6 +3535,196 @@ def waitlist_count():
     count = conn.execute("SELECT COUNT(*) as n FROM access_requests").fetchone()["n"]
     conn.close()
     return {"count": count}
+
+# ── Session Memory ─────────────────────────────────────────────────────────────
+
+def _build_summary_prompt(tutor_name: str, student_name: str, subject_name: str, messages: list) -> str:
+    transcript = "\n".join(
+        f"{'Student' if m['role'] == 'user' else tutor_name}: {m['content'][:600]}"
+        for m in messages
+    )
+    return f"""You are a tutor assistant writing private session notes for {tutor_name} after a tutoring session with {student_name} in {subject_name}.
+
+Here is the session transcript:
+{transcript}
+
+Write concise tutor notes in exactly this format (keep each field to 1-3 sentences):
+
+CONCEPTS_COVERED: [which concepts were substantively taught this session]
+CONFIDENCE_SIGNALS: [where the student showed clear understanding — specific moments]
+CONFUSION_SIGNALS: [where the student hesitated, gave vague answers, or asked clarifying questions]
+NOTABLE_MOMENTS: [interesting questions asked, background info revealed, breakthroughs]
+FOLLOW_UP: [what to address, revisit, or build on in the next session — be specific]
+
+Be honest, specific, and brief. These notes directly shape the next session."""
+
+async def _generate_session_summary(student_id: str, subject_id: str):
+    if subject_id not in SUBJECTS:
+        return
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        return
+    conn = get_db()
+    try:
+        # Find messages since the last summary
+        last = conn.execute(
+            "SELECT created_at FROM session_summaries WHERE student_id = ? AND subject_id = ? ORDER BY id DESC LIMIT 1",
+            (student_id, subject_id)
+        ).fetchone()
+        if last:
+            rows = conn.execute(
+                "SELECT role, content FROM messages WHERE student_id = ? AND subject_id = ? AND created_at > ? ORDER BY id",
+                (student_id, subject_id, last["created_at"])
+            ).fetchall()
+        else:
+            rows = conn.execute(
+                "SELECT role, content FROM messages WHERE student_id = ? AND subject_id = ? ORDER BY id LIMIT 60",
+                (student_id, subject_id)
+            ).fetchall()
+
+        if len(rows) < 4:  # not enough to summarise
+            conn.close()
+            return
+
+        student_row = conn.execute("SELECT name FROM students WHERE id = ?", (student_id,)).fetchone()
+        student_name = student_row["name"] if student_row else "the student"
+        subject = SUBJECTS[subject_id]
+        messages = [{"role": r["role"], "content": r["content"]} for r in rows]
+        prompt = _build_summary_prompt(subject["tutor"], student_name, subject["name"], messages)
+
+        import anthropic
+        client = anthropic.Anthropic(api_key=api_key)
+        response = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=400,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        summary = response.content[0].text.strip()
+        conn.execute(
+            "INSERT INTO session_summaries (student_id, subject_id, summary, message_count, created_at) VALUES (?, ?, ?, ?, ?)",
+            (student_id, subject_id, summary, len(rows), datetime.utcnow().isoformat())
+        )
+        conn.commit()
+    except Exception:
+        pass
+    finally:
+        conn.close()
+
+@app.post("/session-end/{student_id}/{subject_id}")
+async def session_end(student_id: str, subject_id: str, background_tasks: BackgroundTasks):
+    background_tasks.add_task(_generate_session_summary, student_id, subject_id)
+    return {"ok": True}
+
+def get_session_memory(student_id: str, subject_id: str, conn) -> str:
+    rows = conn.execute(
+        "SELECT summary FROM session_summaries WHERE student_id = ? AND subject_id = ? ORDER BY id DESC LIMIT 2",
+        (student_id, subject_id)
+    ).fetchall()
+    if not rows:
+        return ""
+    summaries = list(reversed([r["summary"] for r in rows]))
+    parts = []
+    for i, s in enumerate(summaries, 1):
+        parts.append(f"[Session {i} notes]\n{s}")
+    return "\n\n".join(parts)
+
+# ── Subject News ───────────────────────────────────────────────────────────────
+
+_NEWS_CACHE: dict = {}
+_NEWS_CACHE_TTL = 3 * 3600  # 3 hours
+
+SUBJECT_NEWS_QUERIES = {
+    "bioinformatics":     "bioinformatics computational biology genomics pipeline",
+    "genomics":           "genomics DNA sequencing genome precision medicine",
+    "drug_discovery":     "drug discovery pharmaceutical development FDA",
+    "clinical_trials":    "clinical trial FDA drug approval regulatory",
+    "genai_ml":           "AI machine learning drug discovery biotech",
+    "biotech_business":   "biotech pharma deal acquisition merger IPO",
+    "cell_gene_therapy":  "gene therapy cell therapy CRISPR CAR-T",
+    "protein_engineering":"protein engineering antibody biologics design",
+    "rna_therapeutics":   "mRNA RNA therapeutics vaccine LNP",
+    "biomanufacturing":   "biomanufacturing bioprocessing GMP pharmaceutical",
+    "longevity_science":  "longevity aging science senolytics epigenetics",
+}
+
+def _clean_news_title(title: str) -> str:
+    # Google News appends " - Source Name" — strip it
+    parts = title.rsplit(" - ", 1)
+    return parts[0].strip() if len(parts) > 1 else title.strip()
+
+def _parse_pub_date(pub_date: str) -> str:
+    try:
+        dt = datetime.strptime(pub_date, "%a, %d %b %Y %H:%M:%S %Z")
+        delta = datetime.utcnow() - dt
+        if delta.days == 0:
+            return "Today"
+        elif delta.days == 1:
+            return "Yesterday"
+        else:
+            return f"{delta.days} days ago"
+    except Exception:
+        return ""
+
+@app.get("/subject-news/{subject_id}")
+def get_subject_news(subject_id: str):
+    now = time.time()
+    cached = _NEWS_CACHE.get(subject_id)
+    if cached and now - cached["at"] < _NEWS_CACHE_TTL:
+        return cached["items"]
+
+    query = SUBJECT_NEWS_QUERIES.get(subject_id, "biotechnology life sciences")
+    url = f"https://news.google.com/rss/search?q={urllib.parse.quote(query)}&hl=en-US&gl=US&ceid=US:en"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=6) as resp:
+            xml_bytes = resp.read()
+        root = ET.fromstring(xml_bytes)
+        items = []
+        for item in root.findall(".//item")[:5]:
+            raw_title = item.findtext("title", "")
+            source_el = item.find("source")
+            source    = source_el.text if source_el is not None else ""
+            pub_date  = item.findtext("pubDate", "")
+            link      = item.findtext("link", "")
+            clean     = _clean_news_title(raw_title)
+            if len(clean) < 20:
+                continue
+            items.append({
+                "title":    clean,
+                "source":   source,
+                "pub_date": _parse_pub_date(pub_date),
+                "link":     link,
+            })
+        _NEWS_CACHE[subject_id] = {"items": items, "at": now}
+        return items
+    except Exception:
+        return []
+
+_WIKI_CACHE: dict = {}
+_WIKI_CACHE_TTL = 86400  # 24 hours
+
+@app.get("/term-image/{term}")
+def get_term_image(term: str):
+    key = term.lower().strip()
+    now = time.time()
+    cached = _WIKI_CACHE.get(key)
+    if cached and now - cached["at"] < _WIKI_CACHE_TTL:
+        return cached["data"]
+
+    encoded = urllib.parse.quote(term, safe="")
+    url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{encoded}"
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Bversity/1.0 (university.bversity.io)"})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            payload = json.loads(resp.read())
+        image_url = (payload.get("thumbnail") or {}).get("source")
+        extract = payload.get("extract", "")[:300]
+        data = {"image": image_url, "extract": extract, "found": bool(image_url)}
+    except Exception:
+        data = {"image": None, "extract": "", "found": False}
+
+    _WIKI_CACHE[key] = {"data": data, "at": now}
+    return data
 
 @app.get("/admin/access-requests")
 def admin_get_access_requests(x_admin_key: str = Header(None)):

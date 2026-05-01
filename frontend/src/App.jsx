@@ -284,17 +284,28 @@ const TUTOR_PHOTOS = {
 };
 
 const SUBJECTS = [
-  { id: 'bioinformatics',  name: 'Bioinformatics',                             tutor: 'Dr. Priya Nair',    role: 'Senior Bioinformatics Scientist',           org: 'Broad Institute of MIT and Harvard', color: '#00A896', description: 'Sequence analysis, BLAST, phylogenetics, NGS pipelines, protein structure, and computational biology tools' },
-  { id: 'genomics',        name: 'Genomics',                                    tutor: 'Dr. Marcus Webb',   role: 'Director of Genomics Research',             org: 'Illumina',                           color: '#7B2D8B', description: 'Genome structure, sequencing technologies, variant analysis, GWAS, single-cell, and precision medicine' },
-  { id: 'drug_discovery',  name: 'Drug Discovery & Development',                tutor: 'Dr. Kavya Reddy',   role: 'Principal Scientist, Drug Discovery',       org: 'Genentech',                          color: '#E05C00', description: 'Target identification, HTS, medicinal chemistry, ADMET, preclinical development, and the full pipeline' },
-  { id: 'clinical_trials', name: 'Clinical Trials & Regulatory Affairs',        tutor: 'Dr. Elena Vasquez', role: 'Head of Regulatory Affairs',                org: 'Novartis',                           color: '#0066CC', description: 'Trial phases, FDA/EMA regulations, ICH guidelines, adaptive designs, and NDA/MAA submissions' },
-  { id: 'genai_ml',        name: 'Gen AI & Machine Learning for Life Sciences', tutor: 'Dr. Aisha Okonkwo', role: 'Director of Machine Learning',              org: 'Recursion Pharmaceuticals',          color: '#6B3FA0', description: 'ML foundations, deep learning, protein language models, generative molecules, and AI-driven drug discovery' },
-  { id: 'biotech_business',   name: 'Biotech Business & Management',               tutor: 'Rohan Mehta',         role: 'VP of Corporate Strategy & Business Development', org: 'AstraZeneca',                    color: '#B5451B', description: 'Business models, financing, valuation, BD&L, market access, IP strategy, and building biotech companies' },
-  { id: 'cell_gene_therapy',  name: 'Cell & Gene Therapy',                         tutor: 'Dr. James Okonkwo',   role: 'Director of Vector Development',                  org: 'bluebird bio',                   color: '#0891B2', description: 'Viral vectors, CRISPR genome editing, CAR-T, in vivo and ex vivo gene therapy, CGT manufacturing and regulatory pathways' },
-  { id: 'protein_engineering',name: 'Protein Engineering & Design',                tutor: 'Dr. Sophie Laurent',  role: 'Lead, Computational Protein Design',              org: 'Genentech',                      color: '#BE185D', description: 'Directed evolution, AlphaFold, RFdiffusion, antibody engineering, de novo design, and therapeutic protein formats' },
-  { id: 'rna_therapeutics',   name: 'RNA Therapeutics',                            tutor: 'Dr. Amira Hassan',    role: 'VP RNA Platform Sciences',                        org: 'Moderna',                        color: '#B91C1C', description: 'mRNA design, siRNA, ASOs, LNP delivery, RNA vaccines, chemical modifications, and the RNA drug pipeline' },
-  { id: 'biomanufacturing',   name: 'Biomanufacturing & Bioprocessing',            tutor: 'Dr. Carlos Reyes',    role: 'VP Bioprocess Development',                       org: 'Lonza',                          color: '#047857', description: 'Upstream and downstream bioprocessing, GMP, cell line development, scale-up, cell therapy manufacturing, and biosimilars' },
-  { id: 'longevity_science',  name: 'Longevity Science',                           tutor: 'Dr. Yuki Tanaka',     role: 'Senior Research Scientist',                       org: 'Calico Life Sciences',           color: '#4338CA', description: 'Hallmarks of aging, cellular senescence, epigenetic clocks, longevity pathways, proteostasis, and the geroscience clinical pipeline' },
+  { id: 'bioinformatics',     name: 'Bioinformatics',                             tutor: 'Dr. Priya Nair',    role: 'Senior Bioinformatics Scientist',                  org: 'Broad Institute of MIT and Harvard', color: '#00A896', description: 'Sequence analysis, BLAST, phylogenetics, NGS pipelines, protein structure, and computational biology tools',
+    intro: "I build computational pipelines to make sense of genomic data at scale — everything from cancer mutation signatures to population-level association studies. I've watched bioinformatics go from a niche specialty to the backbone of modern medicine, and I want to give you that foundation properly. By the end of this, you'll be fluent in the tools and concepts that the industry actually uses." },
+  { id: 'genomics',           name: 'Genomics',                                    tutor: 'Dr. Marcus Webb',   role: 'Director of Genomics Research',                   org: 'Illumina',                           color: '#7B2D8B', description: 'Genome structure, sequencing technologies, variant analysis, GWAS, single-cell, and precision medicine',
+    intro: "I work at the company that sequences more of the world's DNA than anyone else. I've watched the cost of sequencing a genome drop from $3 billion to under $200 in my career — and what that's done to medicine is still unfolding. This subject will give you the conceptual and technical grounding to understand what's coming next." },
+  { id: 'drug_discovery',     name: 'Drug Discovery & Development',                tutor: 'Dr. Kavya Reddy',   role: 'Principal Scientist, Drug Discovery',             org: 'Genentech',                          color: '#E05C00', description: 'Target identification, HTS, medicinal chemistry, ADMET, preclinical development, and the full pipeline',
+    intro: "I've taken small molecule programs from target identification all the way through Phase I trials. I've seen molecules fail at every stage of the pipeline — and a few make it. I'll teach you why the process looks the way it does, what catastrophe you'd invite by skipping each stage, and how to think like a drug hunter." },
+  { id: 'clinical_trials',    name: 'Clinical Trials & Regulatory Affairs',        tutor: 'Dr. Elena Vasquez', role: 'Head of Regulatory Affairs',                      org: 'Novartis',                           color: '#0066CC', description: 'Trial phases, FDA/EMA regulations, ICH guidelines, adaptive designs, and NDA/MAA submissions',
+    intro: "I've submitted NDAs to both the FDA and the EMA, and I've been in the room when regulators push back. Most scientists understand the biology — very few understand what it takes to convince a regulator that your data is sufficient. That gap is exactly what this subject closes." },
+  { id: 'genai_ml',           name: 'Gen AI & Machine Learning for Life Sciences', tutor: 'Dr. Aisha Okonkwo', role: 'Director of Machine Learning',                    org: 'Recursion Pharmaceuticals',          color: '#6B3FA0', description: 'ML foundations, deep learning, protein language models, generative molecules, and AI-driven drug discovery',
+    intro: "I use AI to run millions of cellular experiments and find patterns no human could see. I've been at the intersection of ML and biology for a decade — before most people thought that was a real job. I'll be honest with you about where AI in life sciences is genuinely useful and where it's overhyped." },
+  { id: 'biotech_business',   name: 'Biotech Business & Management',               tutor: 'Rohan Mehta',       role: 'VP of Corporate Strategy & Business Development', org: 'AstraZeneca',                        color: '#B5451B', description: 'Business models, financing, valuation, BD&L, market access, IP strategy, and building biotech companies',
+    intro: "Before AstraZeneca, I spent six years at McKinsey advising pharma and biotech companies on strategy, deals, and market access. I deliberately don't have a PhD — most of what this subject covers is learned in boardrooms and on term sheets, not in classrooms. I'll share what I've actually seen work." },
+  { id: 'cell_gene_therapy',  name: 'Cell & Gene Therapy',                         tutor: 'Dr. James Okonkwo', role: 'Director of Vector Development',                  org: 'bluebird bio',                       color: '#0891B2', description: 'Viral vectors, CRISPR genome editing, CAR-T, in vivo and ex vivo gene therapy, CGT manufacturing and regulatory pathways',
+    intro: "I've been building viral vectors since before CRISPR existed, and I worked on early AAV programs that eventually became approved therapies. I've watched gene therapy go from an experimental curiosity to transforming patients' lives — and I've seen the failures that built the safety framework we have today. You'll need to understand both." },
+  { id: 'protein_engineering',name: 'Protein Engineering & Design',                tutor: 'Dr. Sophie Laurent', role: 'Lead, Computational Protein Design',              org: 'Genentech',                          color: '#BE185D', description: 'Directed evolution, AlphaFold, RFdiffusion, antibody engineering, de novo design, and therapeutic protein formats',
+    intro: "I work at the intersection of structural biology and deep learning — designing proteins computationally that actually fold and function. AlphaFold changed everything; things that took years now take weeks. But you need strong physical intuition before the computational tools make sense, and that's where we'll start." },
+  { id: 'rna_therapeutics',   name: 'RNA Therapeutics',                            tutor: 'Dr. Amira Hassan',  role: 'VP RNA Platform Sciences',                        org: 'Moderna',                            color: '#B91C1C', description: 'mRNA design, siRNA, ASOs, LNP delivery, RNA vaccines, chemical modifications, and the RNA drug pipeline',
+    intro: "I was at Moderna before the COVID vaccine, and I watched mRNA go from a scientific curiosity to the fastest vaccine ever developed. RNA therapeutics is the most exciting drug platform in medicine right now — the reason is that every protein the human genome encodes is now potentially reachable. I'll start there and work forward." },
+  { id: 'biomanufacturing',   name: 'Biomanufacturing & Bioprocessing',            tutor: 'Dr. Carlos Reyes',  role: 'VP Bioprocess Development',                       org: 'Lonza',                              color: '#047857', description: 'Upstream and downstream bioprocessing, GMP, cell line development, scale-up, cell therapy manufacturing, and biosimilars',
+    intro: "I help companies scale their molecules from lab bench to commercial production — and I've seen what happens when that fails. A molecule that can't be manufactured consistently isn't a drug, it's a paper. Manufacturing is where science meets reality, and I want you to respect it as a scientific discipline, not a downstream afterthought." },
+  { id: 'longevity_science',  name: 'Longevity Science',                           tutor: 'Dr. Yuki Tanaka',   role: 'Senior Research Scientist',                       org: 'Calico Life Sciences',               color: '#4338CA', description: 'Hallmarks of aging, cellular senescence, epigenetic clocks, longevity pathways, proteostasis, and the geroscience clinical pipeline',
+    intro: "I work at the Alphabet-funded company trying to understand why we age. Longevity science has a credibility problem — too much hype, too many supplements, too many claims not backed by human data. I'll be rigorous with you about what the data actually shows, what's mechanism and what's speculation, and where the genuinely exciting frontiers are." },
 ];
 
 const SUBJECT_HOURS = {
@@ -336,9 +347,48 @@ function driveEmbedUrl(url) {
   return url;
 }
 
-function formatInline(text) {
+function TermTooltip({ term, definition }) {
+  const [open, setOpen] = React.useState(false);
+  const [img, setImg] = React.useState(null);
+  const [imgLoaded, setImgLoaded] = React.useState(false);
+  const ref = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!open || img !== null) return;
+    fetch(`/api/term-image/${encodeURIComponent(term)}`)
+      .then(r => r.json())
+      .then(d => setImg(d.image || false))
+      .catch(() => setImg(false));
+  }, [open, term, img]);
+
+  React.useEffect(() => {
+    if (!open) return;
+    function handler(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <span className="term-tooltip-wrap" ref={ref}>
+      <strong className="term-tooltip-trigger" onClick={() => setOpen(o => !o)}>{term}</strong>
+      {open && (
+        <span className="term-tooltip-popup">
+          {img && <img src={img} alt={term} className={`term-tooltip-img${imgLoaded ? ' loaded' : ''}`} onLoad={() => setImgLoaded(true)} />}
+          <span className="term-tooltip-def">{definition}</span>
+        </span>
+      )}
+    </span>
+  );
+}
+
+function formatInline(text, defs) {
   return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) => {
-    if (part.startsWith('**') && part.endsWith('**')) return <strong key={i}>{part.slice(2, -2)}</strong>;
+    if (part.startsWith('**') && part.endsWith('**')) {
+      const inner = part.slice(2, -2);
+      const def = defs && defs[inner];
+      if (def) return <TermTooltip key={i} term={inner} definition={def} />;
+      return <strong key={i}>{inner}</strong>;
+    }
     return part.split(/(`[^`]+`)/g).map((cp, j) => {
       if (cp.startsWith('`') && cp.endsWith('`')) return <code key={`${i}-${j}`}>{cp.slice(1, -1)}</code>;
       return cp;
@@ -346,10 +396,73 @@ function formatInline(text) {
   });
 }
 
-function formatMessage(text) { return formatInline(text); }
+function formatMessage(text) { return formatInline(text, null); }
 
-function renderMessageContent(content) {
-  const lines = content.split('\n');
+function ConceptCard({ data, color }) {
+  const c = color || '#16c1ad';
+  return (
+    <div className="concept-card" style={{ '--cc-color': c }}>
+      <div className="concept-card-header">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        <span className="concept-card-label-top" style={{ color: c }}>Concept</span>
+        <span className="concept-card-title">{data.title}</span>
+      </div>
+      <div className="concept-card-body">
+        <div className="concept-card-row">
+          <span className="concept-card-row-label">What it is</span>
+          <span className="concept-card-row-text">{data.what}</span>
+        </div>
+        <div className="concept-card-row">
+          <span className="concept-card-row-label">Why it matters</span>
+          <span className="concept-card-row-text">{data.why}</span>
+        </div>
+        {data.how && data.how.length > 0 && (
+          <div className="concept-card-row">
+            <span className="concept-card-row-label">How it works</span>
+            <ul className="concept-card-how">
+              {data.how.map((pt, i) => <li key={i}>{formatInline(pt)}</li>)}
+            </ul>
+          </div>
+        )}
+        {data.example && (
+          <div className="concept-card-row">
+            <span className="concept-card-row-label">Real example</span>
+            <span className="concept-card-row-text concept-card-example">{data.example}</span>
+          </div>
+        )}
+        {data.remember && (
+          <div className="concept-card-remember" style={{ borderColor: c + '40', background: c + '0d' }}>
+            <span className="concept-card-remember-star" style={{ color: c }}>★</span>
+            <span>{data.remember}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function renderMessageContent(content, opts = {}) {
+  let cardData = null;
+  let defs = null;
+  let cleanContent = content;
+
+  const cardMatch = cleanContent.match(/<<<CARD:(\{[\s\S]*?\})>>>/);
+  if (cardMatch) {
+    try { cardData = JSON.parse(cardMatch[1]); } catch (e) {}
+    cleanContent = cleanContent.replace(/\n?<<<CARD:\{[\s\S]*?\}>>>\n?/, '').trim();
+  }
+
+  const defsMatch = cleanContent.match(/<<<DEFS:(\{[\s\S]*?\})>>>/);
+  if (defsMatch) {
+    try { defs = JSON.parse(defsMatch[1]); } catch (e) {}
+    cleanContent = cleanContent.replace(/\n?<<<DEFS:\{[\s\S]*?\}>>>\n?/, '').trim();
+  }
+
+  const fi = (t) => formatInline(t, defs);
+
+  const lines = cleanContent.split('\n');
   const blocks = [];
   let listGroup = null;
 
@@ -374,15 +487,16 @@ function renderMessageContent(content) {
   let pending = [];
   blocks.forEach((b, i) => {
     if (b.type === 'text') {
-      if (!b.text.trim()) { if (pending.length) { out.push(<p key={i}>{pending.map((t, j) => j < pending.length - 1 ? [formatInline(t), <br key={j}/>] : formatInline(t))}</p>); pending = []; } return; }
+      if (!b.text.trim()) { if (pending.length) { out.push(<p key={i}>{pending.map((t, j) => j < pending.length - 1 ? [fi(t), <br key={j}/>] : fi(t))}</p>); pending = []; } return; }
       pending.push(b.text);
     } else {
-      if (pending.length) { out.push(<p key={`p${i}`}>{pending.map((t, j) => j < pending.length - 1 ? [formatInline(t), <br key={j}/>] : formatInline(t))}</p>); pending = []; }
+      if (pending.length) { out.push(<p key={`p${i}`}>{pending.map((t, j) => j < pending.length - 1 ? [fi(t), <br key={j}/>] : fi(t))}</p>); pending = []; }
       const Tag = b.type === 'ol' ? 'ol' : 'ul';
-      out.push(<Tag key={i} className={`msg-list msg-list-${b.type}`}>{b.items.map((item, j) => <li key={j}>{formatInline(item)}</li>)}</Tag>);
+      out.push(<Tag key={i} className={`msg-list msg-list-${b.type}`}>{b.items.map((item, j) => <li key={j}>{fi(item)}</li>)}</Tag>);
     }
   });
-  if (pending.length) out.push(<p key="last">{pending.map((t, j) => j < pending.length - 1 ? [formatInline(t), <br key={j}/>] : formatInline(t))}</p>);
+  if (pending.length) out.push(<p key="last">{pending.map((t, j) => j < pending.length - 1 ? [fi(t), <br key={j}/>] : fi(t))}</p>);
+  if (cardData) out.push(<ConceptCard key="cc" data={cardData} color={opts.color} />);
   return out;
 }
 
@@ -473,13 +587,50 @@ function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfil
 // ── Shared constants ───────────────────────────────────────────────────────
 
 const YEAR_OPTIONS = ['1st Year', '2nd Year', '3rd Year', '4th Year', "Master's", 'PhD', 'Working Professional', 'Other'];
-const MOTIVATION_OPTIONS = [
-  { id: 'career_change',  label: 'Career change into biotech' },
-  { id: 'upskilling',     label: 'Upskilling for my current role' },
-  { id: 'research',       label: 'Academic / research goals' },
-  { id: 'startup',        label: 'Building a biotech startup' },
-  { id: 'exploring',      label: 'Exploring the field' },
-  { id: 'other',          label: 'Something else' },
+const USE_CASES = [
+  {
+    id: 'career_direction',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/>
+        <line x1="12" y1="2" x2="12" y2="5"/><line x1="12" y1="19" x2="12" y2="22"/>
+        <line x1="2" y1="12" x2="5" y2="12"/><line x1="19" y1="12" x2="22" y2="12"/>
+      </svg>
+    ),
+    title: 'Career Direction',
+    desc: 'Break into or level up within biotech and life sciences',
+  },
+  {
+    id: 'industry_readiness',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>
+      </svg>
+    ),
+    title: 'Industry Readiness',
+    desc: "In a science degree and want to be industry-ready before you graduate",
+  },
+  {
+    id: 'emerging_fields',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+    ),
+    title: 'Stay Ahead',
+    desc: 'Stay current with AI, genomics, longevity and what\'s reshaping the industry',
+  },
+  {
+    id: 'domain_depth',
+    icon: (
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
+      </svg>
+    ),
+    title: 'Domain Depth',
+    desc: 'Building or working at a biotech company and need rapid domain knowledge',
+  },
 ];
 const AVATAR_COLORS = ['#16c1ad','#109285','#1f1f1f','#636363','#0066CC','#6B3FA0','#B5451B','#059669','#DB2777','#E05C00'];
 
@@ -719,15 +870,16 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
 
 const TOTAL_ONBOARDING_STEPS = 4;
 
-function OnboardingView({ student, onComplete }) {
+function OnboardingView({ student, careerProfile, onComplete }) {
   const [step, setStep]                   = useState(1);
-  const [college, setCollege]             = useState('');
-  const [year, setYear]                   = useState('');
+  const [college, setCollege]             = useState(careerProfile?.waitlist_university || '');
+  const [year, setYear]                   = useState(careerProfile?.waitlist_year_of_study || '');
   const [aspirations, setAspirations]     = useState('');
   const [motivation, setMotivation]       = useState('');
   const [tutorNote, setTutorNote]         = useState('');
   const [careers, setCareers]             = useState([]);
   const [selectedCareerId, setSelectedCareerId] = useState('');
+  const [selectedCluster, setSelectedCluster]   = useState('');
   const [city, setCity]                   = useState('');
   const [obState, setObState]             = useState('');
   const [showOnMap, setShowOnMap]         = useState(true);
@@ -765,7 +917,7 @@ function OnboardingView({ student, onComplete }) {
   }
 
   const canStep1 = college.trim() && year;
-  const canStep2 = aspirations.trim() && motivation;
+  const canStep2 = !!motivation;
   const canStep3 = !!selectedCareerId;
   const clusters = ['Science & Technical', 'Business & Commercial', 'Emerging & Hybrid'];
   const ArrowIcon = () => (
@@ -816,37 +968,30 @@ function OnboardingView({ student, onComplete }) {
           </>
         )}
 
-        {/* ── Step 2: Goals ── */}
+        {/* ── Step 2: Use case ── */}
         {step === 2 && (
           <>
-            <h2 className="onboarding-heading">What drives you?</h2>
-            <p className="onboarding-sub">Your experts will use this to make every lesson feel relevant to where you're headed.</p>
-            <div className="onboarding-fields">
-              <div className="onboarding-field">
-                <label>Where do you want your career to go?</label>
-                <textarea className="onboarding-textarea"
-                  placeholder="e.g. I want to work as a bioinformatics scientist at a genomics startup, or lead drug discovery at a pharma company…"
-                  value={aspirations} onChange={e => setAspirations(e.target.value)} rows={4} autoFocus
-                />
-              </div>
-              <div className="onboarding-field">
-                <label>Why did you join Bversity?</label>
-                <div className="onboarding-chips motivation-chips">
-                  {MOTIVATION_OPTIONS.map(m => (
-                    <button key={m.id} type="button"
-                      className={`onboarding-chip ${motivation === m.id ? 'selected' : ''}`}
-                      onClick={() => setMotivation(m.id)}
-                    >{m.label}</button>
-                  ))}
-                </div>
-              </div>
-              <div className="onboarding-field">
-                <label>Anything your experts should know? <span className="onboarding-optional">(optional)</span></label>
-                <textarea className="onboarding-textarea"
-                  placeholder="Learning style, prior knowledge, topics to focus on…"
-                  value={tutorNote} onChange={e => setTutorNote(e.target.value)} rows={2}
-                />
-              </div>
+            <h2 className="onboarding-heading">What brings you to Bversity?</h2>
+            <p className="onboarding-sub">Your experts will shape every lesson around your specific goal.</p>
+            <div className="ob-usecase-grid">
+              {USE_CASES.map(uc => (
+                <button key={uc.id} type="button"
+                  className={`ob-usecase-card ${motivation === uc.id ? 'selected' : ''}`}
+                  onClick={() => setMotivation(uc.id)}
+                >
+                  <span className="ob-usecase-icon">{uc.icon}</span>
+                  <span className="ob-usecase-title">{uc.title}</span>
+                  <span className="ob-usecase-desc">{uc.desc}</span>
+                  {motivation === uc.id && <span className="ob-usecase-check">✓</span>}
+                </button>
+              ))}
+            </div>
+            <div className="onboarding-field" style={{ marginTop: '1.2rem' }}>
+              <label>Anything your experts should know? <span className="onboarding-optional">(optional)</span></label>
+              <textarea className="onboarding-textarea"
+                placeholder="Learning style, prior knowledge, topics to focus on…"
+                value={tutorNote} onChange={e => setTutorNote(e.target.value)} rows={2}
+              />
             </div>
             <div className="onboarding-nav">
               <button className="onboarding-back" onClick={() => setStep(1)}>← Back</button>
@@ -857,48 +1002,112 @@ function OnboardingView({ student, onComplete }) {
           </>
         )}
 
-        {/* ── Step 3: Career selection ── */}
-        {step === 3 && (
+        {/* ── Step 3a: Cluster picker ── */}
+        {step === 3 && !selectedCluster && (
           <>
-            <h2 className="onboarding-heading">Choose your career destination</h2>
-            <p className="onboarding-sub">Your entire learning roadmap is built around this — every subject, every concept, made relevant to your target role. You can always change it later.</p>
-            <div className="ob-career-clusters">
-              {clusters.map(cluster => {
-                const clusterCareers = careers.filter(c => c.cluster === cluster);
-                const color = CLUSTER_COLORS[cluster];
+            <h2 className="onboarding-heading">Which world do you see yourself in?</h2>
+            <p className="onboarding-sub">This shapes how we personalise your curriculum — you can always change it later.</p>
+            <div className="ob-cluster-grid">
+              {[
+                {
+                  id: 'Science & Technical',
+                  color: CLUSTER_COLORS['Science & Technical'],
+                  icon: (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/>
+                    </svg>
+                  ),
+                  headline: 'Science & Technical',
+                  desc: 'Research, data, and the pipeline. Roles where science is your primary tool — from bench to bioinformatics.',
+                  examples: 'Bioinformatician · Drug Discovery Scientist · Clinical Research Associate',
+                },
+                {
+                  id: 'Business & Commercial',
+                  color: CLUSTER_COLORS['Business & Commercial'],
+                  icon: (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="10" y1="14" x2="14" y2="14"/>
+                    </svg>
+                  ),
+                  headline: 'Business & Commercial',
+                  desc: 'Strategy, deals, and market access. Roles where science meets business — from BD to consulting.',
+                  examples: 'Life Sciences Consultant · BD Associate · Market Access Analyst',
+                },
+                {
+                  id: 'Emerging & Hybrid',
+                  color: CLUSTER_COLORS['Emerging & Hybrid'],
+                  icon: (
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                    </svg>
+                  ),
+                  headline: 'Emerging & Hybrid',
+                  desc: 'The frontier. Roles that barely existed 10 years ago — AI, precision medicine, and building your own company.',
+                  examples: 'AI Drug Discovery · Precision Medicine Specialist · Biotech Founder',
+                },
+              ].map(cl => (
+                <button key={cl.id} type="button"
+                  className="ob-cluster-card"
+                  style={{ '--cl-color': cl.color }}
+                  onClick={() => setSelectedCluster(cl.id)}
+                >
+                  <span className="ob-cluster-icon" style={{ color: cl.color }}>{cl.icon}</span>
+                  <span className="ob-cluster-headline" style={{ color: cl.color }}>{cl.headline}</span>
+                  <span className="ob-cluster-desc">{cl.desc}</span>
+                  <span className="ob-cluster-examples">{cl.examples}</span>
+                </button>
+              ))}
+            </div>
+            <div className="onboarding-nav" style={{ marginTop: '1.5rem' }}>
+              <button className="onboarding-back" onClick={() => setStep(2)}>← Back</button>
+            </div>
+            <div className="ob-explore-skip">
+              <button className="ob-explore-btn" onClick={() => { setSelectedCareerId(''); setStep(4); }}>
+                I'm not sure yet — I'll just explore for now →
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── Step 3b: Career picker within cluster ── */}
+        {step === 3 && !!selectedCluster && (
+          <>
+            <div className="ob-cluster-back-row">
+              <button type="button" className="ob-cluster-back-btn" onClick={() => { setSelectedCluster(''); setSelectedCareerId(''); }}>
+                ← Back to clusters
+              </button>
+              <span className="ob-cluster-badge" style={{ background: CLUSTER_COLORS[selectedCluster] + '18', color: CLUSTER_COLORS[selectedCluster] }}>
+                {selectedCluster}
+              </span>
+            </div>
+            <h2 className="onboarding-heading">Now pick your target role</h2>
+            <p className="onboarding-sub">Your entire learning roadmap is built around this — every subject, every concept, made relevant to where you're headed.</p>
+            <div className="ob-career-grid ob-career-grid--full">
+              {careers.filter(c => c.cluster === selectedCluster).map(career => {
+                const color = CLUSTER_COLORS[selectedCluster];
                 return (
-                  <div key={cluster} className="ob-career-cluster-section">
-                    <div className="ob-career-cluster-label" style={{ color }}>
-                      <span className="career-cluster-dot" style={{ background: color }} />
-                      {cluster}
+                  <div key={career.id}
+                    className={`ob-career-card ${selectedCareerId === career.id ? 'selected' : ''}`}
+                    style={{ '--career-color': color }}
+                    onClick={() => setSelectedCareerId(career.id)}
+                    role="button" tabIndex={0}
+                    onKeyDown={e => e.key === 'Enter' && setSelectedCareerId(career.id)}
+                  >
+                    <div className="ob-career-card-top">
+                      <span className="ob-career-icon">{CAREER_ICONS[career.id]}</span>
+                      <div className="ob-career-meta">
+                        <div className="ob-career-title">{career.title}</div>
+                        <div className="ob-career-salary">{career.salary_range}</div>
+                      </div>
+                      {selectedCareerId === career.id && <span className="ob-career-check">✓</span>}
                     </div>
-                    <div className="ob-career-grid">
-                      {clusterCareers.map(career => (
-                        <div key={career.id}
-                          className={`ob-career-card ${selectedCareerId === career.id ? 'selected' : ''}`}
-                          style={{ '--career-color': color }}
-                          onClick={() => setSelectedCareerId(career.id)}
-                          role="button" tabIndex={0}
-                          onKeyDown={e => e.key === 'Enter' && setSelectedCareerId(career.id)}
-                        >
-                          <div className="ob-career-card-top">
-                            <span className="ob-career-icon">{CAREER_ICONS[career.id]}</span>
-                            <div className="ob-career-meta">
-                              <div className="ob-career-title">{career.title}</div>
-                              <div className="ob-career-salary">{career.salary_range}</div>
-                            </div>
-                            {selectedCareerId === career.id && <span className="ob-career-check">✓</span>}
-                          </div>
-                          <p className="ob-career-desc">{career.description}</p>
-                        </div>
-                      ))}
-                    </div>
+                    <p className="ob-career-desc">{career.description}</p>
                   </div>
                 );
               })}
             </div>
             <div className="onboarding-nav" style={{ marginTop: '1.5rem' }}>
-              <button className="onboarding-back" onClick={() => setStep(2)}>← Back</button>
+              <button className="onboarding-back" onClick={() => { setSelectedCluster(''); setSelectedCareerId(''); }}>← Back</button>
               <button className="onboarding-next" disabled={!canStep3} onClick={() => setStep(4)}>
                 Continue <ArrowIcon />
               </button>
@@ -2441,8 +2650,9 @@ function FeedbackModal({ studentId, onClose }) {
   }
 
   return (
-    <div className="feedback-modal-overlay" onClick={onClose}>
-      <div className="feedback-modal" onClick={e => e.stopPropagation()}>
+    <div className="feedback-modal-overlay">
+      <div className="feedback-modal">
+        <button type="button" className="feedback-close-btn" onClick={onClose} aria-label="Close">×</button>
         {done ? (
           <div className="feedback-modal-done">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--teal)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
@@ -2511,9 +2721,8 @@ function FeedbackModal({ studentId, onClose }) {
             </div>
 
             <div className="feedback-modal-actions">
-              <button type="button" className="feedback-skip-btn" onClick={onClose}>Skip</button>
               <button type="submit" className="feedback-submit-btn" disabled={!canSubmit || saving}>
-                {saving ? 'Sending…' : 'Submit'}
+                {saving ? 'Sending…' : 'Submit feedback'}
               </button>
             </div>
           </form>
@@ -4213,6 +4422,131 @@ function LearningPathTrack({ student, career, careerSubjects, progress, statuses
   );
 }
 
+// ── Subject Entry: Expert Intro ────────────────────────────────────────────
+
+function ExpertIntroScreen({ subject, student, onReady, onBack }) {
+  function handleReady() {
+    localStorage.setItem(`bv_met_${subject.id}_${student.id}`, '1');
+    onReady();
+  }
+  return (
+    <div className="entry-screen">
+      <button className="entry-back-btn" onClick={onBack}>← Back to courses</button>
+      <div className="entry-card">
+        <div className="entry-expert-badge" style={{ background: subject.color + '18', color: subject.color }}>
+          {subject.name}
+        </div>
+        <div className="entry-avatar" style={{ background: subject.color }}>
+          {subject.tutor.split(' ').filter(w => w.startsWith('Dr') || w.length > 2).slice(-2).map(w => w[0]).join('')}
+        </div>
+        <div className="entry-expert-name">{subject.tutor}</div>
+        <div className="entry-expert-role">{subject.role} · {subject.org}</div>
+        <blockquote className="entry-intro-text">"{subject.intro}"</blockquote>
+        <p className="entry-ready-prompt">Ready to begin?</p>
+        <button className="entry-cta-btn" style={{ background: subject.color }} onClick={handleReady}>
+          Yes, let's go →
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ── Subject Entry: Session Contract ────────────────────────────────────────
+
+function SessionStartScreen({ subject, student, onBegin, onBack }) {
+  const [concepts, setConcepts] = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [newsItem, setNewsItem] = useState(null);
+  const MINS_PER_CONCEPT = 7;
+
+  useEffect(() => {
+    Promise.all([
+      fetch(`/api/progress/${student.id}/${subject.id}`).then(r => r.json()),
+      fetch(`/api/subject-news/${subject.id}`).then(r => r.json()).catch(() => []),
+    ]).then(([progressData, newsData]) => {
+      const uncovered = (progressData.concepts || []).filter(c => !c.covered).slice(0, 3);
+      if (uncovered.length > 0) {
+        setConcepts(uncovered);
+      } else {
+        setConcepts((progressData.concepts || []).slice(0, 3).map(c => ({ ...c, review: true })));
+      }
+      if (newsData.length > 0) setNewsItem(newsData[0]);
+    }).catch(() => {}).finally(() => setLoading(false));
+  }, [student.id, subject.id]);
+
+  const totalMins = concepts.length * MINS_PER_CONCEPT;
+  const isReview  = concepts[0]?.review;
+
+  function handleBegin() {
+    onBegin(newsItem?.title || null);
+  }
+
+  return (
+    <div className="entry-screen">
+      <button className="entry-back-btn" onClick={onBack}>← Back</button>
+      <div className="entry-card entry-card--session">
+        <div className="entry-session-header">
+          <div className="entry-avatar entry-avatar--sm" style={{ background: subject.color }}>
+            {subject.tutor.split(' ').filter(w => w.startsWith('Dr') || w.length > 2).slice(-2).map(w => w[0]).join('')}
+          </div>
+          <div>
+            <div className="entry-expert-name entry-expert-name--sm">{subject.tutor}</div>
+            <div className="entry-expert-role">{subject.name}</div>
+          </div>
+        </div>
+
+        {newsItem && (
+          <div className="entry-news-card" style={{ borderColor: subject.color + '40' }}>
+            <div className="entry-news-eyebrow">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+                <path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/>
+                <path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/>
+              </svg>
+              Before we begin
+            </div>
+            <div className="entry-news-headline">{newsItem.title}</div>
+            {(newsItem.source || newsItem.pub_date) && (
+              <div className="entry-news-meta">
+                {newsItem.source && <span>{newsItem.source}</span>}
+                {newsItem.source && newsItem.pub_date && <span>·</span>}
+                {newsItem.pub_date && <span>{newsItem.pub_date}</span>}
+              </div>
+            )}
+            <div className="entry-news-note" style={{ color: subject.color }}>Your expert will connect this to today's session</div>
+          </div>
+        )}
+
+        <div className="entry-session-label">
+          {isReview ? "Today's review session" : "Today's session"}
+        </div>
+
+        {loading ? (
+          <div className="entry-concepts-loading">Loading session…</div>
+        ) : (
+          <div className="entry-concepts-list">
+            {concepts.map((c, i) => (
+              <div key={c.id} className="entry-concept-row">
+                <span className="entry-concept-num" style={{ background: subject.color + '20', color: subject.color }}>{i + 1}</span>
+                <span className="entry-concept-name">{c.name}</span>
+                <span className="entry-concept-time">~{MINS_PER_CONCEPT} min</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="entry-session-meta">
+          ~{totalMins} minutes total · Ask me anything along the way
+        </div>
+
+        <p className="entry-ready-prompt">Shall we start?</p>
+        <button className="entry-cta-btn" style={{ background: subject.color }} onClick={handleBegin} disabled={loading}>
+          Begin session →
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Home ───────────────────────────────────────────────────────────────────
 
 const PAUSE_REASONS = [
@@ -4222,6 +4556,76 @@ const PAUSE_REASONS = [
   { id: 'too_advanced',   label: 'Too advanced right now',      sub: 'I need to build more foundation first' },
   { id: 'career_changed', label: 'Career goals changed',        sub: 'This subject is less relevant now' },
 ];
+
+function computeReadiness(careerProfile, progress) {
+  if (!careerProfile?.career) return null;
+  const ids = careerProfile.career.relevant_subjects || [];
+  if (!ids.length) return null;
+  const BASE = 10, SUBJECT_MAX = 88;
+  let scoreSum = 0, completed = 0;
+  ids.forEach(id => {
+    const p = progress[id];
+    if (!p || p.total === 0) return;
+    const s = (p.mastered_count + 0.4 * Math.max(0, p.covered_count - p.mastered_count)) / p.total;
+    scoreSum += s;
+    if (s >= 0.7) completed++;
+  });
+  const score = Math.min(Math.round(BASE + (scoreSum / ids.length) * SUBJECT_MAX), 98);
+  const nextSubjectId = ids.find(id => {
+    const p = progress[id];
+    if (!p || p.total === 0) return true;
+    const s = (p.mastered_count + 0.4 * Math.max(0, p.covered_count - p.mastered_count)) / p.total;
+    return s < 0.7;
+  });
+  const nextSubject = nextSubjectId ? SUBJECTS.find(s => s.id === nextSubjectId) : null;
+  return { score, completed, total: ids.length, remaining: ids.length - completed, nextSubject };
+}
+
+function CareerReadinessScore({ careerProfile, progress, onViewPath }) {
+  const data = computeReadiness(careerProfile, progress);
+  if (!data) return null;
+  const { score, remaining, nextSubject } = data;
+  const career = careerProfile.career;
+
+  const R = 52, stroke = 8;
+  const circ = 2 * Math.PI * R;
+  const offset = circ * (1 - score / 100);
+  const color = score < 30 ? '#f59e0b' : score < 60 ? '#16c1ad' : '#059669';
+
+  const tagline = remaining === 0
+    ? `You've covered your full learning path for ${career.title}`
+    : nextSubject
+      ? `Next up: ${nextSubject.name} — ${remaining} subject${remaining !== 1 ? 's' : ''} left to be interview-ready`
+      : `${remaining} subject${remaining !== 1 ? 's' : ''} left on your path to ${career.title}`;
+
+  return (
+    <div className="readiness-card" onClick={onViewPath} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && onViewPath()}>
+      <div className="readiness-arc-wrap">
+        <svg width={R * 2 + stroke} height={R * 2 + stroke} className="readiness-svg">
+          <circle cx={R + stroke / 2} cy={R + stroke / 2} r={R}
+            fill="none" stroke="var(--border)" strokeWidth={stroke} />
+          <circle cx={R + stroke / 2} cy={R + stroke / 2} r={R}
+            fill="none" stroke={color} strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeDasharray={circ} strokeDashoffset={offset}
+            transform={`rotate(-90 ${R + stroke / 2} ${R + stroke / 2})`}
+            style={{ transition: 'stroke-dashoffset 1s ease' }}
+          />
+        </svg>
+        <div className="readiness-score-center">
+          <span className="readiness-pct" style={{ color }}>{score}%</span>
+          <span className="readiness-label">ready</span>
+        </div>
+      </div>
+      <div className="readiness-text">
+        <div className="readiness-title">Career Readiness</div>
+        <div className="readiness-career">{career.title}</div>
+        <div className="readiness-tagline">{tagline}</div>
+        <div className="readiness-cta">View your learning path →</div>
+      </div>
+    </div>
+  );
+}
 
 function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, onPauseSubject }) {
   const [progress, setProgress]   = useState({});
@@ -4309,6 +4713,8 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
           </div>
         )}
       </div>
+
+      <CareerReadinessScore careerProfile={careerProfile} progress={progress} onViewPath={onViewPath} />
 
       {career ? (
         <>
@@ -4879,7 +5285,7 @@ function QuizModal({ moduleId, moduleName, subjectId, studentId, subjectColor, o
 
 // ── Chat ───────────────────────────────────────────────────────────────────
 
-function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, onViewCapstone, onViewCertificate, onPauseSubject, revisionModule, onRevisionConsumed }) {
+function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, onViewCapstone, onViewCertificate, onPauseSubject, revisionModule, onRevisionConsumed, autoStart, autoStartHeadline, onAutoStartConsumed }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -4953,6 +5359,11 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
           const msg = `Please give me a focused revision of the "${revisionModule.name}" module — summarise the key points from each of its sub-topics in a structured way with bullet points.`;
           setInput(msg);
           setTimeout(() => { sendMessageText(msg); if (onRevisionConsumed) onRevisionConsumed(); }, 200);
+        } else if (autoStart) {
+          const msg = autoStartHeadline
+            ? `Let's begin. Before we start, I saw this headline: "${autoStartHeadline}" — can you briefly connect this to what we're covering today, then go into the first concept?`
+            : "Let's begin.";
+          setTimeout(() => { sendMessageText(msg); if (onAutoStartConsumed) onAutoStartConsumed(); }, 300);
         } else {
           setTimeout(() => inputRef.current?.focus(), 100);
         }
@@ -5283,7 +5694,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
                   </div>
                   <div className="message-bubble">
                     {msg.quiz && msg.role === 'bot' && <div className="quiz-label">Assessment</div>}
-                    {renderMessageContent(msg.content)}
+                    {renderMessageContent(msg.content, { color: subject.color })}
                     {msg.role === 'bot' && (
                       <button className="msg-save-btn" title="Save to notes" onClick={() => { saveNote(msg.content); setNotesOpen(true); }}>
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
@@ -5460,17 +5871,33 @@ export default function App() {
     setIsReturning(false);
   }
 
+  const [subjectEntryPhase, setSubjectEntryPhase] = useState(null); // 'intro' | 'session' | null
+  const [autoStartChat, setAutoStartChat]         = useState(false);
+  const [sessionNewsHeadline, setSessionNewsHeadline] = useState(null);
+
   function handleSelectSubject(subject) {
     setSelectedSubject(subject);
-    setView('chat');
+    const met = localStorage.getItem(`bv_met_${subject.id}_${student?.id}`);
+    setSubjectEntryPhase(met ? 'session' : 'intro');
+    setView('subject-entry');
   }
 
   function handleBack() {
+    fireSessionEnd();
     setSelectedSubject(null);
+    setSubjectEntryPhase(null);
+    setAutoStartChat(false);
     setView('home');
   }
 
+  function fireSessionEnd() {
+    if (selectedSubject && student) {
+      fetch(`/api/session-end/${student.id}/${selectedSubject.id}`, { method: 'POST' }).catch(() => {});
+    }
+  }
+
   function handlePauseSubject(subject) {
+    fireSessionEnd();
     setPauseSubject(subject);
     setView('subject-pause');
   }
@@ -5499,11 +5926,13 @@ export default function App() {
   }
 
   function handleViewCapstone(subject) {
+    fireSessionEnd();
     setCapstoneSubject(subject);
     setView('capstone');
   }
 
   function handleViewCertificate(subject) {
+    fireSessionEnd();
     setCertificateSubject(subject);
     setView('certificate');
   }
@@ -5517,6 +5946,7 @@ export default function App() {
     return (
       <OnboardingView
         student={student}
+        careerProfile={careerProfile}
         onComplete={(profileData) => {
           setShowOnboarding(false);
           if (profileData) setCareerProfile(profileData);
@@ -5549,6 +5979,25 @@ export default function App() {
           onPaused={handleSubjectPaused}
           onCancel={() => { setPauseSubject(null); setView(selectedSubject ? 'chat' : 'home'); }}
         />
+      ) : view === 'subject-entry' && selectedSubject ? (
+        subjectEntryPhase === 'intro' ? (
+          <ExpertIntroScreen
+            subject={selectedSubject}
+            student={student}
+            onReady={() => setSubjectEntryPhase('session')}
+            onBack={handleBack}
+          />
+        ) : (
+          <SessionStartScreen
+            subject={selectedSubject}
+            student={student}
+            onBegin={(headline) => { setSessionNewsHeadline(headline); setAutoStartChat(true); setSubjectEntryPhase(null); setView('chat'); }}
+            onBack={() => {
+              const met = localStorage.getItem(`bv_met_${selectedSubject.id}_${student?.id}`);
+              met ? handleBack() : setSubjectEntryPhase('intro');
+            }}
+          />
+        )
       ) : view === 'chat' && selectedSubject ? (
         <ChatView
           subject={selectedSubject}
@@ -5561,6 +6010,9 @@ export default function App() {
           onPauseSubject={handlePauseSubject}
           revisionModule={revisionModule}
           onRevisionConsumed={() => setRevisionModule(null)}
+          autoStart={autoStartChat}
+          autoStartHeadline={sessionNewsHeadline}
+          onAutoStartConsumed={() => { setAutoStartChat(false); setSessionNewsHeadline(null); }}
         />
       ) : view === 'dashboard' ? (
         <DashboardView
