@@ -2104,6 +2104,34 @@ body {
 .readiness-cta { font-size: 0.8rem; color: var(--teal); font-weight: 600; margin-top: 4px; }
 
 /* ── Career path badge on home ─────────────────────────────────────────── */
+.home-hero-top {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.home-hero-top h1 { margin: 0; }
+
+.streak-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #9a3412;
+  white-space: nowrap;
+}
+.streak-badge--done { background: #f0fdf4; border-color: #86efac; color: #166534; }
+.streak-badge--risk { background: #fff7ed; border-color: #fbbf24; color: #92400e; animation: pulse-risk 2s infinite; }
+@keyframes pulse-risk { 0%,100% { opacity:1; } 50% { opacity:0.7; } }
+.streak-flame { font-size: 1rem; }
+.streak-count { font-size: 1.1rem; font-weight: 900; }
+.streak-label { font-size: 0.72rem; font-weight: 600; opacity: 0.85; }
+
 .career-path-badge {
   display: inline-flex;
   align-items: center;

@@ -208,6 +208,10 @@ def init_db():
         "ALTER TABLE student_profile ADD COLUMN state TEXT",
         "ALTER TABLE student_profile ADD COLUMN show_on_map INTEGER DEFAULT 1",
         "ALTER TABLE student_profile ADD COLUMN is_placed INTEGER DEFAULT 0",
+        "ALTER TABLE student_profile ADD COLUMN streak_count INTEGER DEFAULT 0",
+        "ALTER TABLE student_profile ADD COLUMN streak_last_date TEXT",
+        "ALTER TABLE student_profile ADD COLUMN last_active_at TEXT",
+        "ALTER TABLE student_profile ADD COLUMN nudge_sent_at TEXT",
     ]:
         try:
             conn.execute(col)
@@ -1565,6 +1569,64 @@ class AddEmailRequest(BaseModel):
 
 # ── Email ─────────────────────────────────────────────────────────────────────
 
+def update_streak(student_id: str, conn) -> int:
+    from datetime import timedelta
+    today = datetime.utcnow().date().isoformat()
+    now   = datetime.utcnow().isoformat()
+    row   = conn.execute(
+        "SELECT streak_count, streak_last_date FROM student_profile WHERE student_id = ?",
+        (student_id,)
+    ).fetchone()
+    if not row:
+        return 0
+    count     = row["streak_count"] or 0
+    last_date = row["streak_last_date"]
+    if last_date == today:
+        conn.execute("UPDATE student_profile SET last_active_at=? WHERE student_id=?", (now, student_id))
+        conn.commit()
+        return count
+    yesterday = (datetime.utcnow().date() - timedelta(days=1)).isoformat()
+    new_count = (count + 1) if last_date == yesterday else 1
+    conn.execute(
+        "UPDATE student_profile SET streak_count=?, streak_last_date=?, last_active_at=? WHERE student_id=?",
+        (new_count, today, now, student_id)
+    )
+    conn.commit()
+    return new_count
+
+
+async def check_inactivity_nudge(student_id: str):
+    conn = get_db()
+    try:
+        row = conn.execute(
+            "SELECT last_active_at, nudge_sent_at FROM student_profile WHERE student_id=?",
+            (student_id,)
+        ).fetchone()
+        if not row or not row["last_active_at"]:
+            return
+        now        = datetime.utcnow()
+        last_act   = datetime.fromisoformat(row["last_active_at"])
+        days_since = (now - last_act).days
+        if days_since < 3:
+            return
+        if row["nudge_sent_at"]:
+            last_nudge = datetime.fromisoformat(row["nudge_sent_at"])
+            if (now - last_nudge).days < 7:
+                return
+        student = conn.execute("SELECT name, email FROM students WHERE id=?", (student_id,)).fetchone()
+        if not student:
+            return
+        profile = conn.execute("SELECT career_id FROM student_profile WHERE student_id=?", (student_id,)).fetchone()
+        career  = CAREERS.get(profile["career_id"]) if profile and profile["career_id"] else None
+        await send_inactivity_nudge_email(student["email"], student["name"], days_since, career)
+        conn.execute("UPDATE student_profile SET nudge_sent_at=? WHERE student_id=?", (now.isoformat(), student_id))
+        conn.commit()
+    except Exception as e:
+        print(f"Nudge check error: {e}")
+    finally:
+        conn.close()
+
+
 def _email_wrap(body: str) -> str:
     return f"""<div style="font-family:'Helvetica Neue',Arial,sans-serif;background:#F6F8FB;padding:40px 0">
       <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;border:1px solid #E8EDF4">
@@ -1661,6 +1723,49 @@ async def send_lag_nudge_email(to_email: str, name: str, lag_days: int, lag_conc
         _small("You can adjust your plan any time from the Dashboard.")
     )
     return await _send_email(to_email, f"Your study plan needs attention, {first}", _email_wrap(body))
+
+async def send_inactivity_nudge_email(to_email: str, name: str, days_since: int, career: dict = None) -> bool:
+    first = name.split()[0]
+    career_line = f"You're on your way to becoming a <strong>{career['title']}</strong> — don't lose momentum." if career else "You're building real biotech knowledge — don't lose momentum."
+    subject_line = f"Hey {first}, it's been {days_since} days" if days_since < 7 else f"{first}, your learning path needs you"
+    body = (
+        _heading(f"Hey {first}, you still there?") +
+        _para(f"It's been <strong>{days_since} day{'s' if days_since != 1 else ''}</strong> since your last session on Bversity. {career_line}") +
+        _btn("Pick Up Where You Left Off →", "https://university.bversity.io") +
+        _divider() +
+        _para("Your AI tutors are ready. Even a 15-minute session keeps you moving forward — and your progress is exactly where you left it.") +
+        _small("You're receiving this because you're a registered learner at Bversity.")
+    )
+    return await _send_email(to_email, subject_line, _email_wrap(body))
+
+
+async def send_streak_milestone_email(to_email: str, name: str, streak: int, career: dict = None) -> bool:
+    first = name.split()[0]
+    emojis = {3: "🔥", 7: "⚡", 14: "🚀", 30: "🏆"}
+    emoji  = emojis.get(streak, "🔥")
+    career_line = f"For someone heading toward <strong>{career['title']}</strong>, consistency like this is everything." if career else "Consistency like this is everything in biotech."
+    body = (
+        _heading(f"{emoji} {streak}-day streak, {first}!") +
+        _para(f"You've logged in and learned for <strong>{streak} days in a row</strong>. {career_line}") +
+        _btn("Keep Your Streak Going →", "https://university.bversity.io") +
+        _divider() +
+        _small("Keep showing up. The compounding effect of daily learning is real.")
+    )
+    return await _send_email(to_email, f"{emoji} {streak}-day learning streak — keep it going, {first}!", _email_wrap(body))
+
+
+async def send_module_complete_email(to_email: str, name: str, module_name: str, subject_name: str, career: dict = None) -> bool:
+    first = name.split()[0]
+    career_line = f"This is exactly the kind of knowledge a <strong>{career['title']}</strong> uses daily." if career else "This is real biotech knowledge that sets you apart."
+    body = (
+        _heading(f"Module complete: {module_name}") +
+        _para(f"You just finished <strong>{module_name}</strong> in {subject_name}. {career_line}") +
+        _btn("Continue to Next Module →", "https://university.bversity.io") +
+        _divider() +
+        _small("Take the module quiz to lock in your mastery — it's short and worth it.")
+    )
+    return await _send_email(to_email, f"You completed '{module_name}' — {first}", _email_wrap(body))
+
 
 async def send_weekly_digest_email(to_email: str, name: str, covered: int, mastered: int, streak_subjects: list) -> bool:
     first = name.split()[0]
@@ -1991,10 +2096,12 @@ def get_careers():
     return list(CAREERS.values())
 
 @app.get("/profile/{student_id}")
-def get_profile(student_id: str):
+def get_profile(student_id: str, background_tasks: BackgroundTasks = None):
+    background_tasks = background_tasks or BackgroundTasks()
+    background_tasks.add_task(check_inactivity_nudge, student_id)
     conn = get_db()
     row = conn.execute(
-        "SELECT career_id, college, year_of_study, aspirations, motivation, tutor_note, onboarded_at, avatar_color, linkedin_url, github_url, city, state, show_on_map FROM student_profile WHERE student_id = ?",
+        "SELECT career_id, college, year_of_study, aspirations, motivation, tutor_note, onboarded_at, avatar_color, linkedin_url, github_url, city, state, show_on_map, streak_count, streak_last_date FROM student_profile WHERE student_id = ?",
         (student_id,)
     ).fetchone()
     student_row = conn.execute("SELECT email FROM students WHERE id = ?", (student_id,)).fetchone()
@@ -2015,10 +2122,16 @@ def get_profile(student_id: str):
             count = sum(1 for c in concepts if c["id"] in career_key_set)
             if count: career_concept_counts[sid] = count
 
+    today = datetime.utcnow().date().isoformat()
+    streak_count    = (row["streak_count"] or 0) if row else 0
+    streak_last     = row["streak_last_date"] if row else None
+    streak_today    = streak_last == today
+    streak_at_risk  = bool(streak_count > 0 and not streak_today)
+
     if not row:
         return {"career_id": None, "career": None, "onboarded": False,
                 "waitlist_university": waitlist_university, "waitlist_year_of_study": waitlist_year,
-                "career_concept_counts": {}}
+                "career_concept_counts": {}, "streak_count": 0, "streak_today": False, "streak_at_risk": False}
     return {
         "career_id": row["career_id"],
         "career": career_obj,
@@ -2037,6 +2150,9 @@ def get_profile(student_id: str):
         "show_on_map": row["show_on_map"] if row["show_on_map"] is not None else 1,
         "waitlist_university": waitlist_university,
         "waitlist_year_of_study": waitlist_year,
+        "streak_count": streak_count,
+        "streak_today": streak_today,
+        "streak_at_risk": streak_at_risk,
     }
 
 class OnboardingRequest(BaseModel):
@@ -3300,6 +3416,7 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
         (req.student_id, req.subject_id, "user", req.message, datetime.utcnow().isoformat()),
     )
     conn.commit()
+    new_streak = update_streak(req.student_id, conn)
 
     rag_context    = retrieve_context(req.subject_id, req.message, conn)
     using_rag      = bool(rag_context)
@@ -3416,7 +3533,24 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
                     (req.student_id, req.subject_id, mod_id)
                 ).fetchone()
                 if not already_done:
-                    modules_completed.append({"id": mod_id, "name": subs[0]["name"].split(":")[0].split("—")[0].strip()})
+                    mod_name = subs[0]["name"].split(":")[0].split("—")[0].strip()
+                    modules_completed.append({"id": mod_id, "name": mod_name})
+                    student_row2 = conn.execute("SELECT email, name FROM students WHERE id=?", (req.student_id,)).fetchone()
+                    if student_row2:
+                        background_tasks.add_task(
+                            send_module_complete_email,
+                            student_row2["email"], student_row2["name"],
+                            mod_name, SUBJECTS[req.subject_id]["name"], career
+                        )
+
+    # Fire streak milestone email for 3, 7, 14, 30 day milestones
+    if new_streak in (3, 7, 14, 30):
+        student_row3 = conn.execute("SELECT email, name FROM students WHERE id=?", (req.student_id,)).fetchone()
+        if student_row3:
+            background_tasks.add_task(
+                send_streak_milestone_email,
+                student_row3["email"], student_row3["name"], new_streak, career
+            )
 
     conn.close()
 

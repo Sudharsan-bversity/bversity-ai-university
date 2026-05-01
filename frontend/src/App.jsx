@@ -4704,7 +4704,16 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
           </>
         ) : (
           <>
-            <h1>Welcome back, <span>{student.name.split(' ')[0]}</span></h1>
+            <div className="home-hero-top">
+              <h1>Welcome back, <span>{student.name.split(' ')[0]}</span></h1>
+              {careerProfile?.streak_count > 0 && (
+                <div className={`streak-badge${careerProfile.streak_at_risk ? ' streak-badge--risk' : careerProfile.streak_today ? ' streak-badge--done' : ''}`}>
+                  <span className="streak-flame">{careerProfile.streak_at_risk ? '⚠️' : '🔥'}</span>
+                  <span className="streak-count">{careerProfile.streak_count}</span>
+                  <span className="streak-label">{careerProfile.streak_at_risk ? 'streak at risk' : 'day streak'}</span>
+                </div>
+              )}
+            </div>
             <p>Your experts remember where you left off. Pick a subject to continue.</p>
           </>
         )}
