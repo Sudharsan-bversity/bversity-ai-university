@@ -6676,11 +6676,11 @@ body {
   margin: 8px 16px;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   border: 1px solid; border-radius: 10px; padding: 12px 16px;
-  background: rgba(255,255,255,0.03);
+  background: #fff;
 }
 .module-quiz-left { display: flex; align-items: flex-start; gap: 10px; }
 .module-quiz-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
-.module-quiz-title { font-size: 0.85rem; color: rgba(255,255,255,0.9); }
+.module-quiz-title { font-size: 0.85rem; color: var(--text-primary); font-weight: 600; }
 .module-quiz-sub   { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
 .module-quiz-btn   { flex-shrink: 0; font-size: 0.8rem; font-weight: 700; color: #fff; border: none; border-radius: 7px; padding: 7px 16px; cursor: pointer; white-space: nowrap; }
 
