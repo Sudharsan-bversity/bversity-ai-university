@@ -348,52 +348,41 @@ function driveEmbedUrl(url) {
 }
 
 function TermTooltip({ term }) {
-  const [state, setState] = React.useState('idle'); // idle | loading | ready | empty
-  const [data, setData] = React.useState(null);
+  const [data, setData] = React.useState(null);   // null = not yet fetched
+  const [ready, setReady] = React.useState(false); // false = no result
+  const [open, setOpen] = React.useState(false);
   const [imgLoaded, setImgLoaded] = React.useState(false);
   const timerRef = React.useRef(null);
-  const fetchedRef = React.useRef(false);
 
-  function prefetch() {
-    if (fetchedRef.current) return;
-    fetchedRef.current = true;
-    setState('loading');
+  // Prefetch as soon as the term appears in the DOM
+  React.useEffect(() => {
     fetch(`/api/term-image/${encodeURIComponent(term)}`)
       .then(r => r.json())
-      .then(d => {
-        if (d.image || d.extract) { setData(d); setState('ready'); }
-        else setState('empty');
-      })
-      .catch(() => setState('empty'));
-  }
+      .then(d => { if (d.image || d.extract) { setData(d); setReady(true); } })
+      .catch(() => {});
+  }, [term]);
 
   function handleMouseEnter() {
     clearTimeout(timerRef.current);
-    prefetch();
-    timerRef.current = setTimeout(() => { if (state !== 'empty') setState(s => s === 'loading' || s === 'ready' ? s : 'loading'); }, 200);
+    if (ready) timerRef.current = setTimeout(() => setOpen(true), 120);
   }
 
   function handleMouseLeave() {
     clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setState(s => s === 'ready' ? 'ready-hidden' : s), 150);
+    timerRef.current = setTimeout(() => setOpen(false), 150);
   }
-
-  const showPopup = state === 'ready' || state === 'loading';
 
   return (
     <span className="term-tooltip-wrap" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-      <strong className="term-tooltip-trigger">{term}</strong>
-      {showPopup && (
+      <strong className={`term-tooltip-trigger${ready ? ' has-tip' : ''}`}>{term}</strong>
+      {open && ready && (
         <span className="term-tooltip-popup" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-          {state === 'loading' && <span className="term-tooltip-loading">Loading…</span>}
-          {state === 'ready' && data?.image && (
+          {data?.image && (
             <img src={data.image} alt={term}
               className={`term-tooltip-img${imgLoaded ? ' loaded' : ''}`}
               onLoad={() => setImgLoaded(true)} />
           )}
-          {state === 'ready' && data?.extract && (
-            <span className="term-tooltip-def">{data.extract}</span>
-          )}
+          {data?.extract && <span className="term-tooltip-def">{data.extract}</span>}
         </span>
       )}
     </span>

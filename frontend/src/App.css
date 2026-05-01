@@ -7490,11 +7490,13 @@ body {
   display: inline;
 }
 .term-tooltip-trigger {
-  cursor: pointer;
-  border-bottom: 2px dotted var(--teal);
   color: inherit;
 }
-.term-tooltip-trigger:hover {
+.term-tooltip-trigger.has-tip {
+  cursor: pointer;
+  border-bottom: 2px dotted var(--teal);
+}
+.term-tooltip-trigger.has-tip:hover {
   color: var(--teal);
 }
 .term-tooltip-popup {
