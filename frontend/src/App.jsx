@@ -5336,6 +5336,8 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
   }
 
   useEffect(() => {
+    let cancelled = false;
+    let timer;
     async function load() {
       try {
         const [histRes, progRes, videosRes, resourcesRes, quizRes] = await Promise.all([
@@ -5345,6 +5347,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
           fetch(`/api/resources/${subject.id}`),
           fetch(`/api/quiz/status/${student.id}/${subject.id}`),
         ]);
+        if (cancelled) return;
         const hist = await histRes.json();
         const prog = await progRes.json();
         setMessages(hist.map((m) => ({ role: m.role === 'assistant' ? 'bot' : m.role, content: m.content })));
@@ -5356,23 +5359,25 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         setQuizStatus(await quizRes.json());
       } catch {}
       finally {
+        if (cancelled) return;
         setHistoryLoading(false);
         if (revisionModule) {
           const msg = `Please give me a focused revision of the "${revisionModule.name}" module — summarise the key points from each of its sub-topics in a structured way with bullet points.`;
           setInput(msg);
-          setTimeout(() => { sendMessageText(msg); if (onRevisionConsumed) onRevisionConsumed(); }, 200);
+          timer = setTimeout(() => { if (!cancelled) { sendMessageText(msg); if (onRevisionConsumed) onRevisionConsumed(); } }, 200);
         } else if (autoStart) {
           const msg = autoStartHeadline
             ? `Let's begin. Before we start, I saw this headline: "${autoStartHeadline}" — can you briefly connect this to what we're covering today, then go into the first concept?`
             : "Let's begin.";
-          setTimeout(() => { sendMessageText(msg); if (onAutoStartConsumed) onAutoStartConsumed(); }, 300);
+          timer = setTimeout(() => { if (!cancelled) { sendMessageText(msg); if (onAutoStartConsumed) onAutoStartConsumed(); } }, 300);
         } else {
-          setTimeout(() => inputRef.current?.focus(), 100);
+          timer = setTimeout(() => inputRef.current?.focus(), 100);
         }
       }
     }
     load();
     loadNotes();
+    return () => { cancelled = true; clearTimeout(timer); };
   }, [student.id, subject.id]);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, loading]);
