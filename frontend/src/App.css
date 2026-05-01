@@ -1802,6 +1802,15 @@ body {
 .lp-badge--done    { background: #dbeafe; color: #1e40af; }
 .lp-badge--paused  { background: #fef9c3; color: #92400e; }
 .lp-badge--locked  { background: var(--bg-subtle); color: var(--text-muted); }
+.lp-badge--nextup  { background: #fef3c7; color: #92400e; font-weight: 700; }
+
+.lp-step-core-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-top: 4px;
+  display: block;
+  opacity: 0.85;
+}
 
 .lp-step-progress {
   display: flex;

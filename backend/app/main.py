@@ -1269,7 +1269,13 @@ CAPSTONES = {
 # ── Career-filtered curriculum helper ────────────────────────────────────────
 
 def effective_curriculum(subject_id: str, career: dict = None) -> list:
-    return CURRICULUM[subject_id]
+    curriculum = CURRICULUM[subject_id]
+    if not career or not career.get("key_concepts"):
+        return curriculum
+    career_keys = set(career["key_concepts"])
+    priority = [c for c in curriculum if c["id"] in career_keys]
+    rest     = [c for c in curriculum if c["id"] not in career_keys]
+    return priority + rest
 
 # ── RAG helpers ───────────────────────────────────────────────────────────────
 
@@ -1426,14 +1432,27 @@ Use this to personalise your teaching today. Reference what {student_name} has a
 
     career_block = ""
     if career:
+        career_keys = set(career.get("key_concepts", []))
+        core_here   = [c["name"] for c in curriculum if c["id"] in career_keys]
+        core_list   = ", ".join(core_here[:6]) if core_here else "none specifically flagged"
         career_block = f"""
 
 ━━ STUDENT'S CAREER DESTINATION ━━
-{student_name} is aiming for: {career['title']} ({career['cluster']})
-{career['description']}
-Their day-to-day will look like: {career['day_in_life']}
+{student_name} is targeting: {career['title']} ({career['cluster']})
+Role description: {career['description']}
+Day-to-day reality: {career['day_in_life']}
 
-Connect every concept you teach to how a {career['title']} uses it in real work. One sentence of career relevance per concept is powerful — make it specific."""
+CAREER-CRITICAL CONCEPTS IN THIS SUBJECT ({len(core_here)} of {len(curriculum)} total):
+{core_list}
+
+These concepts are directly used in the {career['title']} role. When you teach them:
+- Open with a one-sentence career hook: "As a {career['title']}, you'll use this when..."
+- Use examples drawn from: {career['day_in_life']}
+- Make the stakes real: explain what goes wrong professionally if they don't understand this
+
+For non-career-critical concepts: still teach them fully, but frame them as supporting knowledge ("You won't use this daily, but you need it to understand X").
+
+Never teach a concept in the abstract. Every concept should feel like {student_name} is being prepared for a real job, not passing an exam."""
 
     rag_block = ""
     if rag_context:
@@ -1988,12 +2007,22 @@ def get_profile(student_id: str):
     conn.close()
     waitlist_university = waitlist_row["university"] if waitlist_row else None
     waitlist_year = waitlist_row["year_of_study"] if waitlist_row else None
+    career_obj = CAREERS.get(row["career_id"]) if row and row["career_id"] else None
+    career_key_set = set(career_obj.get("key_concepts", [])) if career_obj else set()
+    career_concept_counts = {}
+    if career_key_set:
+        for sid, concepts in CURRICULUM.items():
+            count = sum(1 for c in concepts if c["id"] in career_key_set)
+            if count: career_concept_counts[sid] = count
+
     if not row:
         return {"career_id": None, "career": None, "onboarded": False,
-                "waitlist_university": waitlist_university, "waitlist_year_of_study": waitlist_year}
+                "waitlist_university": waitlist_university, "waitlist_year_of_study": waitlist_year,
+                "career_concept_counts": {}}
     return {
         "career_id": row["career_id"],
-        "career": CAREERS.get(row["career_id"]) if row["career_id"] else None,
+        "career": career_obj,
+        "career_concept_counts": career_concept_counts,
         "onboarded": bool(row["onboarded_at"]),
         "college": row["college"],
         "year_of_study": row["year_of_study"],

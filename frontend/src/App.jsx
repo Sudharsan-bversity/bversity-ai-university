@@ -4294,7 +4294,7 @@ function PublicCertificateView({ credentialId }) {
 
 // ── Learning Path Track ────────────────────────────────────────────────────
 
-function LearningPathTrack({ student, career, careerSubjects, progress, statuses, activeCount, onCardClick, onPause }) {
+function LearningPathTrack({ student, career, careerSubjects, progress, statuses, activeCount, onCardClick, onPause, careerConceptCounts }) {
   const completedCount = careerSubjects.filter(s => statuses[s.id]?.status === 'completed').length;
   const totalSubjects  = careerSubjects.length;
   const pathPct        = totalSubjects > 0 ? Math.round((completedCount / totalSubjects) * 100) : 0;
@@ -4316,7 +4316,12 @@ function LearningPathTrack({ student, career, careerSubjects, progress, statuses
       </div>
 
       <div className="lp-track">
-        {careerSubjects.map((s, idx) => {
+        {(() => {
+          const nextUpIdx = careerSubjects.findIndex(s => {
+            const st = statuses[s.id]?.status;
+            return st !== 'completed';
+          });
+          return careerSubjects.map((s, idx) => {
           const st        = statuses[s.id]?.status;
           const prog      = progress[s.id];
           const covered   = prog?.covered_count  ?? 0;
@@ -4331,6 +4336,8 @@ function LearningPathTrack({ student, career, careerSubjects, progress, statuses
           const isLocked  = !isActive && !isPaused && !isDone;
           const isCurrent = isActive || (isPaused && !isDone);
           const hours     = SUBJECT_HOURS[s.id] || 20;
+          const isNextUp  = idx === nextUpIdx && !isActive;
+          const coreCount = careerConceptCounts?.[s.id] || 0;
 
           let stepState = 'locked';
           if (isDone)   stepState = 'done';
@@ -4376,10 +4383,11 @@ function LearningPathTrack({ student, career, careerSubjects, progress, statuses
                     </div>
                   </div>
                   <div className="lp-step-badges">
+                    {isNextUp && <span className="lp-badge lp-badge--nextup">Next up</span>}
                     {isDone   && <span className="lp-badge lp-badge--done">Completed</span>}
                     {isActive && <span className="lp-badge lp-badge--active">In Progress</span>}
                     {isPaused && <span className="lp-badge lp-badge--paused">Paused</span>}
-                    {isLocked && <span className="lp-badge lp-badge--locked">Locked</span>}
+                    {isLocked && !isNextUp && <span className="lp-badge lp-badge--locked">Locked</span>}
                   </div>
                 </div>
 
@@ -4403,6 +4411,11 @@ function LearningPathTrack({ student, career, careerSubjects, progress, statuses
 
                 <div className="lp-step-footer">
                   <span className="lp-step-desc">{s.description}</span>
+                  {coreCount > 0 && (
+                    <span className="lp-step-core-tag" style={{ color: s.color }}>
+                      {coreCount} concept{coreCount !== 1 ? 's' : ''} core to your career
+                    </span>
+                  )}
                   {!isLocked && (
                     <button className="lp-step-cta" style={{ color: s.color, borderColor: s.color + '55' }}
                       onClick={e => { e.stopPropagation(); onCardClick(s); }}>
@@ -4418,7 +4431,8 @@ function LearningPathTrack({ student, career, careerSubjects, progress, statuses
               </div>
             </div>
           );
-        })}
+        });
+        })()}
       </div>
     </div>
   );
@@ -4729,6 +4743,7 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
             activeCount={activeCount}
             onCardClick={handleCardClick}
             onPause={onPauseSubject}
+            careerConceptCounts={careerProfile?.career_concept_counts}
           />
 
           {exploreSubjects.length > 0 && (
