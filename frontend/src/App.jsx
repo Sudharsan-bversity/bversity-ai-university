@@ -347,52 +347,64 @@ function driveEmbedUrl(url) {
   return url;
 }
 
-function TermTooltip({ term, definition }) {
-  const [open, setOpen] = React.useState(false);
-  const [img, setImg] = React.useState(null);
+function TermTooltip({ term }) {
+  const [state, setState] = React.useState('idle'); // idle | loading | ready | empty
+  const [data, setData] = React.useState(null);
   const [imgLoaded, setImgLoaded] = React.useState(false);
   const timerRef = React.useRef(null);
-  const ref = React.useRef(null);
+  const fetchedRef = React.useRef(false);
 
-  React.useEffect(() => {
-    if (!open || img !== null) return;
+  function prefetch() {
+    if (fetchedRef.current) return;
+    fetchedRef.current = true;
+    setState('loading');
     fetch(`/api/term-image/${encodeURIComponent(term)}`)
       .then(r => r.json())
-      .then(d => setImg(d.image || false))
-      .catch(() => setImg(false));
-  }, [open, term, img]);
+      .then(d => {
+        if (d.image || d.extract) { setData(d); setState('ready'); }
+        else setState('empty');
+      })
+      .catch(() => setState('empty'));
+  }
 
   function handleMouseEnter() {
     clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setOpen(true), 200);
+    prefetch();
+    timerRef.current = setTimeout(() => { if (state !== 'empty') setState(s => s === 'loading' || s === 'ready' ? s : 'loading'); }, 200);
   }
 
   function handleMouseLeave() {
     clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setOpen(false), 150);
+    timerRef.current = setTimeout(() => setState(s => s === 'ready' ? 'ready-hidden' : s), 150);
   }
 
+  const showPopup = state === 'ready' || state === 'loading';
+
   return (
-    <span className="term-tooltip-wrap" ref={ref} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+    <span className="term-tooltip-wrap" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
       <strong className="term-tooltip-trigger">{term}</strong>
-      {open && (
+      {showPopup && (
         <span className="term-tooltip-popup" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
-          {img && <img src={img} alt={term} className={`term-tooltip-img${imgLoaded ? ' loaded' : ''}`} onLoad={() => setImgLoaded(true)} />}
-          <span className="term-tooltip-def">{definition}</span>
+          {state === 'loading' && <span className="term-tooltip-loading">Loading…</span>}
+          {state === 'ready' && data?.image && (
+            <img src={data.image} alt={term}
+              className={`term-tooltip-img${imgLoaded ? ' loaded' : ''}`}
+              onLoad={() => setImgLoaded(true)} />
+          )}
+          {state === 'ready' && data?.extract && (
+            <span className="term-tooltip-def">{data.extract}</span>
+          )}
         </span>
       )}
     </span>
   );
 }
 
-function formatInline(text, defs) {
-  const defsLower = defs ? Object.fromEntries(Object.entries(defs).map(([k, v]) => [k.toLowerCase(), v])) : null;
+function formatInline(text) {
   return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       const inner = part.slice(2, -2);
-      const def = defsLower && (defs[inner] || defsLower[inner.toLowerCase()]);
-      if (def) return <TermTooltip key={i} term={inner} definition={def} />;
-      return <strong key={i}>{inner}</strong>;
+      return <TermTooltip key={i} term={inner} />;
     }
     return part.split(/(`[^`]+`)/g).map((cp, j) => {
       if (cp.startsWith('`') && cp.endsWith('`')) return <code key={`${i}-${j}`}>{cp.slice(1, -1)}</code>;
@@ -401,7 +413,7 @@ function formatInline(text, defs) {
   });
 }
 
-function formatMessage(text) { return formatInline(text, null); }
+function formatMessage(text) { return formatInline(text); }
 
 function ConceptCard({ data, color }) {
   const c = color || '#16c1ad';
@@ -450,7 +462,6 @@ function ConceptCard({ data, color }) {
 
 function renderMessageContent(content, opts = {}) {
   let cardData = null;
-  let defs = null;
   let cleanContent = content;
 
   const cardMatch = cleanContent.match(/<<<CARD:(\{[\s\S]*?\})>>>/);
@@ -459,13 +470,10 @@ function renderMessageContent(content, opts = {}) {
     cleanContent = cleanContent.replace(/\n?<<<CARD:\{[\s\S]*?\}>>>\n?/, '').trim();
   }
 
-  const defsMatch = cleanContent.match(/<<<DEFS:(\{[\s\S]*?\})>>>/);
-  if (defsMatch) {
-    try { defs = JSON.parse(defsMatch[1]); } catch (e) {}
-    cleanContent = cleanContent.replace(/\n?<<<DEFS:\{[\s\S]*?\}>>>\n?/, '').trim();
-  }
+  // strip DEFS tag — no longer used for rendering
+  cleanContent = cleanContent.replace(/\n?<<<DEFS:\{[\s\S]*?\}>>>\n?/, '').trim();
 
-  const fi = (t) => formatInline(t, defs);
+  const fi = (t) => formatInline(t);
 
   const lines = cleanContent.split('\n');
   const blocks = [];
