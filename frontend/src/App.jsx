@@ -351,6 +351,7 @@ function TermTooltip({ term, definition }) {
   const [open, setOpen] = React.useState(false);
   const [img, setImg] = React.useState(null);
   const [imgLoaded, setImgLoaded] = React.useState(false);
+  const timerRef = React.useRef(null);
   const ref = React.useRef(null);
 
   React.useEffect(() => {
@@ -361,18 +362,21 @@ function TermTooltip({ term, definition }) {
       .catch(() => setImg(false));
   }, [open, term, img]);
 
-  React.useEffect(() => {
-    if (!open) return;
-    function handler(e) { if (ref.current && !ref.current.contains(e.target)) setOpen(false); }
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
+  function handleMouseEnter() {
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setOpen(true), 200);
+  }
+
+  function handleMouseLeave() {
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setOpen(false), 150);
+  }
 
   return (
-    <span className="term-tooltip-wrap" ref={ref}>
-      <strong className="term-tooltip-trigger" onClick={() => setOpen(o => !o)}>{term}</strong>
+    <span className="term-tooltip-wrap" ref={ref} onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
+      <strong className="term-tooltip-trigger">{term}</strong>
       {open && (
-        <span className="term-tooltip-popup">
+        <span className="term-tooltip-popup" onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave}>
           {img && <img src={img} alt={term} className={`term-tooltip-img${imgLoaded ? ' loaded' : ''}`} onLoad={() => setImgLoaded(true)} />}
           <span className="term-tooltip-def">{definition}</span>
         </span>
@@ -382,10 +386,11 @@ function TermTooltip({ term, definition }) {
 }
 
 function formatInline(text, defs) {
+  const defsLower = defs ? Object.fromEntries(Object.entries(defs).map(([k, v]) => [k.toLowerCase(), v])) : null;
   return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       const inner = part.slice(2, -2);
-      const def = defs && defs[inner];
+      const def = defsLower && (defs[inner] || defsLower[inner.toLowerCase()]);
       if (def) return <TermTooltip key={i} term={inner} definition={def} />;
       return <strong key={i}>{inner}</strong>;
     }
