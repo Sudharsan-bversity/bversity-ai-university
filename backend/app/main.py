@@ -1768,14 +1768,90 @@ async def send_module_complete_email(to_email: str, name: str, module_name: str,
     return await _send_email(to_email, f"You completed '{module_name}' — {first}", _email_wrap(body))
 
 
-def gather_student_week_data(student_id: str, conn) -> dict:
-    week_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
+def _infer_sessions(msgs: list, gap_minutes: int = 30) -> list:
+    """Group messages into sessions using a time-gap heuristic."""
+    if not msgs:
+        return []
+    def _parse(s):
+        try: return datetime.fromisoformat(s)
+        except: return datetime.fromisoformat(s.replace('Z', ''))
+    sorted_msgs = sorted(msgs, key=lambda m: m['created_at'])
+    sessions, sess_msgs = [], [sorted_msgs[0]]
+    for msg in sorted_msgs[1:]:
+        gap = (_parse(msg['created_at']) - _parse(sess_msgs[-1]['created_at'])).total_seconds() / 60
+        if gap > gap_minutes:
+            sessions.append(sess_msgs)
+            sess_msgs = [msg]
+        else:
+            sess_msgs.append(msg)
+    sessions.append(sess_msgs)
+    result = []
+    for s in sessions:
+        start = _parse(s[0]['created_at'])
+        end   = _parse(s[-1]['created_at'])
+        dur   = max(1, int((end - start).total_seconds() / 60))
+        result.append({'start': start, 'duration_mins': dur, 'message_count': len(s), 'hour': start.hour})
+    return result
 
-    sessions = conn.execute(
-        "SELECT COUNT(DISTINCT date(created_at)) FROM messages WHERE student_id=? AND role='user' AND created_at>=?",
+
+def gather_student_week_data(student_id: str, conn) -> dict:
+    now        = datetime.utcnow()
+    week_ago   = (now - timedelta(days=7)).isoformat()
+    prev_start = (now - timedelta(days=14)).isoformat()
+    stuck_cutoff = (now - timedelta(days=14)).isoformat()
+
+    # ── Raw messages this week ───────────────────────────────
+    all_msgs = conn.execute(
+        "SELECT created_at FROM messages WHERE student_id=? AND role='user' AND created_at>=?",
         (student_id, week_ago)
+    ).fetchall()
+    all_msgs = [dict(m) for m in all_msgs]
+
+    # ── Session inference ────────────────────────────────────
+    inferred = _infer_sessions(all_msgs)
+    num_sessions         = len(inferred)
+    total_msgs_week      = len(all_msgs)
+    avg_session_mins     = round(sum(s['duration_mins'] for s in inferred) / len(inferred)) if inferred else 0
+    longest_session_mins = max((s['duration_mins'] for s in inferred), default=0)
+    avg_msgs_per_session = round(sum(s['message_count'] for s in inferred) / len(inferred), 1) if inferred else 0
+
+    # Learning style
+    if num_sessions == 0:
+        learning_style = None
+    elif num_sessions == 1:
+        learning_style = 'single session'
+    elif longest_session_mins > avg_session_mins * 1.8:
+        learning_style = 'binge learner'
+    else:
+        learning_style = 'consistent daily learner'
+
+    # ── Time of day ──────────────────────────────────────────
+    time_slots = {'morning': 0, 'afternoon': 0, 'evening': 0, 'night': 0}
+    for s in inferred:
+        h = s['hour']
+        if   6  <= h < 12: time_slots['morning']   += 1
+        elif 12 <= h < 17: time_slots['afternoon']  += 1
+        elif 17 <= h < 22: time_slots['evening']    += 1
+        else:              time_slots['night']      += 1
+    peak_time = max(time_slots, key=time_slots.get) if inferred else None
+
+    # Peak day of week
+    from collections import Counter
+    day_counts = Counter(s['start'].strftime('%A') for s in inferred)
+    peak_day = day_counts.most_common(1)[0][0] if day_counts else None
+
+    # ── Week-over-week ───────────────────────────────────────
+    prev_msgs = conn.execute(
+        "SELECT created_at FROM messages WHERE student_id=? AND role='user' AND created_at>=? AND created_at<?",
+        (student_id, prev_start, week_ago)
+    ).fetchall()
+    prev_inferred   = _infer_sessions([dict(m) for m in prev_msgs])
+    prev_concepts   = conn.execute(
+        "SELECT COUNT(*) FROM concept_progress WHERE student_id=? AND first_covered_at>=? AND first_covered_at<?",
+        (student_id, prev_start, week_ago)
     ).fetchone()[0]
 
+    # ── Concepts ────────────────────────────────────────────
     concepts_covered = conn.execute(
         "SELECT COUNT(*) FROM concept_progress WHERE student_id=? AND first_covered_at>=?",
         (student_id, week_ago)
@@ -1785,6 +1861,19 @@ def gather_student_week_data(student_id: str, conn) -> dict:
         (student_id, week_ago)
     ).fetchone()[0]
 
+    # Stuck concepts — covered >14 days ago, still not mastered
+    stuck_rows = conn.execute(
+        "SELECT subject_id, concept_id FROM concept_progress WHERE student_id=? AND mastered_at IS NULL AND first_covered_at<=? ORDER BY first_covered_at ASC LIMIT 3",
+        (student_id, stuck_cutoff)
+    ).fetchall()
+    stuck_concepts = []
+    for sc in stuck_rows:
+        sc = dict(sc)
+        if sc['subject_id'] in CURRICULUM:
+            c = next((x for x in CURRICULUM[sc['subject_id']] if x['id'] == sc['concept_id']), None)
+            if c: stuck_concepts.append(c['name'])
+
+    # ── Quizzes ──────────────────────────────────────────────
     quizzes_taken = conn.execute(
         "SELECT COUNT(*) FROM module_quizzes WHERE student_id=? AND completed_at>=?",
         (student_id, week_ago)
@@ -1794,77 +1883,106 @@ def gather_student_week_data(student_id: str, conn) -> dict:
         (student_id, week_ago)
     ).fetchone()[0]
 
+    # ── Active subjects ──────────────────────────────────────
     active_rows = conn.execute(
         "SELECT DISTINCT subject_id FROM messages WHERE student_id=? AND role='user' AND created_at>=?",
         (student_id, week_ago)
     ).fetchall()
     active_subjects = [SUBJECTS[r['subject_id']]['name'] for r in active_rows if r['subject_id'] in SUBJECTS]
 
-    weakest_subject = None
-    max_gap = 0
-    for sid in SUBJECTS:
-        covered = conn.execute(
-            "SELECT COUNT(*) FROM concept_progress WHERE student_id=? AND subject_id=? AND mastered_at IS NULL",
-            (student_id, sid)
-        ).fetchone()[0]
-        if covered > max_gap:
-            max_gap = covered
-            weakest_subject = SUBJECTS[sid]['name']
-
+    # ── Strongest / weakest ──────────────────────────────────
     recent = conn.execute(
         "SELECT subject_id, concept_id FROM concept_progress WHERE student_id=? AND mastered_at IS NOT NULL ORDER BY mastered_at DESC LIMIT 1",
         (student_id,)
     ).fetchone()
     strongest_concept = None
-    if recent and recent['subject_id'] in CURRICULUM:
-        c = next((x for x in CURRICULUM[recent['subject_id']] if x['id'] == recent['concept_id']), None)
-        if c:
-            strongest_concept = c['name']
+    if recent:
+        r = dict(recent)
+        if r['subject_id'] in CURRICULUM:
+            c = next((x for x in CURRICULUM[r['subject_id']] if x['id'] == r['concept_id']), None)
+            if c: strongest_concept = c['name']
 
+    weakest_subject = None
+    max_gap = 0
+    for sid in SUBJECTS:
+        gap = conn.execute(
+            "SELECT COUNT(*) FROM concept_progress WHERE student_id=? AND subject_id=? AND mastered_at IS NULL",
+            (student_id, sid)
+        ).fetchone()[0]
+        if gap > max_gap:
+            max_gap = gap
+            weakest_subject = SUBJECTS[sid]['name']
+
+    # ── Profile + career ────────────────────────────────────
     profile = conn.execute(
         "SELECT streak_count, career_id FROM student_profile WHERE student_id=?", (student_id,)
     ).fetchone()
-    streak = profile['streak_count'] if profile else 0
+    streak    = profile['streak_count'] if profile else 0
     career_id = profile['career_id'] if profile else None
     career_title = CAREERS[career_id]['title'] if career_id and career_id in CAREERS else None
 
+    # Career-critical untouched concepts
+    untouched_career_concepts = []
+    if career_id and career_id in CAREERS:
+        for kc in CAREERS[career_id].get('key_concepts', []):
+            for sid, curriculum in CURRICULUM.items():
+                c = next((x for x in curriculum if x['id'] == kc), None)
+                if c:
+                    touched = conn.execute(
+                        "SELECT 1 FROM concept_progress WHERE student_id=? AND subject_id=? AND concept_id=?",
+                        (student_id, sid, kc)
+                    ).fetchone()
+                    if not touched:
+                        untouched_career_concepts.append(c['name'])
+                    break
+            if len(untouched_career_concepts) >= 3:
+                break
+
+    # Career readiness
     career_readiness = None
     if career_id and career_id in CAREERS:
-        career_obj = CAREERS[career_id]
-        relevant_subjects = career_obj.get('relevant_subjects', [])
-        if relevant_subjects:
-            BASE = 10
-            SUBJECT_MAX = 88
+        relevant = CAREERS[career_id].get('relevant_subjects', [])
+        if relevant:
             score_sum = 0
-            for sid in relevant_subjects:
+            for sid in relevant:
                 total = len(CURRICULUM.get(sid, []))
-                if total == 0:
-                    continue
-                mastered_count = conn.execute(
-                    "SELECT COUNT(*) FROM concept_progress WHERE student_id=? AND subject_id=? AND mastered_at IS NOT NULL",
-                    (student_id, sid)
-                ).fetchone()[0]
-                covered_count = conn.execute(
-                    "SELECT COUNT(*) FROM concept_progress WHERE student_id=? AND subject_id=?",
-                    (student_id, sid)
-                ).fetchone()[0]
-                s = (mastered_count + 0.4 * max(0, covered_count - mastered_count)) / total
-                score_sum += s
-            raw = BASE + (score_sum / len(relevant_subjects)) * SUBJECT_MAX
-            career_readiness = min(int(round(raw)), 98)
+                if total == 0: continue
+                m = conn.execute("SELECT COUNT(*) FROM concept_progress WHERE student_id=? AND subject_id=? AND mastered_at IS NOT NULL", (student_id, sid)).fetchone()[0]
+                cv = conn.execute("SELECT COUNT(*) FROM concept_progress WHERE student_id=? AND subject_id=?", (student_id, sid)).fetchone()[0]
+                score_sum += (m + 0.4 * max(0, cv - m)) / total
+            career_readiness = min(int(round(10 + (score_sum / len(relevant)) * 88)), 98)
 
     return {
-        "sessions": sessions,
-        "concepts_covered": concepts_covered,
-        "concepts_mastered": concepts_mastered,
-        "quizzes_taken": quizzes_taken,
-        "quizzes_passed": quizzes_passed,
-        "active_subjects": active_subjects,
-        "weakest_subject": weakest_subject,
-        "strongest_concept": strongest_concept,
-        "streak": streak,
-        "career_title": career_title,
-        "career_readiness": career_readiness,
+        # Activity
+        "sessions":              num_sessions,
+        "total_messages":        total_msgs_week,
+        "avg_session_mins":      avg_session_mins,
+        "longest_session_mins":  longest_session_mins,
+        "avg_msgs_per_session":  avg_msgs_per_session,
+        "learning_style":        learning_style,
+        # Time patterns
+        "peak_time":             peak_time,
+        "peak_day":              peak_day,
+        "time_slots":            time_slots,
+        # Progress
+        "concepts_covered":      concepts_covered,
+        "concepts_mastered":     concepts_mastered,
+        "stuck_concepts":        stuck_concepts,
+        "strongest_concept":     strongest_concept,
+        "weakest_subject":       weakest_subject,
+        # Quizzes
+        "quizzes_taken":         quizzes_taken,
+        "quizzes_passed":        quizzes_passed,
+        # Subjects
+        "active_subjects":       active_subjects,
+        # Week-over-week
+        "wow_sessions":          num_sessions - len(prev_inferred),
+        "wow_concepts":          concepts_covered - prev_concepts,
+        # Career
+        "streak":                streak,
+        "career_title":          career_title,
+        "career_readiness":      career_readiness,
+        "untouched_career_concepts": untouched_career_concepts,
     }
 
 
@@ -1874,88 +1992,138 @@ async def generate_report_narrative(student_name: str, data: dict) -> str:
         return f"Great work this week, {student_name.split()[0]}! Keep the momentum going."
 
     first = student_name.split()[0]
-    career_line = f"Their career goal is {data['career_title']}." if data.get('career_title') else ""
-    weakest_line = f"They have the most un-mastered concepts in {data['weakest_subject']}." if data.get('weakest_subject') else ""
-    strongest_line = f"They recently mastered {data['strongest_concept']}." if data.get('strongest_concept') else ""
 
-    prompt = f"""You are a personal learning coach at Bversity AI University, an AI-native biotech university. Write a warm, encouraging 2-3 sentence personal note to {first} summarising their week and giving one specific forward-looking recommendation. Be specific, use their actual data, and sound like a supportive coach — not a bot.
+    lines = [
+        f"Student: {first}",
+        f"Career goal: {data['career_title']}." if data.get('career_title') else "",
+        f"Learning pattern: {data['learning_style']}." if data.get('learning_style') else "",
+        f"Peak learning time: {data['peak_time']}." if data.get('peak_time') else "",
+        f"Most active day: {data['peak_day']}." if data.get('peak_day') else "",
+        f"Sessions this week: {data['sessions']} (avg {data['avg_session_mins']} min each, longest {data['longest_session_mins']} min).",
+        f"Messages sent: {data['total_messages']} (avg {data['avg_msgs_per_session']} per session — {'deep engagement' if data['avg_msgs_per_session'] > 8 else 'light engagement'}).",
+        f"Concepts covered: {data['concepts_covered']}, mastered: {data['concepts_mastered']}.",
+        f"Quizzes: {data['quizzes_passed']}/{data['quizzes_taken']} passed." if data['quizzes_taken'] > 0 else "",
+        f"Recently mastered: {data['strongest_concept']}." if data.get('strongest_concept') else "",
+        f"Stuck on (covered but not mastered in 2+ weeks): {', '.join(data['stuck_concepts'])}." if data.get('stuck_concepts') else "",
+        f"Weakest area (most un-mastered concepts): {data['weakest_subject']}." if data.get('weakest_subject') else "",
+        f"Career-critical concepts not yet started: {', '.join(data['untouched_career_concepts'])}." if data.get('untouched_career_concepts') else "",
+        f"Career readiness: {data['career_readiness']}%." if data.get('career_readiness') else "",
+        f"Streak: {data['streak']} days.",
+        f"Week-over-week: {'up' if data['wow_sessions'] >= 0 else 'down'} {abs(data['wow_sessions'])} session(s), {'more' if data['wow_concepts'] >= 0 else 'fewer'} {abs(data['wow_concepts'])} concept(s) than last week.",
+    ]
+    context = "\n".join(l for l in lines if l)
 
-Student: {first}
-{career_line}
-This week: {data['sessions']} learning sessions, {data['concepts_covered']} concepts covered, {data['concepts_mastered']} concepts mastered.
-Quizzes: {data['quizzes_passed']}/{data['quizzes_taken']} passed.
-{strongest_line}
-{weakest_line}
-Current streak: {data['streak']} days.
-{'Career readiness: ' + str(data['career_readiness']) + '%.' if data.get('career_readiness') else ''}
+    prompt = f"""You are a personal learning coach at Bversity AI University, an AI-native biotech university.
+Write a warm, specific 2-3 sentence coaching note to {first} based on their week's learning data.
+Reference their actual behaviour patterns (time of day, session length, engagement depth).
+Give one concrete, forward-looking recommendation tied to their career goal.
+Sound like a coach who genuinely studied their data — not a bot sending a template.
 
-Write only the 2-3 sentence note. No greeting line, no subject line. Just the note itself."""
+{context}
+
+Write only the 2-3 sentence note. No greeting, no subject line."""
 
     try:
         import anthropic
         client = anthropic.Anthropic(api_key=api_key)
         msg = client.messages.create(
             model="claude-haiku-4-5-20251001",
-            max_tokens=200,
+            max_tokens=250,
             messages=[{"role": "user", "content": prompt}]
         )
         return msg.content[0].text.strip()
     except Exception as e:
         print(f"Narrative gen error: {e}")
-        return f"You had a solid week, {first}. Keep building on your progress and stay consistent — every session compounds."
+        return f"You had a solid week, {first}. Keep building on your progress — every session compounds."
 
 
 async def send_weekly_learner_report(to_email: str, name: str, data: dict, narrative: str) -> bool:
     first = name.split()[0]
 
-    stat_box = lambda val, label: (
-        f'<div style="flex:1;min-width:100px;background:#F0FBF9;border-radius:10px;padding:16px;text-align:center">'
-        f'<p style="margin:0;font-size:28px;font-weight:900;color:#16c1ad">{val}</p>'
-        f'<p style="margin:4px 0 0;font-size:12px;color:#07142A">{label}</p>'
-        f'</div>'
-    )
+    def stat_box(val, label):
+        return (
+            f'<div style="flex:1;min-width:90px;background:#F0FBF9;border-radius:10px;padding:14px;text-align:center">'
+            f'<p style="margin:0;font-size:24px;font-weight:900;color:#16c1ad">{val}</p>'
+            f'<p style="margin:4px 0 0;font-size:11px;color:#07142A;line-height:1.3">{label}</p>'
+            f'</div>'
+        )
+
+    def section_label(text):
+        return f'<p style="font-size:10px;font-weight:700;color:#9EABBE;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 10px">{text}</p>'
+
+    # ── Activity stats ───────────────────────────────────────
+    wow_s = data['wow_sessions']
+    wow_c = data['wow_concepts']
+    wow_sessions_label = f"Sessions<br><span style='font-size:10px;color:{'#16a34a' if wow_s>=0 else '#dc2626'}'>{'+' if wow_s>=0 else ''}{wow_s} vs last week</span>"
+    wow_concepts_label = f"Concepts Covered<br><span style='font-size:10px;color:{'#16a34a' if wow_c>=0 else '#dc2626'}'>{'+' if wow_c>=0 else ''}{wow_c} vs last week</span>"
 
     stats_row = (
-        f'<div style="display:flex;gap:12px;margin:0 0 16px;flex-wrap:wrap">'
-        + stat_box(data['sessions'], 'Sessions')
-        + stat_box(data['concepts_covered'], 'Concepts Covered')
-        + stat_box(data['concepts_mastered'], 'Concepts Mastered')
+        f'<div style="display:flex;gap:10px;margin:0 0 14px;flex-wrap:wrap">'
+        + stat_box(data['sessions'], wow_sessions_label)
+        + stat_box(data['concepts_covered'], wow_concepts_label)
+        + stat_box(data['concepts_mastered'], 'Concepts<br>Mastered')
+        + (stat_box(f"{data['quizzes_passed']}/{data['quizzes_taken']}", 'Quizzes<br>Passed') if data['quizzes_taken'] > 0 else "")
         + '</div>'
     )
 
-    quiz_line = ""
-    if data['quizzes_taken'] > 0:
-        quiz_line = _para(f"<strong>{data['quizzes_passed']}/{data['quizzes_taken']}</strong> quizzes passed this week.")
+    # ── Learning behaviour ───────────────────────────────────
+    behaviour_parts = []
+    if data.get('peak_time'):
+        behaviour_parts.append(f"<strong>{data['peak_time'].capitalize()}</strong> learner")
+    if data.get('peak_day'):
+        behaviour_parts.append(f"most active on <strong>{data['peak_day']}s</strong>")
+    if data.get('avg_session_mins'):
+        behaviour_parts.append(f"avg session <strong>{data['avg_session_mins']} min</strong>")
+    if data.get('avg_msgs_per_session'):
+        behaviour_parts.append(f"<strong>{data['avg_msgs_per_session']} messages</strong> per session")
+    behaviour_section = ""
+    if behaviour_parts:
+        behaviour_section = (
+            _divider() +
+            section_label("Your Learning Pattern") +
+            _para(" · ".join(behaviour_parts) + ("." if not behaviour_parts[-1].endswith(".") else ""))
+        )
+        if data.get('learning_style'):
+            behaviour_section += _para(f"Style this week: <strong>{data['learning_style'].title()}</strong>")
 
-    active_line = ""
-    if data['active_subjects']:
-        active_line = _para(f"Active in: <strong>{', '.join(data['active_subjects'])}</strong>")
+    # ── Concepts insight ─────────────────────────────────────
+    concepts_section = _divider() + section_label("Concepts")
+    if data.get('strongest_concept'):
+        concepts_section += _para(f"Latest mastery: <strong>{data['strongest_concept']}</strong> ✓")
+    if data.get('stuck_concepts'):
+        concepts_section += _para(f"Needs attention (covered 2+ weeks ago, not yet mastered): <strong>{', '.join(data['stuck_concepts'])}</strong>")
+    if data.get('active_subjects'):
+        concepts_section += _para(f"Active in: <strong>{', '.join(data['active_subjects'])}</strong>")
 
+    # ── Career section ───────────────────────────────────────
     career_section = ""
     if data.get('career_title'):
+        career_section = _divider() + section_label("Career Path")
         readiness_part = f" &middot; <strong>{data['career_readiness']}%</strong> career ready" if data.get('career_readiness') else ""
-        focus_line = _para(f"Focus area this week: <strong>{data['weakest_subject']}</strong>") if data.get('weakest_subject') else ""
-        career_section = (
-            _divider() +
-            f'<p style="font-size:10px;font-weight:700;color:#9EABBE;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 6px">Career Path</p>' +
-            _para(f'<strong>{data["career_title"]}</strong>{readiness_part}') +
-            focus_line
-        )
+        career_section += _para(f'<strong>{data["career_title"]}</strong>{readiness_part}')
+        if data.get('untouched_career_concepts'):
+            career_section += _para(f"Key concepts not yet started: <strong>{', '.join(data['untouched_career_concepts'])}</strong>")
+        elif data.get('weakest_subject'):
+            career_section += _para(f"Focus area: <strong>{data['weakest_subject']}</strong>")
+
+    # ── Streak ───────────────────────────────────────────────
+    streak_line = _para(f"🔥 <strong>{data['streak']}-day streak</strong> — keep it going!") if data.get('streak', 0) > 0 else ""
 
     body = (
-        _heading(f"Your week at Bversity, {first} \U0001f9ec") +
-        _para(narrative) +
+        _heading(f"Your week at Bversity, {first} 🧬") +
+        _para(f'<em style="color:#3D5166">{narrative}</em>') +
         _divider() +
-        f'<p style="font-size:10px;font-weight:700;color:#9EABBE;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 12px">This Week</p>' +
+        section_label("This Week") +
         stats_row +
-        quiz_line +
-        active_line +
+        streak_line +
+        behaviour_section +
+        concepts_section +
         career_section +
         _divider() +
         _btn("Continue Learning →", "https://university.bversity.io") +
-        _small("Sent every Monday &middot; university.bversity.io")
+        _small("Sent every Monday · university.bversity.io")
     )
-    return await _send_email(to_email, f"Your Bversity week, {first} \U0001f9ec", _email_wrap(body))
+    return await _send_email(to_email, f"Your Bversity week, {first} 🧬", _email_wrap(body))
 
 async def send_verification_email(to_email: str, name: str, code: str) -> bool:
     api_key = os.environ.get("RESEND_API_KEY", "")
