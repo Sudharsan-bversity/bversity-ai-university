@@ -1515,7 +1515,7 @@ body {
 }
 
 .home-hero {
-  text-align: center;
+  text-align: left;
   margin-bottom: 3.5rem;
 }
 
@@ -1540,7 +1540,7 @@ body {
   font-size: 1.05rem;
   color: var(--text-secondary);
   max-width: 520px;
-  margin: 0 auto;
+  margin: 0;
   line-height: 1.7;
 }
 
@@ -2101,7 +2101,29 @@ body {
 .readiness-title { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
 .readiness-career { font-size: 1.05rem; font-weight: 700; color: var(--text-primary); }
 .readiness-tagline { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4; max-width: 400px; }
-.readiness-cta { font-size: 0.8rem; color: var(--teal); font-weight: 600; margin-top: 4px; }
+.readiness-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+.readiness-cta { font-size: 0.8rem; color: var(--teal); font-weight: 600; }
+.readiness-share-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: rgba(10,102,194,0.08);
+  border: 1px solid rgba(10,102,194,0.25);
+  border-radius: 6px;
+  color: #0a66c2;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.readiness-share-btn:hover { background: rgba(10,102,194,0.16); }
 
 /* ── Career path badge on home ─────────────────────────────────────────── */
 .home-hero-top {
@@ -7580,16 +7602,6 @@ body {
 }
 
 /* ── Share Journey ──────────────────────────────────────────────────────────── */
-.career-path-badge-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-.career-path-badge-row .career-path-badge {
-  flex: 1;
-  min-width: 0;
-}
 .share-journey-btn {
   display: flex;
   align-items: center;
