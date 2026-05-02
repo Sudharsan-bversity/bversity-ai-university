@@ -2778,6 +2778,7 @@ function AdminView({ onBack }) {
   const [analyticsHeatSubject, setAnalyticsHeatSubject] = useState('');
   const [analyticsHeatmap, setAnalyticsHeatmap]       = useState([]);
   const [feedbackList, setFeedbackList]               = useState([]);
+  const [cohortData, setCohortData]                   = useState(null);
   const [waitlistRequests, setWaitlistRequests]       = useState([]);
   const [waitlistLoading, setWaitlistLoading]         = useState(false);
   const [waitlistAction, setWaitlistAction]           = useState(null);
@@ -2955,6 +2956,13 @@ function AdminView({ onBack }) {
     } catch {}
   }
 
+  async function loadCohort() {
+    try {
+      const r = await fetch('/api/admin/analytics/cohort', { headers: { 'X-Admin-Key': adminKey } });
+      if (r.ok) setCohortData(await r.json());
+    } catch {}
+  }
+
   async function loadFeedback() {
     try {
       const r = await fetch('/api/admin/feedback', { headers: { 'X-Admin-Key': adminKey } });
@@ -3103,6 +3111,7 @@ function AdminView({ onBack }) {
           <button className={`admin-tab ${tab === 'videos' ? 'active' : ''}`} onClick={() => setTab('videos')}>Videos</button>
           <button className={`admin-tab ${tab === 'resources' ? 'active' : ''}`} onClick={() => setTab('resources')}>Resources</button>
           <button className={`admin-tab ${tab === 'analytics' ? 'active' : ''}`} onClick={() => { setTab('analytics'); loadAnalytics(); }}>Analytics</button>
+          <button className={`admin-tab ${tab === 'cohort' ? 'active' : ''}`} onClick={() => { setTab('cohort'); loadCohort(); }}>Cohort</button>
           <button className={`admin-tab ${tab === 'emails' ? 'active' : ''}`} onClick={() => { setTab('emails'); loadEmailPreview(); }}>Emails</button>
           <button className={`admin-tab ${tab === 'access' ? 'active' : ''}`} onClick={() => setTab('access')}>Access</button>
           <button className={`admin-tab ${tab === 'feedback' ? 'active' : ''}`} onClick={() => { setTab('feedback'); loadFeedback(); }}>Feedback</button>
@@ -3656,6 +3665,111 @@ function AdminView({ onBack }) {
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {tab === 'cohort' && (
+        <div className="admin-content">
+          <div className="cohort-analytics">
+            {!cohortData && <div className="admin-empty">Loading cohort data…</div>}
+            {cohortData && (
+              <>
+                {/* Top stats row */}
+                <div className="cohort-stats-row">
+                  <div className="cohort-stat-box">
+                    <div className="cohort-stat-value">{cohortData.total_students}</div>
+                    <div className="cohort-stat-label">Total Students</div>
+                  </div>
+                  <div className="cohort-stat-box">
+                    <div className="cohort-stat-value">{cohortData.active_this_week}</div>
+                    <div className="cohort-stat-label">Active This Week</div>
+                  </div>
+                  <div className="cohort-stat-box">
+                    <div className="cohort-stat-value">{cohortData.active_this_month}</div>
+                    <div className="cohort-stat-label">Active This Month</div>
+                  </div>
+                  <div className="cohort-stat-box">
+                    <div className="cohort-stat-value">{cohortData.engagement.total_messages}</div>
+                    <div className="cohort-stat-label">Total Messages</div>
+                  </div>
+                </div>
+
+                <div className="cohort-two-col">
+                  {/* Career distribution */}
+                  <div className="cohort-section">
+                    <h3 className="cohort-section-title">Career Path Distribution</h3>
+                    {cohortData.career_distribution.map(c => (
+                      <div key={c.career_id} className="cohort-bar-row">
+                        <div className="cohort-bar-label">{c.career_title}</div>
+                        <div className="cohort-bar-track">
+                          <div className="cohort-bar-fill" style={{ width: `${Math.round((c.count / cohortData.total_students) * 100)}%` }} />
+                        </div>
+                        <div className="cohort-bar-count">{c.count}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Quiz pass rates */}
+                  <div className="cohort-section">
+                    <h3 className="cohort-section-title">Quiz Pass Rates by Subject</h3>
+                    {cohortData.quiz_pass_rates.filter(q => q.taken > 0).map(q => (
+                      <div key={q.subject_id} className="cohort-bar-row">
+                        <div className="cohort-bar-label">{q.subject_name}</div>
+                        <div className="cohort-bar-track">
+                          <div className="cohort-bar-fill cohort-bar-fill--quiz" style={{ width: `${Math.round(q.pass_rate * 100)}%` }} />
+                        </div>
+                        <div className="cohort-bar-count">{Math.round(q.pass_rate * 100)}%</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Hardest concepts table */}
+                <div className="cohort-section cohort-section--full">
+                  <h3 className="cohort-section-title">Hardest Concepts (lowest mastery rate)</h3>
+                  <table className="cohort-table">
+                    <thead><tr>
+                      <th>Concept</th><th>Subject</th><th>Students Reached</th><th>Mastered</th><th>Rate</th>
+                    </tr></thead>
+                    <tbody>
+                      {cohortData.hardest_concepts.map((c, i) => (
+                        <tr key={i}>
+                          <td>{c.concept_name}</td>
+                          <td>{c.subject_name}</td>
+                          <td>{c.covered_count}</td>
+                          <td>{c.mastered_count}</td>
+                          <td>
+                            <span className={`cohort-rate-badge ${c.mastery_rate < 0.3 ? 'cohort-rate-badge--low' : c.mastery_rate < 0.6 ? 'cohort-rate-badge--mid' : 'cohort-rate-badge--high'}`}>
+                              {Math.round(c.mastery_rate * 100)}%
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Engagement stats */}
+                <div className="cohort-section cohort-section--full">
+                  <h3 className="cohort-section-title">Engagement</h3>
+                  <div className="cohort-stats-row">
+                    <div className="cohort-stat-box">
+                      <div className="cohort-stat-value">{cohortData.engagement.avg_messages_per_student.toFixed(1)}</div>
+                      <div className="cohort-stat-label">Avg Messages / Student</div>
+                    </div>
+                    <div className="cohort-stat-box">
+                      <div className="cohort-stat-value">{cohortData.engagement.students_with_streak}</div>
+                      <div className="cohort-stat-label">Students with Streak</div>
+                    </div>
+                    <div className="cohort-stat-box">
+                      <div className="cohort-stat-value">{cohortData.engagement.avg_streak.toFixed(1)}</div>
+                      <div className="cohort-stat-label">Avg Streak (active)</div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
 

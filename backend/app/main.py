@@ -212,6 +212,7 @@ def init_db():
         "ALTER TABLE student_profile ADD COLUMN streak_last_date TEXT",
         "ALTER TABLE student_profile ADD COLUMN last_active_at TEXT",
         "ALTER TABLE student_profile ADD COLUMN nudge_sent_at TEXT",
+        "ALTER TABLE student_profile ADD COLUMN weekly_report_sent_at TEXT",
     ]:
         try:
             conn.execute(col)
@@ -1767,25 +1768,194 @@ async def send_module_complete_email(to_email: str, name: str, module_name: str,
     return await _send_email(to_email, f"You completed '{module_name}' — {first}", _email_wrap(body))
 
 
-async def send_weekly_digest_email(to_email: str, name: str, covered: int, mastered: int, streak_subjects: list) -> bool:
+def gather_student_week_data(student_id: str, conn) -> dict:
+    week_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
+
+    sessions = conn.execute(
+        "SELECT COUNT(DISTINCT date(created_at)) FROM messages WHERE student_id=? AND role='user' AND created_at>=?",
+        (student_id, week_ago)
+    ).fetchone()[0]
+
+    concepts_covered = conn.execute(
+        "SELECT COUNT(*) FROM concept_progress WHERE student_id=? AND first_covered_at>=?",
+        (student_id, week_ago)
+    ).fetchone()[0]
+    concepts_mastered = conn.execute(
+        "SELECT COUNT(*) FROM concept_progress WHERE student_id=? AND mastered_at>=?",
+        (student_id, week_ago)
+    ).fetchone()[0]
+
+    quizzes_taken = conn.execute(
+        "SELECT COUNT(*) FROM module_quizzes WHERE student_id=? AND completed_at>=?",
+        (student_id, week_ago)
+    ).fetchone()[0]
+    quizzes_passed = conn.execute(
+        "SELECT COUNT(*) FROM module_quizzes WHERE student_id=? AND completed_at>=? AND passed=1",
+        (student_id, week_ago)
+    ).fetchone()[0]
+
+    active_rows = conn.execute(
+        "SELECT DISTINCT subject_id FROM messages WHERE student_id=? AND role='user' AND created_at>=?",
+        (student_id, week_ago)
+    ).fetchall()
+    active_subjects = [SUBJECTS[r['subject_id']]['name'] for r in active_rows if r['subject_id'] in SUBJECTS]
+
+    weakest_subject = None
+    max_gap = 0
+    for sid in SUBJECTS:
+        covered = conn.execute(
+            "SELECT COUNT(*) FROM concept_progress WHERE student_id=? AND subject_id=? AND mastered_at IS NULL",
+            (student_id, sid)
+        ).fetchone()[0]
+        if covered > max_gap:
+            max_gap = covered
+            weakest_subject = SUBJECTS[sid]['name']
+
+    recent = conn.execute(
+        "SELECT subject_id, concept_id FROM concept_progress WHERE student_id=? AND mastered_at IS NOT NULL ORDER BY mastered_at DESC LIMIT 1",
+        (student_id,)
+    ).fetchone()
+    strongest_concept = None
+    if recent and recent['subject_id'] in CURRICULUM:
+        c = next((x for x in CURRICULUM[recent['subject_id']] if x['id'] == recent['concept_id']), None)
+        if c:
+            strongest_concept = c['name']
+
+    profile = conn.execute(
+        "SELECT streak_count, career_id FROM student_profile WHERE student_id=?", (student_id,)
+    ).fetchone()
+    streak = profile['streak_count'] if profile else 0
+    career_id = profile['career_id'] if profile else None
+    career_title = CAREERS[career_id]['title'] if career_id and career_id in CAREERS else None
+
+    career_readiness = None
+    if career_id and career_id in CAREERS:
+        career_obj = CAREERS[career_id]
+        relevant_subjects = career_obj.get('relevant_subjects', [])
+        if relevant_subjects:
+            BASE = 10
+            SUBJECT_MAX = 88
+            score_sum = 0
+            for sid in relevant_subjects:
+                total = len(CURRICULUM.get(sid, []))
+                if total == 0:
+                    continue
+                mastered_count = conn.execute(
+                    "SELECT COUNT(*) FROM concept_progress WHERE student_id=? AND subject_id=? AND mastered_at IS NOT NULL",
+                    (student_id, sid)
+                ).fetchone()[0]
+                covered_count = conn.execute(
+                    "SELECT COUNT(*) FROM concept_progress WHERE student_id=? AND subject_id=?",
+                    (student_id, sid)
+                ).fetchone()[0]
+                s = (mastered_count + 0.4 * max(0, covered_count - mastered_count)) / total
+                score_sum += s
+            raw = BASE + (score_sum / len(relevant_subjects)) * SUBJECT_MAX
+            career_readiness = min(int(round(raw)), 98)
+
+    return {
+        "sessions": sessions,
+        "concepts_covered": concepts_covered,
+        "concepts_mastered": concepts_mastered,
+        "quizzes_taken": quizzes_taken,
+        "quizzes_passed": quizzes_passed,
+        "active_subjects": active_subjects,
+        "weakest_subject": weakest_subject,
+        "strongest_concept": strongest_concept,
+        "streak": streak,
+        "career_title": career_title,
+        "career_readiness": career_readiness,
+    }
+
+
+async def generate_report_narrative(student_name: str, data: dict) -> str:
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        return f"Great work this week, {student_name.split()[0]}! Keep the momentum going."
+
+    first = student_name.split()[0]
+    career_line = f"Their career goal is {data['career_title']}." if data.get('career_title') else ""
+    weakest_line = f"They have the most un-mastered concepts in {data['weakest_subject']}." if data.get('weakest_subject') else ""
+    strongest_line = f"They recently mastered {data['strongest_concept']}." if data.get('strongest_concept') else ""
+
+    prompt = f"""You are a personal learning coach at Bversity AI University, an AI-native biotech university. Write a warm, encouraging 2-3 sentence personal note to {first} summarising their week and giving one specific forward-looking recommendation. Be specific, use their actual data, and sound like a supportive coach — not a bot.
+
+Student: {first}
+{career_line}
+This week: {data['sessions']} learning sessions, {data['concepts_covered']} concepts covered, {data['concepts_mastered']} concepts mastered.
+Quizzes: {data['quizzes_passed']}/{data['quizzes_taken']} passed.
+{strongest_line}
+{weakest_line}
+Current streak: {data['streak']} days.
+{'Career readiness: ' + str(data['career_readiness']) + '%.' if data.get('career_readiness') else ''}
+
+Write only the 2-3 sentence note. No greeting line, no subject line. Just the note itself."""
+
+    try:
+        import anthropic
+        client = anthropic.Anthropic(api_key=api_key)
+        msg = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=200,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return msg.content[0].text.strip()
+    except Exception as e:
+        print(f"Narrative gen error: {e}")
+        return f"You had a solid week, {first}. Keep building on your progress and stay consistent — every session compounds."
+
+
+async def send_weekly_learner_report(to_email: str, name: str, data: dict, narrative: str) -> bool:
     first = name.split()[0]
-    subjects_line = ", ".join(streak_subjects) if streak_subjects else "no subjects yet this week"
-    body = (
-        _heading(f"Your week at Bversity, {first}") +
-        _para(f"Here's a quick look at your progress this week:") +
-        f'<div style="display:flex;gap:16px;margin:0 0 20px">'
-        f'<div style="flex:1;background:#F0FBF9;border-radius:10px;padding:16px;text-align:center">'
-        f'<p style="margin:0;font-size:28px;font-weight:900;color:#07142A">{covered}</p>'
-        f'<p style="margin:4px 0 0;font-size:12px;color:#3D5166">Concepts Covered</p></div>'
-        f'<div style="flex:1;background:#F0FBF9;border-radius:10px;padding:16px;text-align:center">'
-        f'<p style="margin:0;font-size:28px;font-weight:900;color:#07142A">{mastered}</p>'
-        f'<p style="margin:4px 0 0;font-size:12px;color:#3D5166">Concepts Mastered</p></div>'
-        f'</div>' +
-        _para(f"Active in: <strong>{subjects_line}</strong>") +
-        _btn("Continue This Week →", "https://bversity.io") +
-        _small("You're building real biotech knowledge. Every concept matters.")
+
+    stat_box = lambda val, label: (
+        f'<div style="flex:1;min-width:100px;background:#F0FBF9;border-radius:10px;padding:16px;text-align:center">'
+        f'<p style="margin:0;font-size:28px;font-weight:900;color:#16c1ad">{val}</p>'
+        f'<p style="margin:4px 0 0;font-size:12px;color:#07142A">{label}</p>'
+        f'</div>'
     )
-    return await _send_email(to_email, f"Your Bversity progress this week, {first}", _email_wrap(body))
+
+    stats_row = (
+        f'<div style="display:flex;gap:12px;margin:0 0 16px;flex-wrap:wrap">'
+        + stat_box(data['sessions'], 'Sessions')
+        + stat_box(data['concepts_covered'], 'Concepts Covered')
+        + stat_box(data['concepts_mastered'], 'Concepts Mastered')
+        + '</div>'
+    )
+
+    quiz_line = ""
+    if data['quizzes_taken'] > 0:
+        quiz_line = _para(f"<strong>{data['quizzes_passed']}/{data['quizzes_taken']}</strong> quizzes passed this week.")
+
+    active_line = ""
+    if data['active_subjects']:
+        active_line = _para(f"Active in: <strong>{', '.join(data['active_subjects'])}</strong>")
+
+    career_section = ""
+    if data.get('career_title'):
+        readiness_part = f" &middot; <strong>{data['career_readiness']}%</strong> career ready" if data.get('career_readiness') else ""
+        focus_line = _para(f"Focus area this week: <strong>{data['weakest_subject']}</strong>") if data.get('weakest_subject') else ""
+        career_section = (
+            _divider() +
+            f'<p style="font-size:10px;font-weight:700;color:#9EABBE;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 6px">Career Path</p>' +
+            _para(f'<strong>{data["career_title"]}</strong>{readiness_part}') +
+            focus_line
+        )
+
+    body = (
+        _heading(f"Your week at Bversity, {first} \U0001f9ec") +
+        _para(narrative) +
+        _divider() +
+        f'<p style="font-size:10px;font-weight:700;color:#9EABBE;letter-spacing:0.08em;text-transform:uppercase;margin:0 0 12px">This Week</p>' +
+        stats_row +
+        quiz_line +
+        active_line +
+        career_section +
+        _divider() +
+        _btn("Continue Learning →", "https://university.bversity.io") +
+        _small("Sent every Monday &middot; university.bversity.io")
+    )
+    return await _send_email(to_email, f"Your Bversity week, {first} \U0001f9ec", _email_wrap(body))
 
 async def send_verification_email(to_email: str, name: str, code: str) -> bool:
     api_key = os.environ.get("RESEND_API_KEY", "")
@@ -2902,6 +3072,161 @@ def analytics_quizzes(x_admin_key: str = Header(None)):
         "by_subject":   [{"subject_id": r["subject_id"], "taken": r["taken"], "passed": r["passed_count"]} for r in by_subject],
     }
 
+@app.get("/admin/analytics/cohort")
+def analytics_cohort(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    now = datetime.utcnow()
+    week_ago  = (now - timedelta(days=7)).isoformat()
+    month_ago = (now - timedelta(days=30)).isoformat()
+
+    total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
+
+    active_this_week = conn.execute(
+        "SELECT COUNT(DISTINCT student_id) FROM messages WHERE role='user' AND created_at>=?",
+        (week_ago,)
+    ).fetchone()[0]
+
+    active_this_month = conn.execute(
+        "SELECT COUNT(DISTINCT student_id) FROM messages WHERE role='user' AND created_at>=?",
+        (month_ago,)
+    ).fetchone()[0]
+
+    # Career distribution
+    career_rows = conn.execute(
+        "SELECT career_id, COUNT(*) AS cnt FROM student_profile WHERE career_id IS NOT NULL GROUP BY career_id ORDER BY cnt DESC"
+    ).fetchall()
+    career_distribution = [
+        {
+            "career_id": r["career_id"],
+            "career_title": CAREERS[r["career_id"]]["title"] if r["career_id"] in CAREERS else r["career_id"],
+            "count": r["cnt"],
+        }
+        for r in career_rows
+    ]
+
+    # avg readiness by career
+    career_readiness_map: dict = {}
+    career_readiness_count: dict = {}
+    all_profiles = conn.execute(
+        "SELECT student_id, career_id FROM student_profile WHERE career_id IS NOT NULL"
+    ).fetchall()
+    BASE = 10
+    SUBJECT_MAX = 88
+    for p in all_profiles:
+        sid = p["student_id"]
+        cid = p["career_id"]
+        if cid not in CAREERS:
+            continue
+        career_obj = CAREERS[cid]
+        relevant_subjects = career_obj.get("relevant_subjects", [])
+        if not relevant_subjects:
+            continue
+        score_sum = 0.0
+        for subj in relevant_subjects:
+            total = len(CURRICULUM.get(subj, []))
+            if total == 0:
+                continue
+            mastered_count = conn.execute(
+                "SELECT COUNT(*) FROM concept_progress WHERE student_id=? AND subject_id=? AND mastered_at IS NOT NULL",
+                (sid, subj)
+            ).fetchone()[0]
+            covered_count = conn.execute(
+                "SELECT COUNT(*) FROM concept_progress WHERE student_id=? AND subject_id=?",
+                (sid, subj)
+            ).fetchone()[0]
+            s = (mastered_count + 0.4 * max(0, covered_count - mastered_count)) / total
+            score_sum += s
+        raw = BASE + (score_sum / len(relevant_subjects)) * SUBJECT_MAX
+        readiness = min(int(round(raw)), 98)
+        career_readiness_map[cid] = career_readiness_map.get(cid, 0) + readiness
+        career_readiness_count[cid] = career_readiness_count.get(cid, 0) + 1
+
+    avg_readiness_by_career = []
+    for cid, total_r in career_readiness_map.items():
+        cnt = career_readiness_count[cid]
+        avg_readiness_by_career.append({
+            "career_id": cid,
+            "career_title": CAREERS[cid]["title"] if cid in CAREERS else cid,
+            "avg_readiness": int(round(total_r / cnt)),
+        })
+    avg_readiness_by_career.sort(key=lambda x: x["avg_readiness"], reverse=True)
+
+    # Hardest concepts
+    concept_rows = conn.execute("""
+        SELECT subject_id, concept_id,
+               COUNT(*) AS covered_count,
+               SUM(CASE WHEN mastered_at IS NOT NULL THEN 1 ELSE 0 END) AS mastered_count
+        FROM concept_progress
+        GROUP BY subject_id, concept_id
+        HAVING covered_count >= 2
+        ORDER BY (CAST(mastered_count AS REAL) / covered_count) ASC
+        LIMIT 10
+    """).fetchall()
+    hardest_concepts = []
+    for r in concept_rows:
+        subject_name = SUBJECTS[r["subject_id"]]["name"] if r["subject_id"] in SUBJECTS else r["subject_id"]
+        concept_name = r["concept_id"]
+        if r["subject_id"] in CURRICULUM:
+            c = next((x for x in CURRICULUM[r["subject_id"]] if x["id"] == r["concept_id"]), None)
+            if c:
+                concept_name = c["name"]
+        mastery_rate = r["mastered_count"] / r["covered_count"] if r["covered_count"] > 0 else 0.0
+        hardest_concepts.append({
+            "subject_name": subject_name,
+            "concept_name": concept_name,
+            "covered_count": r["covered_count"],
+            "mastered_count": r["mastered_count"],
+            "mastery_rate": round(mastery_rate, 4),
+        })
+
+    # Quiz pass rates by subject
+    quiz_rows = conn.execute(
+        "SELECT subject_id, COUNT(*) AS taken, SUM(passed) AS passed_count FROM module_quizzes GROUP BY subject_id"
+    ).fetchall()
+    quiz_pass_rates = []
+    for r in quiz_rows:
+        taken = r["taken"]
+        passed = r["passed_count"] or 0
+        pass_rate = round(passed / taken, 4) if taken > 0 else 0.0
+        quiz_pass_rates.append({
+            "subject_id": r["subject_id"],
+            "subject_name": SUBJECTS[r["subject_id"]]["name"] if r["subject_id"] in SUBJECTS else r["subject_id"],
+            "taken": taken,
+            "passed": passed,
+            "pass_rate": pass_rate,
+        })
+    quiz_pass_rates.sort(key=lambda x: x["subject_id"])
+
+    # Engagement
+    total_messages = conn.execute("SELECT COUNT(*) FROM messages WHERE role='user'").fetchone()[0]
+    avg_messages = round(total_messages / total_students, 2) if total_students > 0 else 0.0
+    students_with_streak = conn.execute(
+        "SELECT COUNT(*) FROM student_profile WHERE streak_count > 0"
+    ).fetchone()[0]
+    streak_rows = conn.execute(
+        "SELECT AVG(streak_count) FROM student_profile WHERE streak_count > 0"
+    ).fetchone()[0]
+    avg_streak = round(streak_rows or 0.0, 2)
+
+    conn.close()
+    return {
+        "total_students": total_students,
+        "active_this_week": active_this_week,
+        "active_this_month": active_this_month,
+        "career_distribution": career_distribution,
+        "avg_readiness_by_career": avg_readiness_by_career,
+        "hardest_concepts": hardest_concepts,
+        "quiz_pass_rates": quiz_pass_rates,
+        "engagement": {
+            "total_messages": total_messages,
+            "avg_messages_per_student": avg_messages,
+            "students_with_streak": students_with_streak,
+            "avg_streak": avg_streak,
+        },
+    }
+
+
 # ── Batch email endpoints ─────────────────────────────────────────────────────
 
 @app.get("/admin/email-preview")
@@ -2965,6 +3290,24 @@ async def send_nudges(background_tasks: BackgroundTasks, x_admin_key: str = Head
     conn.close()
     return {"queued": sent}
 
+async def _send_student_weekly_report(student_id: str, email: str, name: str):
+    conn = get_db()
+    try:
+        data = gather_student_week_data(student_id, conn)
+        narrative = await generate_report_narrative(name, data)
+        success = await send_weekly_learner_report(email, name, data, narrative)
+        if success:
+            conn.execute(
+                "UPDATE student_profile SET weekly_report_sent_at=? WHERE student_id=?",
+                (datetime.utcnow().isoformat(), student_id)
+            )
+            conn.commit()
+    except Exception as e:
+        print(f"Weekly report error for {student_id}: {e}")
+    finally:
+        conn.close()
+
+
 @app.post("/admin/send-weekly-digest")
 async def send_weekly_digest(background_tasks: BackgroundTasks, x_admin_key: str = Header(None)):
     require_admin(x_admin_key)
@@ -2973,26 +3316,11 @@ async def send_weekly_digest(background_tasks: BackgroundTasks, x_admin_key: str
         SELECT s.id, s.email, s.name FROM students s
         WHERE EXISTS (SELECT 1 FROM messages m WHERE m.student_id = s.id AND m.role = 'user')
     """).fetchall()
-    sent = 0
-    week_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
-    for st in students:
-        covered = conn.execute(
-            "SELECT COUNT(*) FROM concept_progress WHERE student_id = ? AND first_covered_at >= ?",
-            (st["id"], week_ago)
-        ).fetchone()[0]
-        mastered = conn.execute(
-            "SELECT COUNT(*) FROM concept_progress WHERE student_id = ? AND mastered_at >= ?",
-            (st["id"], week_ago)
-        ).fetchone()[0]
-        active_subjects = conn.execute("""
-            SELECT DISTINCT subject_id FROM messages
-            WHERE student_id = ? AND role = 'user' AND created_at >= ?
-        """, (st["id"], week_ago)).fetchall()
-        subject_names = [SUBJECTS[r["subject_id"]]["name"] for r in active_subjects if r["subject_id"] in SUBJECTS]
-        background_tasks.add_task(send_weekly_digest_email, st["email"], st["name"], covered, mastered, subject_names)
-        sent += 1
+    student_list = [dict(st) for st in students]
     conn.close()
-    return {"queued": sent}
+    for st in student_list:
+        background_tasks.add_task(_send_student_weekly_report, st["id"], st["email"], st["name"])
+    return {"queued": len(student_list)}
 
 # ── Capstone helpers ─────────────────────────────────────────────────────────
 
