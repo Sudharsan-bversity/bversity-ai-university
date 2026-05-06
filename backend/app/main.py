@@ -2421,6 +2421,60 @@ def admin_overview(x_admin_key: str = Header(None)):
         "total_messages":      total_messages,
     }
 
+@app.get("/admin/system-health")
+def admin_system_health(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    import shutil
+
+    # Disk
+    disk = shutil.disk_usage("/")
+    disk_total_gb  = round(disk.total / 1e9, 1)
+    disk_used_gb   = round(disk.used  / 1e9, 1)
+    disk_pct       = round(disk.used / disk.total * 100, 1)
+
+    # Memory from /proc/meminfo
+    mem_total_kb = mem_avail_kb = 0
+    try:
+        with open("/proc/meminfo") as f:
+            for line in f:
+                if line.startswith("MemTotal:"): mem_total_kb = int(line.split()[1])
+                if line.startswith("MemAvailable:"): mem_avail_kb = int(line.split()[1])
+    except Exception: pass
+    mem_total_gb = round(mem_total_kb / 1e6, 1)
+    mem_used_gb  = round((mem_total_kb - mem_avail_kb) / 1e6, 1)
+    mem_pct      = round((mem_total_kb - mem_avail_kb) / mem_total_kb * 100, 1) if mem_total_kb else 0
+
+    # DB size
+    db_size_mb = round(os.path.getsize(DB_PATH) / 1e6, 2) if os.path.exists(DB_PATH) else 0
+
+    # DB stats
+    today_str = datetime.utcnow().date().isoformat()
+    conn = get_db()
+    total_students   = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
+    total_messages   = conn.execute("SELECT COUNT(*) FROM messages WHERE role = 'user'").fetchone()[0]
+    messages_today   = conn.execute("SELECT COUNT(*) FROM messages WHERE role = 'user' AND created_at >= ?", (today_str,)).fetchone()[0]
+    active_today     = conn.execute("SELECT COUNT(DISTINCT student_id) FROM messages WHERE created_at >= ?", (today_str,)).fetchone()[0]
+    total_concepts   = conn.execute("SELECT COUNT(*) FROM concept_progress").fetchone()[0]
+    conn.close()
+
+    return {
+        "disk":  { "total_gb": disk_total_gb, "used_gb": disk_used_gb, "pct": disk_pct },
+        "memory":{ "total_gb": mem_total_gb,  "used_gb": mem_used_gb,  "pct": mem_pct },
+        "db":    { "size_mb": db_size_mb },
+        "students": { "total": total_students, "active_today": active_today,
+                      "soft_limit": 500, "hard_limit": 1000 },
+        "messages": { "total": total_messages, "today": messages_today,
+                      "daily_soft_limit": 500, "daily_hard_limit": 1000 },
+        "concepts_covered": total_concepts,
+        "limits": {
+            "concurrent_users":  { "value": 25,   "note": "SQLite single-writer bottleneck. Upgrade to Postgres + larger droplet at ~25 concurrent." },
+            "storage_upgrade":   { "value": 15,   "note": "Consider upgrading disk when used exceeds 15GB." },
+            "memory_upgrade":    { "value": 80,   "note": "Upgrade droplet RAM when sustained memory usage exceeds 80%." },
+            "email_daily":       { "value": 100,  "note": "Resend free tier: 100 emails/day, 3,000/month." },
+            "api_rpm":           { "value": 1000, "note": "Anthropic claude-sonnet-4-6 standard tier: ~1,000 requests/min." },
+        }
+    }
+
 @app.get("/admin/students")
 def admin_students(x_admin_key: str = Header(None)):
     require_admin(x_admin_key)

@@ -4199,6 +4199,8 @@ function AdminView({ onBack }) {
   const [imageEdits, setImageEdits]                   = useState({});
   const [imageSaving, setImageSaving]                 = useState({});
   const [imageSaved, setImageSaved]                   = useState({});
+  const [systemHealth, setSystemHealth]               = useState(null);
+  const [systemHealthLoading, setSystemHealthLoading] = useState(false);
 
   async function handleAuth(e) {
     e.preventDefault();
@@ -4456,6 +4458,15 @@ function AdminView({ onBack }) {
     } catch {}
   }
 
+  async function loadSystemHealth() {
+    setSystemHealthLoading(true);
+    try {
+      const r = await fetch('/api/admin/system-health', { headers: { 'X-Admin-Key': adminKey } });
+      if (r.ok) setSystemHealth(await r.json());
+    } catch {}
+    setSystemHealthLoading(false);
+  }
+
   async function saveImage(section, key) {
     const editKey = `${section}__${key}`;
     const url = imageEdits[editKey] || '';
@@ -4672,6 +4683,7 @@ function AdminView({ onBack }) {
             { id: 'export',      label: 'Export',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> },
             { id: 'announce',    label: 'Announce',   icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 17H2a3 3 0 000 6h20a3 3 0 000-6z"/><path d="M6 17V7a2 2 0 012-2h1"/><path d="M18 17V7a2 2 0 00-2-2h-1"/><line x1="12" y1="5" x2="12" y2="2"/></svg> },
             { id: 'images',      label: 'Images',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> },
+            { id: 'system',      label: 'System',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> },
           ].map(item => (
             <button
               key={item.id}
@@ -4688,6 +4700,7 @@ function AdminView({ onBack }) {
                 if (item.id === 'studyplans') loadStudyPlans();
                 if (item.id === 'announce') { loadAnnouncePreview('all'); };
                 if (item.id === 'images') loadImages();
+                if (item.id === 'system') loadSystemHealth();
               }}
             >
               <span className="admin-sb-icon">{item.icon}</span>
@@ -5975,6 +5988,106 @@ function AdminView({ onBack }) {
                 </div>
               ))}
             </>
+          )}
+        </div>
+      )}
+
+      {tab === 'system' && (
+        <div className="admin-content">
+          <h3 className="access-title">System Health & Capacity</h3>
+          <p className="access-subtitle">Live view of server resources and platform limits. Use this to know when to scale up.</p>
+          {systemHealthLoading && <div className="sys-loading">Loading…</div>}
+          {systemHealth && (() => {
+            const { disk, memory, db, students, messages, limits } = systemHealth;
+            function Gauge({ label, used, total, unit, softLimit, note, color }) {
+              const pct = Math.min(100, Math.round(used / total * 100));
+              const atSoft = softLimit && (used / total * 100) >= softLimit;
+              const status = pct >= 85 ? 'red' : pct >= 60 ? 'amber' : 'green';
+              const c = color || (status === 'red' ? '#ef4444' : status === 'amber' ? '#f59e0b' : '#10b981');
+              return (
+                <div className="sys-gauge">
+                  <div className="sys-gauge-header">
+                    <span className="sys-gauge-label">{label}</span>
+                    <span className="sys-gauge-val" style={{ color: c }}>{used}{unit} <span className="sys-gauge-of">/ {total}{unit}</span></span>
+                  </div>
+                  <div className="sys-gauge-track">
+                    <div className="sys-gauge-fill" style={{ width: `${pct}%`, background: c }} />
+                    {softLimit && <div className="sys-gauge-soft-mark" style={{ left: `${softLimit}%` }} />}
+                  </div>
+                  <div className="sys-gauge-meta">
+                    <span className="sys-gauge-pct">{pct}% used</span>
+                    {note && <span className="sys-gauge-note">{note}</span>}
+                  </div>
+                  {atSoft && <div className="sys-gauge-warn">⚠ Approaching limit — consider upgrading</div>}
+                </div>
+              );
+            }
+            return (
+              <div className="sys-grid">
+                <div className="sys-section">
+                  <div className="sys-section-title">Server Resources</div>
+                  <Gauge label="Disk Storage" used={disk.used_gb} total={disk.total_gb} unit="GB"
+                    softLimit={Math.round(limits.storage_upgrade.value / disk.total_gb * 100)}
+                    note={limits.storage_upgrade.note} />
+                  <Gauge label="Memory (RAM)" used={memory.used_gb} total={memory.total_gb} unit="GB"
+                    softLimit={limits.memory_upgrade.value}
+                    note={limits.memory_upgrade.note} />
+                  <div className="sys-stat-row">
+                    <span className="sys-stat-label">Database size</span>
+                    <span className="sys-stat-val">{db.size_mb} MB</span>
+                  </div>
+                </div>
+
+                <div className="sys-section">
+                  <div className="sys-section-title">Students</div>
+                  <Gauge label="Total registered" used={students.total} total={students.hard_limit} unit=""
+                    softLimit={Math.round(students.soft_limit / students.hard_limit * 100)}
+                    note="SQLite handles ~500 well. Above 1,000 — migrate to Postgres." />
+                  <div className="sys-stat-row">
+                    <span className="sys-stat-label">Active today</span>
+                    <span className="sys-stat-val">{students.active_today}</span>
+                  </div>
+                  <div className="sys-info-box">
+                    <strong>Concurrent users limit:</strong> ~{limits.concurrent_users.value} at once<br/>
+                    <span className="sys-info-note">{limits.concurrent_users.note}</span>
+                  </div>
+                </div>
+
+                <div className="sys-section">
+                  <div className="sys-section-title">Messages & API</div>
+                  <Gauge label="Messages today" used={messages.today} total={messages.daily_hard_limit} unit=""
+                    softLimit={Math.round(messages.daily_soft_limit / messages.daily_hard_limit * 100)}
+                    note={`Anthropic rate limit: ~${limits.api_rpm.value} req/min. ${limits.api_rpm.note}`} />
+                  <div className="sys-stat-row">
+                    <span className="sys-stat-label">Total messages (all time)</span>
+                    <span className="sys-stat-val">{messages.total.toLocaleString()}</span>
+                  </div>
+                  <div className="sys-info-box">
+                    <strong>Email (Resend free tier):</strong><br/>
+                    <span className="sys-info-note">{limits.email_daily.note}</span>
+                  </div>
+                </div>
+
+                <div className="sys-section sys-section--upgrade">
+                  <div className="sys-section-title">When to upgrade</div>
+                  {[
+                    { threshold: '25+ concurrent users',  action: 'Upgrade DigitalOcean droplet to 4GB RAM + 2 vCPU ($24/mo)' },
+                    { threshold: '500+ students',         action: 'Migrate database from SQLite → Postgres (add managed DB on DigitalOcean)' },
+                    { threshold: '1,000+ messages/day',   action: 'Upgrade Anthropic API tier or add request queuing' },
+                    { threshold: '100+ emails/day',       action: 'Upgrade Resend to paid plan ($20/mo for 50k emails)' },
+                    { threshold: '15GB+ disk used',       action: 'Resize droplet disk or move file uploads to object storage (Spaces/S3)' },
+                  ].map(({ threshold, action }) => (
+                    <div key={threshold} className="sys-upgrade-row">
+                      <span className="sys-upgrade-trigger">At {threshold}:</span>
+                      <span className="sys-upgrade-action">{action}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+          {systemHealth && (
+            <button className="sys-refresh-btn" onClick={loadSystemHealth}>↻ Refresh</button>
           )}
         </div>
       )}
