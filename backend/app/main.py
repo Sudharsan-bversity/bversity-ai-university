@@ -10,12 +10,60 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI()
+_SERVER_START_TIME = time.time()
 _ALLOWED_ORIGINS = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "*").split(",")]
-app.add_middleware(CORSMiddleware, allow_origins=_ALLOWED_ORIGINS, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
+_use_credentials = "*" not in _ALLOWED_ORIGINS
+app.add_middleware(CORSMiddleware, allow_origins=_ALLOWED_ORIGINS, allow_credentials=_use_credentials, allow_methods=["*"], allow_headers=["*"])
 
 DB_PATH = os.environ.get("DB_PATH", "/app/bversity.db")
 SUBMISSIONS_DIR = os.environ.get("SUBMISSIONS_DIR", "/app/submissions")
+IMAGE_CONFIG_PATH = os.environ.get("IMAGE_CONFIG_PATH", "/app/image_config.json")
 os.makedirs(SUBMISSIONS_DIR, exist_ok=True)
+
+DEFAULT_IMAGE_CONFIG = {
+  "careers": {
+    "bioinformatics_scientist":       {"url": "https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=900&q=80", "label": "Bioinformatics Scientist"},
+    "genomics_data_analyst":          {"url": "https://images.unsplash.com/photo-1614935151651-0bea6508db6b?w=900&q=80", "label": "Genomics Data Analyst"},
+    "drug_discovery_scientist":       {"url": "https://images.unsplash.com/photo-1576086213369-97a306d36557?w=900&q=80", "label": "Drug Discovery Scientist"},
+    "clinical_research_associate":    {"url": "https://images.unsplash.com/photo-1581093806997-124204d9fa9d?w=900&q=80", "label": "Clinical Research Associate"},
+    "regulatory_affairs_associate":   {"url": "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=900&q=80", "label": "Regulatory Affairs Associate"},
+    "computational_biologist":        {"url": "https://images.unsplash.com/photo-1518770660439-4636190af475?w=900&q=80", "label": "Computational Biologist"},
+    "pharmacovigilance_scientist":    {"url": "https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=900&q=80", "label": "Pharmacovigilance Scientist"},
+    "medical_science_liaison":        {"url": "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=900&q=80", "label": "Medical Science Liaison"},
+    "biomarker_scientist":            {"url": "https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=900&q=80", "label": "Biomarker Scientist"},
+    "clinical_data_manager":          {"url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&q=80", "label": "Clinical Data Manager"},
+    "biotech_bd_associate":           {"url": "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=900&q=80", "label": "Biotech BD Associate"},
+    "market_access_analyst":          {"url": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=900&q=80", "label": "Market Access Analyst"},
+    "medical_affairs_associate":      {"url": "https://images.unsplash.com/photo-1582719508461-905c673771fd?w=900&q=80", "label": "Medical Affairs Associate"},
+    "genomics_commercial_specialist": {"url": "https://images.unsplash.com/photo-1568219557405-376e23e4f7cf?w=900&q=80", "label": "Genomics Commercial Specialist"},
+    "biotech_product_manager":        {"url": "https://images.unsplash.com/photo-1542744094-3a31f272c490?w=900&q=80", "label": "Biotech Product Manager"},
+    "life_sciences_consultant":       {"url": "https://images.unsplash.com/photo-1556761175-4b46a572b786?w=900&q=80", "label": "Life Sciences Consultant"},
+    "biotech_venture_analyst":        {"url": "https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=900&q=80", "label": "Biotech Venture Analyst"},
+    "licensing_partnerships":         {"url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=900&q=80", "label": "Licensing & Partnerships"},
+    "ai_drug_discovery":              {"url": "https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=900&q=80", "label": "AI Drug Discovery"},
+    "precision_medicine_specialist":  {"url": "https://images.unsplash.com/photo-1576086476234-1103be98f096?w=900&q=80", "label": "Precision Medicine Specialist"},
+    "biotech_founder":                {"url": "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=900&q=80", "label": "Biotech Founder"},
+  },
+  "clusters": {
+    "Science & Technical":  {"url": "https://images.unsplash.com/photo-1579165466741-7f35e4755660?w=1200&q=80", "label": "Science & Technical cluster"},
+    "Business & Commercial": {"url": "https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80", "label": "Business & Commercial cluster"},
+    "Emerging & Hybrid":    {"url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&q=80", "label": "Emerging & Hybrid cluster"},
+  },
+  "degrees": {
+    "msc": {"url": "https://images.unsplash.com/photo-1576086213369-97a306d36557?w=800&h=320&fit=crop&q=80", "label": "M.Sc Biotechnology"},
+    "bsc": {"url": "https://images.unsplash.com/photo-1530026405186-ed1f139313f8?w=800&h=320&fit=crop&q=80", "label": "B.Sc (Hons) Bioengineering"},
+  },
+}
+
+def load_image_config():
+    if os.path.exists(IMAGE_CONFIG_PATH):
+        with open(IMAGE_CONFIG_PATH) as f:
+            return json.load(f)
+    return DEFAULT_IMAGE_CONFIG
+
+def save_image_config(config):
+    with open(IMAGE_CONFIG_PATH, "w") as f:
+        json.dump(config, f, indent=2)
 
 # ── Rate limiting ──────────────────────────────────────────────────────────────
 RATE_LIMIT_MAX = int(os.environ.get("CHAT_RATE_LIMIT", "40"))   # messages per window
@@ -189,6 +237,49 @@ def init_db():
             message_count INTEGER DEFAULT 0,
             created_at    TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS concept_feedback (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id  TEXT NOT NULL,
+            subject_id  TEXT NOT NULL,
+            concept_title TEXT NOT NULL,
+            value       TEXT NOT NULL,
+            created_at  TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS message_feedback (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id  TEXT NOT NULL,
+            subject_id  TEXT NOT NULL,
+            message_idx INTEGER NOT NULL,
+            value       TEXT NOT NULL,
+            created_at  TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS concept_notes (
+            subject_id  TEXT NOT NULL,
+            concept_id  TEXT NOT NULL,
+            notes       TEXT NOT NULL DEFAULT '',
+            updated_at  TEXT NOT NULL,
+            PRIMARY KEY (subject_id, concept_id)
+        );
+        CREATE TABLE IF NOT EXISTS saved_concepts (
+            id          TEXT PRIMARY KEY,
+            student_id  TEXT NOT NULL,
+            subject_id  TEXT NOT NULL,
+            title       TEXT NOT NULL,
+            card_data   TEXT NOT NULL,
+            saved_at    TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS lab_progress (
+            student_id  TEXT NOT NULL,
+            project_id  TEXT NOT NULL,
+            subject_id  TEXT NOT NULL,
+            steps_done  TEXT NOT NULL DEFAULT '[]',
+            status      TEXT NOT NULL DEFAULT 'in_progress',
+            submission  TEXT,
+            ai_feedback TEXT,
+            started_at  TEXT NOT NULL,
+            submitted_at TEXT,
+            PRIMARY KEY (student_id, project_id)
+        );
     """)
     for col in [
         "ALTER TABLE capstone_submissions ADD COLUMN ai_score INTEGER",
@@ -204,9 +295,11 @@ def init_db():
         "ALTER TABLE student_profile ADD COLUMN avatar_color TEXT",
         "ALTER TABLE student_profile ADD COLUMN linkedin_url TEXT",
         "ALTER TABLE student_profile ADD COLUMN github_url TEXT",
+        "ALTER TABLE student_profile ADD COLUMN bio TEXT",
         "ALTER TABLE student_profile ADD COLUMN city TEXT",
         "ALTER TABLE student_profile ADD COLUMN state TEXT",
         "ALTER TABLE student_profile ADD COLUMN show_on_map INTEGER DEFAULT 1",
+        "ALTER TABLE student_profile ADD COLUMN avatar_num INTEGER",
         "ALTER TABLE student_profile ADD COLUMN is_placed INTEGER DEFAULT 0",
         "ALTER TABLE student_profile ADD COLUMN streak_count INTEGER DEFAULT 0",
         "ALTER TABLE student_profile ADD COLUMN streak_last_date TEXT",
@@ -1348,7 +1441,8 @@ def has_materials(subject_id: str, conn) -> bool:
 
 def build_system_prompt(subject: dict, student_name: str, is_first_visit: bool,
                         covered_ids: list, mastered_ids: list, rag_context: str = "",
-                        career: dict = None, session_memory: str = "") -> str:
+                        career: dict = None, session_memory: str = "",
+                        concept_notes_map: dict = None) -> str:
     base = subject["system_prompt"]
 
     voice_block = f"""
@@ -1386,6 +1480,7 @@ FORMATTING RULES — follow strictly:
 - Bullet points over prose. Format as: - **Key term**: explanation. Bold the key term.
 - For critical points {student_name} must remember: bold the entire phrase: **This is the most important thing to understand here.**
 - Numbered lists only for strict sequences. Bullets for everything else.
+- Every response that ends with a question must bold that closing question. Example: **So based on what you just learned, what do you think happens when X?** This is the question the student must answer to move forward — make it impossible to miss.
 - Keep bullets concise: one to two sentences max.
 - Inline backticks for technical names and drug names.
 
@@ -1429,9 +1524,9 @@ Progress: {covered_count}/{total} covered, {mastered_count}/{total} mastered
 Use this to personalise your teaching today. Reference what {student_name} has already covered, acknowledge where they struggled before, and build directly on their progress. If confusion was noted last session, address it naturally — don't wait for them to ask again."""
 
     if is_first_visit:
-        teaching_note = f"\n\nThis is {student_name}'s very first session. Greet them warmly by name, ask 2–3 questions about their background and goals, then naturally guide them toward concept 1: \"{curriculum[0]['name']}\". Keep it conversational."
+        teaching_note = f"\n\nThis is {student_name}'s very first session. When they say they are ready to start: introduce yourself in 2–3 sentences (your name, your actual role, what you work on day to day). Then in one sentence tell them what today's session will cover and why it matters. Do not ask background questions yet — get them oriented first, then naturally invite them into concept 1: \"{curriculum[0]['name']}\"."
     elif next_concept:
-        teaching_note = f"\n\n{student_name} is returning. Build on what they know. Guide them toward \"{next_concept['name']}\" — {next_concept['desc']}. Reference prior concepts to reinforce connections."
+        teaching_note = f"\n\n{student_name} is returning. When they say they are ready to continue: open with a 2–3 sentence recap of what they covered last session (name the concepts). Then tell them today's session picks up with \"{next_concept['name']}\" and why it connects to what they already know. Keep it brief — then move straight into teaching."
     else:
         teaching_note = f"\n\n{student_name} has covered the full curriculum. Help them synthesise concepts, suggest advanced topics, and challenge them with integrative questions."
 
@@ -1495,7 +1590,22 @@ If {student_name} mentions a career interest or aspiration, identify the closest
 Valid career IDs: {" | ".join(CAREERS.keys())}
 Only tag when the student clearly states a career aspiration. Tag at most once per response."""
 
-    return base + voice_block + curriculum_block + memory_block + teaching_note + career_block + rag_block + tagging + career_tagging
+    notes_block = ""
+    if concept_notes_map:
+        curriculum = effective_curriculum(subject["id"], career)
+        notes_lines = []
+        for c in curriculum:
+            note = concept_notes_map.get(c["id"], "").strip()
+            if note:
+                notes_lines.append(f"  [{c['name']}]: {note}")
+        if notes_lines:
+            notes_block = f"""
+
+━━ FACULTY NOTES PER CONCEPT ━━
+These notes were written by the course faculty. Incorporate this guidance when teaching the relevant concept.
+{chr(10).join(notes_lines)}"""
+
+    return base + voice_block + curriculum_block + notes_block + memory_block + teaching_note + career_block + rag_block + tagging + career_tagging
 
 
 def build_quiz_prompt(subject: dict, student_name: str, covered_ids: list, mastered_ids: list, career: dict = None) -> str:
@@ -1526,6 +1636,20 @@ End your response with (hidden from student):
 Valid IDs for this quiz: {valid_ids}
 If none mastered: <<<MASTERED:>>>"""
 
+RECALL_WARMUP_SUFFIX = """
+
+━━ RECALL WARMUP — THIS MESSAGE ONLY ━━
+{student_name} just opened a new session and wrote a quick recall from memory before we began.
+Their recall is the current message.
+
+Your response for THIS message only:
+1. Acknowledge what they got right — specifically, name the concept or mechanism they recalled. 1–2 sentences.
+2. If they missed something important or got it slightly wrong, correct it briefly and directly. 1 sentence max.
+3. Bridge naturally into the next concept: "Let's build on that today..." or similar.
+DO NOT do a formal quiz. DO NOT ask them to recall more. DO NOT start teaching a new concept yet — just bridge to it.
+Keep the entire response under 4 sentences. Sound like a tutor who's pleased they came prepared."""
+
+
 # ── Mock responses ────────────────────────────────────────────────────────────
 
 MOCK_RESPONSES = {
@@ -1548,6 +1672,7 @@ class ChatRequest(BaseModel):
     subject_id: str
     message: str
     quiz_mode: bool = False
+    recall_warmup: bool = False
 
 class ProfileRequest(BaseModel):
     career_id: str
@@ -1660,7 +1785,7 @@ def _divider() -> str:
 def _small(text: str) -> str:
     return f'<p style="color:#9EABBE;font-size:12px;margin:0">{text}</p>'
 
-async def _send_email(to_email: str, subject: str, html: str) -> bool:
+async def _send_email(to_email: str, subject: str, html: str, reply_to: str = None) -> bool:
     api_key    = os.environ.get("RESEND_API_KEY", "")
     from_email = os.environ.get("RESEND_FROM_EMAIL", "noreply@bversity.io")
     if not api_key:
@@ -1668,11 +1793,14 @@ async def _send_email(to_email: str, subject: str, html: str) -> bool:
         return True
     try:
         import httpx
+        payload = {"from": f"Bversity <{from_email}>", "to": [to_email], "subject": subject, "html": html}
+        if reply_to:
+            payload["reply_to"] = [reply_to]
         async with httpx.AsyncClient() as client:
             res = await client.post(
                 "https://api.resend.com/emails",
                 headers={"Authorization": f"Bearer {api_key}"},
-                json={"from": f"Bversity <{from_email}>", "to": [to_email], "subject": subject, "html": html},
+                json=payload,
                 timeout=10.0,
             )
         if res.status_code not in (200, 201):
@@ -2203,7 +2331,7 @@ async def request_code(req: RequestCodeRequest):
     approved = conn.execute("SELECT email FROM approved_emails WHERE email = ?", (email,)).fetchone()
     if not approved:
         conn.close()
-        raise HTTPException(status_code=403, detail="This email doesn't have access yet. Contact sai@bversity.io to request access.")
+        raise HTTPException(status_code=403, detail="This email doesn't have access yet. Contact sudharsan@bversity.io to request access.")
     conn.execute("UPDATE verification_codes SET used = 1 WHERE email = ? AND used = 0", (email,))
     code       = str(random.randint(100000, 999999))
     expires_at = (datetime.utcnow() + timedelta(minutes=15)).isoformat()
@@ -2439,7 +2567,7 @@ def get_profile(student_id: str, background_tasks: BackgroundTasks = None):
     background_tasks.add_task(check_inactivity_nudge, student_id)
     conn = get_db()
     row = conn.execute(
-        "SELECT career_id, college, year_of_study, aspirations, motivation, tutor_note, onboarded_at, avatar_color, linkedin_url, github_url, city, state, show_on_map, streak_count, streak_last_date FROM student_profile WHERE student_id = ?",
+        "SELECT career_id, college, year_of_study, aspirations, motivation, tutor_note, onboarded_at, avatar_color, avatar_num, linkedin_url, github_url, bio, city, state, show_on_map, streak_count, streak_last_date FROM student_profile WHERE student_id = ?",
         (student_id,)
     ).fetchone()
     student_row = conn.execute("SELECT email FROM students WHERE id = ?", (student_id,)).fetchone()
@@ -2481,8 +2609,10 @@ def get_profile(student_id: str, background_tasks: BackgroundTasks = None):
         "motivation": row["motivation"],
         "tutor_note": row["tutor_note"],
         "avatar_color": row["avatar_color"],
+        "avatar_num": row["avatar_num"],
         "linkedin_url": row["linkedin_url"],
         "github_url": row["github_url"],
+        "bio": row["bio"],
         "city": row["city"],
         "state": row["state"],
         "show_on_map": row["show_on_map"] if row["show_on_map"] is not None else 1,
@@ -2544,8 +2674,10 @@ class ProfileUpdateRequest(BaseModel):
     motivation: str = ""
     tutor_note: str = ""
     avatar_color: str = ""
+    avatar_num: Optional[int] = None
     linkedin_url: str = ""
     github_url: str = ""
+    bio: str = ""
     city: str = ""
     state: str = ""
     show_on_map: int = 1
@@ -2554,8 +2686,8 @@ class ProfileUpdateRequest(BaseModel):
 def update_profile(student_id: str, req: ProfileUpdateRequest):
     conn = get_db()
     conn.execute(
-        """INSERT INTO student_profile (student_id, career_id, career_goal_raw, updated_at, college, year_of_study, aspirations, motivation, tutor_note, avatar_color, linkedin_url, github_url, city, state, show_on_map, onboarded_at)
-           VALUES (?, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        """INSERT INTO student_profile (student_id, career_id, career_goal_raw, updated_at, college, year_of_study, aspirations, motivation, tutor_note, avatar_color, avatar_num, linkedin_url, github_url, bio, city, state, show_on_map, onboarded_at)
+           VALUES (?, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
            ON CONFLICT(student_id) DO UPDATE SET
              college = excluded.college,
              year_of_study = excluded.year_of_study,
@@ -2563,16 +2695,18 @@ def update_profile(student_id: str, req: ProfileUpdateRequest):
              motivation = excluded.motivation,
              tutor_note = excluded.tutor_note,
              avatar_color = excluded.avatar_color,
+             avatar_num = excluded.avatar_num,
              linkedin_url = excluded.linkedin_url,
              github_url = excluded.github_url,
+             bio = excluded.bio,
              city = excluded.city,
              state = excluded.state,
              show_on_map = excluded.show_on_map,
              updated_at = excluded.updated_at""",
         (student_id, datetime.utcnow().isoformat(),
          req.college, req.year_of_study, req.aspirations, req.motivation,
-         req.tutor_note, req.avatar_color, req.linkedin_url, req.github_url,
-         req.city or None, req.state or None, req.show_on_map)
+         req.tutor_note, req.avatar_color, req.avatar_num, req.linkedin_url, req.github_url,
+         req.bio or None, req.city or None, req.state or None, req.show_on_map)
     )
     conn.commit(); conn.close()
     return {"status": "ok"}
@@ -2581,7 +2715,7 @@ def update_profile(student_id: str, req: ProfileUpdateRequest):
 def get_community_map():
     conn = get_db()
     rows = conn.execute(
-        """SELECT s.id, s.name, sp.city, sp.state, sp.career_id, sp.linkedin_url, sp.github_url, sp.avatar_color,
+        """SELECT s.id, s.name, sp.city, sp.state, sp.career_id, sp.linkedin_url, sp.github_url, sp.avatar_color, sp.bio,
                   COALESCE(sp.is_placed, 0) AS is_placed
            FROM students s
            JOIN student_profile sp ON sp.student_id = s.id
@@ -2603,6 +2737,7 @@ def get_community_map():
             "linkedin_url": row["linkedin_url"],
             "github_url": row["github_url"],
             "avatar_color": row["avatar_color"],
+            "bio": row["bio"],
             "is_placed": bool(row["is_placed"]),
         })
     return result
@@ -2622,6 +2757,8 @@ def set_profile(student_id: str, req: ProfileRequest):
     if not has_plan or (existing and existing["career_id"] != req.career_id):
         _generate_study_plan(student_id, req.career_id, conn)
     conn.commit(); conn.close()
+    if req.career_id not in CAREERS:
+        raise HTTPException(status_code=400, detail="Invalid career_id")
     return {"career_id": req.career_id, "career": CAREERS[req.career_id]}
 
 class CareerChangeLogRequest(BaseModel):
@@ -2875,7 +3012,7 @@ async def get_quiz_questions(subject_id: str, module_id: str, student_id: str = 
 
     module_name = subs[0]["name"].split(":")[0].split("—")[0].strip()
     concept_lines = "\n".join(f"- {c['name']}" for c in subs)
-    subject_name  = SUBJECTS[subject_id]["name"]
+    subject_name  = SUBJECTS.get(subject_id, {}).get("name", subject_id)
 
     prompt = f"""Generate exactly 4 multiple-choice questions to test deep understanding of the module "{module_name}" from the subject "{subject_name}" for biotech/life sciences graduate students.
 
@@ -3075,6 +3212,305 @@ def delete_note(student_id: str, note_id: str):
     conn.close()
     return {"status": "ok"}
 
+# ── Saved concepts ────────────────────────────────────────────────────────────
+
+class SaveConceptReq(BaseModel):
+    subject_id: str
+    title: str
+    card_data: dict
+
+@app.post("/saved-concepts/{student_id}")
+def save_concept(student_id: str, req: SaveConceptReq):
+    conn = get_db()
+    existing = conn.execute(
+        "SELECT id FROM saved_concepts WHERE student_id = ? AND title = ? AND subject_id = ?",
+        (student_id, req.title, req.subject_id)
+    ).fetchone()
+    if existing:
+        conn.close()
+        return {"id": existing["id"], "status": "already_saved"}
+    cid = str(uuid.uuid4())
+    conn.execute(
+        "INSERT INTO saved_concepts (id, student_id, subject_id, title, card_data, saved_at) VALUES (?,?,?,?,?,?)",
+        (cid, student_id, req.subject_id, req.title, json.dumps(req.card_data), datetime.utcnow().isoformat())
+    )
+    conn.commit()
+    conn.close()
+    return {"id": cid, "status": "saved"}
+
+@app.delete("/saved-concepts/{student_id}/{concept_id}")
+def unsave_concept(student_id: str, concept_id: str):
+    conn = get_db()
+    conn.execute("DELETE FROM saved_concepts WHERE id = ? AND student_id = ?", (concept_id, student_id))
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
+
+@app.get("/saved-concepts/{student_id}")
+def get_saved_concepts(student_id: str):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT id, subject_id, title, card_data, saved_at FROM saved_concepts WHERE student_id = ? ORDER BY saved_at DESC",
+        (student_id,)
+    ).fetchall()
+    conn.close()
+    result = []
+    for row in rows:
+        try:
+            data = json.loads(row["card_data"])
+        except Exception:
+            data = {}
+        result.append({
+            "id": row["id"],
+            "subject_id": row["subject_id"],
+            "title": row["title"],
+            "card_data": data,
+            "saved_at": row["saved_at"],
+        })
+    return result
+
+# ── Industry Innovation Labs routes ──────────────────────────────────────────
+
+class LabStepReq(BaseModel):
+    subject_id: str
+    step_id: str
+
+class LabSubmitReq(BaseModel):
+    subject_id: str
+    submission: str
+    rubric: list
+
+@app.get("/labs/{student_id}")
+def get_lab_progress(student_id: str):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT project_id, subject_id, steps_done, status, submission, ai_feedback, started_at, submitted_at FROM lab_progress WHERE student_id = ?",
+        (student_id,)
+    ).fetchall()
+    conn.close()
+    result = {}
+    for row in rows:
+        result[row["project_id"]] = {
+            "subject_id": row["subject_id"],
+            "steps_done": json.loads(row["steps_done"] or "[]"),
+            "status": row["status"],
+            "submission": row["submission"],
+            "ai_feedback": row["ai_feedback"],
+            "started_at": row["started_at"],
+            "submitted_at": row["submitted_at"],
+        }
+    return result
+
+@app.delete("/labs/{student_id}/{project_id}/steps/{step_id}")
+def remove_lab_step(student_id: str, project_id: str, step_id: str):
+    conn = get_db()
+    row = conn.execute(
+        "SELECT steps_done FROM lab_progress WHERE student_id = ? AND project_id = ?",
+        (student_id, project_id)
+    ).fetchone()
+    if row:
+        steps = json.loads(row["steps_done"] or "[]")
+        steps = [s for s in steps if s != step_id]
+        conn.execute(
+            "UPDATE lab_progress SET steps_done = ? WHERE student_id = ? AND project_id = ?",
+            (json.dumps(steps), student_id, project_id)
+        )
+        conn.commit()
+    conn.close()
+    return {"status": "ok"}
+
+@app.post("/labs/{student_id}/{project_id}/steps")
+def save_lab_step(student_id: str, project_id: str, req: LabStepReq):
+    conn = get_db()
+    row = conn.execute(
+        "SELECT steps_done FROM lab_progress WHERE student_id = ? AND project_id = ?",
+        (student_id, project_id)
+    ).fetchone()
+    if row:
+        steps = json.loads(row["steps_done"] or "[]")
+        if req.step_id not in steps:
+            steps.append(req.step_id)
+        conn.execute(
+            "UPDATE lab_progress SET steps_done = ? WHERE student_id = ? AND project_id = ?",
+            (json.dumps(steps), student_id, project_id)
+        )
+    else:
+        conn.execute(
+            "INSERT INTO lab_progress (student_id, project_id, subject_id, steps_done, status, started_at) VALUES (?,?,?,?,?,?)",
+            (student_id, project_id, req.subject_id, json.dumps([req.step_id]), 'in_progress', datetime.utcnow().isoformat())
+        )
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
+
+@app.post("/labs/{student_id}/{project_id}/submit")
+async def submit_lab(student_id: str, project_id: str, req: LabSubmitReq):
+    import anthropic
+    client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    rubric_text = "\n".join(f"- {r}" for r in req.rubric)
+    prompt = f"""You are an expert biotech educator reviewing a student's Industry Innovation Lab submission.
+
+Project ID: {project_id}
+Subject: {req.subject_id}
+
+Student's submission:
+{req.submission}
+
+Rubric criteria:
+{rubric_text}
+
+Provide structured feedback in this format:
+1. **Overall Assessment** (2-3 sentences on overall quality)
+2. **Rubric Feedback** (one short paragraph per criterion — what they did well and what to improve)
+3. **Top Strength** (one specific thing done exceptionally well)
+4. **Key Improvement** (the single most impactful thing to work on next)
+5. **Score** (out of 10, as a number only on its own line like: Score: 8/10)
+
+Be specific, encouraging, and grounded in real biotech practice. Reference their actual submission content."""
+
+    response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1000,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    feedback = response.content[0].text
+
+    conn = get_db()
+    row = conn.execute(
+        "SELECT steps_done FROM lab_progress WHERE student_id = ? AND project_id = ?",
+        (student_id, project_id)
+    ).fetchone()
+    now = datetime.utcnow().isoformat()
+    if row:
+        conn.execute(
+            "UPDATE lab_progress SET submission = ?, ai_feedback = ?, status = ?, submitted_at = ? WHERE student_id = ? AND project_id = ?",
+            (req.submission, feedback, 'completed', now, student_id, project_id)
+        )
+    else:
+        conn.execute(
+            "INSERT INTO lab_progress (student_id, project_id, subject_id, steps_done, status, submission, ai_feedback, started_at, submitted_at) VALUES (?,?,?,?,?,?,?,?,?)",
+            (student_id, project_id, req.subject_id, '[]', 'completed', req.submission, feedback, now, now)
+        )
+    conn.commit()
+    conn.close()
+    return {"feedback": feedback, "status": "completed"}
+
+@app.post("/labs/{student_id}/{project_id}/submit-file")
+async def submit_lab_file(
+    student_id: str,
+    project_id: str,
+    file: UploadFile = File(...),
+    subject_id: str = Form(...),
+    rubric: str = Form(...),
+):
+    import anthropic
+    rubric_list = json.loads(rubric)
+    content = await file.read()
+    extracted = ""
+    fname = (file.filename or "").lower()
+    try:
+        if fname.endswith(".pdf"):
+            import io as _io
+            from pypdf import PdfReader
+            reader = PdfReader(_io.BytesIO(content))
+            extracted = "\n".join(page.extract_text() or "" for page in reader.pages)
+        elif fname.endswith(".docx"):
+            import io as _io
+            from docx import Document
+            doc = Document(_io.BytesIO(content))
+            extracted = "\n".join(p.text for p in doc.paragraphs)
+        else:
+            extracted = content.decode("utf-8", errors="ignore")
+    except Exception as e:
+        extracted = content.decode("utf-8", errors="ignore")
+
+    if not extracted.strip():
+        return {"error": "Could not extract text from the uploaded file.", "status": "error"}
+
+    client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    rubric_text = "\n".join(f"- {r}" for r in rubric_list)
+    prompt = f"""You are an expert biotech educator reviewing a student's Industry Innovation Lab submission.
+
+Project ID: {project_id}
+Subject: {subject_id}
+
+Student's submitted document:
+{extracted[:6000]}
+
+Rubric criteria:
+{rubric_text}
+
+Provide structured feedback in this format:
+1. **Overall Assessment** (2-3 sentences on overall quality)
+2. **Rubric Feedback** (one short paragraph per criterion — what they did well and what to improve)
+3. **Top Strength** (one specific thing done exceptionally well)
+4. **Key Improvement** (the single most impactful thing to work on next)
+5. **Score** (out of 10, as a number only on its own line like: Score: 8/10)
+
+Be specific, encouraging, and grounded in real biotech practice. Reference their actual submission content."""
+
+    response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1000,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    feedback = response.content[0].text
+
+    conn = get_db()
+    row = conn.execute(
+        "SELECT steps_done FROM lab_progress WHERE student_id = ? AND project_id = ?",
+        (student_id, project_id)
+    ).fetchone()
+    now = datetime.utcnow().isoformat()
+    submission_note = f"[File: {file.filename}]\n\n{extracted[:2000]}"
+    if row:
+        conn.execute(
+            "UPDATE lab_progress SET submission = ?, ai_feedback = ?, status = ?, submitted_at = ? WHERE student_id = ? AND project_id = ?",
+            (submission_note, feedback, 'completed', now, student_id, project_id)
+        )
+    else:
+        conn.execute(
+            "INSERT INTO lab_progress (student_id, project_id, subject_id, steps_done, status, submission, ai_feedback, started_at, submitted_at) VALUES (?,?,?,?,?,?,?,?,?)",
+            (student_id, project_id, subject_id, '[]', 'completed', submission_note, feedback, now, now)
+        )
+    conn.commit()
+    conn.close()
+    return {"feedback": feedback, "status": "completed"}
+
+class LabAssistReq(BaseModel):
+    subject_id: str
+    tutor_name: str
+    tutor_role: str
+    project_title: str
+    project_scenario: str
+    project_problem: str
+    messages: list
+
+@app.post("/labs/{student_id}/assist")
+async def lab_assist(student_id: str, req: LabAssistReq):
+    import anthropic
+    client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    system = f"""You are {req.tutor_name}, {req.tutor_role}. A student is working on an Industry Innovation Lab project titled "{req.project_title}".
+
+The project scenario: {req.project_scenario}
+
+Their challenge: {req.project_problem}
+
+Your role is to be their personal guide through this project — like a senior colleague sitting next to them. You know exactly what they need to do at each step, which databases to use, what the output should look like, and what common mistakes to avoid.
+
+Be specific and practical. If they're stuck on a step, tell them exactly what to click, what to search for, what to look at. Don't be generic. Reference real tools, real data, real biology.
+
+Keep responses concise — 3-5 sentences max unless they ask for a detailed explanation. End with a question or prompt that moves them forward."""
+
+    messages = [{"role": m["role"], "content": m["content"]} for m in req.messages if m.get("role") in ("user", "assistant")]
+    response = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=600,
+        system=system,
+        messages=messages,
+    )
+    return {"response": response.content[0].text}
+
 # ── Study plan routes ─────────────────────────────────────────────────────────
 
 def _generate_study_plan(student_id: str, career_id: str, conn):
@@ -3116,6 +3552,10 @@ def get_study_plan(student_id: str):
     ).fetchall()
     conn.close()
     covered = {(r["subject_id"], r["concept_id"]) for r in covered_rows}
+    concept_name_map = {}
+    for sid, concepts in CURRICULUM.items():
+        for c in concepts:
+            concept_name_map[(sid, c["id"])] = c["name"]
     days = {}
     for r in rows:
         d = r["day_number"]
@@ -3124,6 +3564,7 @@ def get_study_plan(student_id: str):
         days[d]["concepts"].append({
             "subject_id": r["subject_id"],
             "concept_id": r["concept_id"],
+            "concept_name": concept_name_map.get((r["subject_id"], r["concept_id"]), r["concept_id"].replace("_", " ").title()),
             "covered": (r["subject_id"], r["concept_id"]) in covered,
         })
     plan = list(days.values())
@@ -3171,7 +3612,7 @@ def get_certificate(student_id: str, subject_id: str):
     return {
         "eligible":       True,
         "student_name":   student["name"],
-        "subject_name":   SUBJECTS[subject_id]["name"],
+        "subject_name":   SUBJECTS.get(subject_id, {}).get("name", subject_id),
         "credential_id":  credential_id,
         "completion_date": completed_at,
     }
@@ -3772,8 +4213,8 @@ def get_certificate(student_id: str, subject_id: str):
     return {
         "student_name": student["name"],
         "subject_id": subject_id,
-        "subject_name": SUBJECTS[subject_id]["name"],
-        "subject_expert": SUBJECTS[subject_id].get("tutor_name", ""),
+        "subject_name": SUBJECTS.get(subject_id, {}).get("name", subject_id),
+        "subject_expert": SUBJECTS.get(subject_id, {}).get("tutor_name", ""),
         "concepts_covered": covered_count,
         "total_concepts": total,
         "completion_date": completion_date[:10],
@@ -3918,10 +4359,19 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
     using_rag      = bool(rag_context)
     session_memory = get_session_memory(req.student_id, req.subject_id, conn)
 
+    notes_rows = conn.execute(
+        "SELECT concept_id, notes FROM concept_notes WHERE subject_id = ?",
+        (req.subject_id,)
+    ).fetchall()
+    concept_notes_map = {r["concept_id"]: r["notes"] for r in notes_rows if r["notes"].strip()}
+
     if req.quiz_mode:
         system = build_quiz_prompt(subject, student["name"], covered_ids, mastered_ids, career)
+    elif req.recall_warmup:
+        base_system = build_system_prompt(subject, student["name"], is_first_visit, covered_ids, mastered_ids, rag_context, career, session_memory, concept_notes_map)
+        system = base_system + RECALL_WARMUP_SUFFIX.format(student_name=student["name"])
     else:
-        system = build_system_prompt(subject, student["name"], is_first_visit, covered_ids, mastered_ids, rag_context, career, session_memory)
+        system = build_system_prompt(subject, student["name"], is_first_visit, covered_ids, mastered_ids, rag_context, career, session_memory, concept_notes_map)
 
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if api_key:
@@ -4274,6 +4724,93 @@ async def session_end(student_id: str, subject_id: str, background_tasks: Backgr
     background_tasks.add_task(_generate_session_summary, student_id, subject_id)
     return {"ok": True}
 
+
+@app.get("/reentry/{student_id}")
+def get_reentry(student_id: str):
+    conn = get_db()
+    now = datetime.utcnow()
+    today = now.date().isoformat()
+
+    profile = conn.execute(
+        "SELECT last_active_at, streak_count, streak_last_date, career_id FROM student_profile WHERE student_id = ?",
+        (student_id,)
+    ).fetchone()
+
+    # Days away
+    days_away = 0
+    if profile and profile["last_active_at"]:
+        try:
+            last = datetime.fromisoformat(profile["last_active_at"])
+            days_away = (now - last).days
+        except Exception:
+            pass
+
+    # Last session summary (most recent across all subjects)
+    last_sess = conn.execute(
+        "SELECT subject_id, summary, created_at FROM session_summaries WHERE student_id = ? ORDER BY id DESC LIMIT 1",
+        (student_id,)
+    ).fetchone()
+    last_session = None
+    if last_sess:
+        subj = SUBJECTS.get(last_sess["subject_id"])
+        last_session = {
+            "subject_id": last_sess["subject_id"],
+            "subject_name": subj["name"] if subj else last_sess["subject_id"],
+            "subject_color": subj["color"] if subj else "#00A896",
+            "summary": last_sess["summary"],
+            "created_at": last_sess["created_at"],
+        }
+
+    # Study plan: find most important next concept
+    covered_rows = conn.execute(
+        "SELECT subject_id, concept_id FROM concept_progress WHERE student_id = ?", (student_id,)
+    ).fetchall()
+    covered = {(r["subject_id"], r["concept_id"]) for r in covered_rows}
+
+    plan_rows = conn.execute(
+        "SELECT day_number, subject_id, concept_id, target_date FROM study_plan WHERE student_id = ? ORDER BY day_number",
+        (student_id,)
+    ).fetchall()
+
+    overdue = [r for r in plan_rows if r["target_date"] <= today and (r["subject_id"], r["concept_id"]) not in covered]
+    upcoming = [r for r in plan_rows if r["target_date"] > today and (r["subject_id"], r["concept_id"]) not in covered]
+
+    next_concept = None
+    source = overdue[0] if overdue else (upcoming[0] if upcoming else None)
+    if source:
+        subj = SUBJECTS.get(source["subject_id"])
+        next_concept = {
+            "concept_id": source["concept_id"],
+            "concept_name": source["concept_id"].replace("_", " ").title(),
+            "subject_id": source["subject_id"],
+            "subject_name": subj["name"] if subj else source["subject_id"],
+            "subject_color": subj["color"] if subj else "#00A896",
+            "target_date": source["target_date"],
+            "is_overdue": bool(overdue),
+        }
+
+    # Streak
+    streak_count = profile["streak_count"] if profile else 0
+    streak_last  = profile["streak_last_date"] if profile else None
+    streak_today = (streak_last == today) if streak_last else False
+    streak_broken = (days_away > 1 and streak_count > 0)
+    streak_at_risk = (days_away == 1 and streak_count > 0 and not streak_today)
+
+    career = CAREERS.get(profile["career_id"]) if profile and profile["career_id"] else None
+
+    conn.close()
+    return {
+        "days_away": days_away,
+        "last_session": last_session,
+        "next_concept": next_concept,
+        "overdue_count": len(overdue),
+        "streak_count": streak_count,
+        "streak_today": streak_today,
+        "streak_at_risk": streak_at_risk,
+        "streak_broken": streak_broken,
+        "career_title": career["title"] if career else None,
+    }
+
 def get_session_memory(student_id: str, subject_id: str, conn) -> str:
     rows = conn.execute(
         "SELECT summary FROM session_summaries WHERE student_id = ? AND subject_id = ? ORDER BY id DESC LIMIT 2",
@@ -4422,3 +4959,655 @@ def admin_reject_request(request_id: str, x_admin_key: str = Header(None)):
     conn.commit()
     conn.close()
     return {"ok": True}
+
+
+# ── Admin Metrics ──────────────────────────────────────────────────────────────
+
+@app.get("/admin/metrics")
+def admin_metrics(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    now = datetime.utcnow()
+    today_start     = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    week_start      = (now - timedelta(days=7)).isoformat()
+    month_start     = (now - timedelta(days=30)).isoformat()
+
+    dau = conn.execute(
+        "SELECT COUNT(DISTINCT student_id) FROM messages WHERE role='user' AND created_at >= ?", (today_start,)
+    ).fetchone()[0]
+    wau = conn.execute(
+        "SELECT COUNT(DISTINCT student_id) FROM messages WHERE role='user' AND created_at >= ?", (week_start,)
+    ).fetchone()[0]
+    mau = conn.execute(
+        "SELECT COUNT(DISTINCT student_id) FROM messages WHERE role='user' AND created_at >= ?", (month_start,)
+    ).fetchone()[0]
+    total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
+    new_today      = conn.execute("SELECT COUNT(*) FROM students WHERE created_at >= ?", (today_start,)).fetchone()[0]
+    new_this_week  = conn.execute("SELECT COUNT(*) FROM students WHERE created_at >= ?", (week_start,)).fetchone()[0]
+
+    # 30-day DAU sparkline
+    sparkline = []
+    for i in range(29, -1, -1):
+        day_start = (now - timedelta(days=i)).replace(hour=0, minute=0, second=0, microsecond=0)
+        day_end   = day_start + timedelta(days=1)
+        count = conn.execute(
+            "SELECT COUNT(DISTINCT student_id) FROM messages WHERE role='user' AND created_at >= ? AND created_at < ?",
+            (day_start.isoformat(), day_end.isoformat())
+        ).fetchone()[0]
+        signups = conn.execute(
+            "SELECT COUNT(*) FROM students WHERE created_at >= ? AND created_at < ?",
+            (day_start.isoformat(), day_end.isoformat())
+        ).fetchone()[0]
+        sparkline.append({"date": day_start.strftime("%b %d"), "dau": count, "signups": signups})
+
+    # D1 / D7 / D30 retention
+    def retention_rate(days_since_signup, activity_window_days):
+        cutoff = (now - timedelta(days=days_since_signup)).isoformat()
+        eligible = conn.execute(
+            "SELECT id FROM students WHERE created_at <= ?", (cutoff,)
+        ).fetchall()
+        if not eligible:
+            return 0
+        returned = 0
+        window_start = (now - timedelta(days=activity_window_days)).isoformat()
+        for row in eligible:
+            sid = row["id"]
+            has_activity = conn.execute(
+                "SELECT 1 FROM messages WHERE student_id=? AND role='user' AND created_at >= ? LIMIT 1",
+                (sid, window_start)
+            ).fetchone()
+            if has_activity:
+                returned += 1
+        return round((returned / len(eligible)) * 100)
+
+    d1_retention  = retention_rate(1, 1)
+    d7_retention  = retention_rate(7, 7)
+    d30_retention = retention_rate(30, 30)
+
+    # Avg session length (messages per active day per student)
+    session_rows = conn.execute("""
+        SELECT student_id, date(created_at) AS day, COUNT(*) AS msg_count
+        FROM messages WHERE role='user'
+        GROUP BY student_id, day
+    """).fetchall()
+    if session_rows:
+        avg_session_msgs = round(sum(r["msg_count"] for r in session_rows) / len(session_rows), 1)
+    else:
+        avg_session_msgs = 0
+
+    # Depth score: mastered / covered across all students
+    covered  = conn.execute("SELECT COUNT(*) FROM concept_progress").fetchone()[0]
+    mastered = conn.execute("SELECT COUNT(*) FROM concept_progress WHERE mastered_at IS NOT NULL").fetchone()[0]
+    depth_score = round((mastered / covered) * 100) if covered > 0 else 0
+
+    # Top re-engaged concepts (covered by most students)
+    top_concepts = conn.execute("""
+        SELECT cp.concept_id, cp.subject_id, COUNT(*) AS student_count,
+               SUM(CASE WHEN cp.mastered_at IS NOT NULL THEN 1 ELSE 0 END) AS mastered_count
+        FROM concept_progress cp
+        GROUP BY cp.concept_id, cp.subject_id
+        ORDER BY student_count DESC LIMIT 8
+    """).fetchall()
+
+    # Streak stats
+    streak_rows = conn.execute(
+        "SELECT streak_count FROM student_profile WHERE streak_count IS NOT NULL AND streak_count > 0"
+    ).fetchall()
+    streaks = [r["streak_count"] for r in streak_rows]
+    avg_streak = round(sum(streaks) / len(streaks), 1) if streaks else 0
+    max_streak = max(streaks) if streaks else 0
+
+    conn.close()
+    return {
+        "dau": dau, "wau": wau, "mau": mau,
+        "total_students": total_students,
+        "new_today": new_today,
+        "new_this_week": new_this_week,
+        "dau_mau_ratio": round((dau / mau) * 100) if mau > 0 else 0,
+        "sparkline": sparkline,
+        "retention": {"d1": d1_retention, "d7": d7_retention, "d30": d30_retention},
+        "avg_session_msgs": avg_session_msgs,
+        "depth_score": depth_score,
+        "top_concepts": [dict(r) for r in top_concepts],
+        "avg_streak": avg_streak,
+        "max_streak": max_streak,
+        "students_with_streak": len(streaks),
+    }
+
+
+@app.get("/admin/peak-hours")
+def admin_peak_hours(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT
+            CAST(strftime('%H', created_at) AS INTEGER) AS hour,
+            CAST(strftime('%w', created_at) AS INTEGER) AS dow,
+            COUNT(*) AS msg_count
+        FROM messages WHERE role='user'
+        GROUP BY hour, dow
+    """).fetchall()
+    conn.close()
+    grid = {(r["dow"], r["hour"]): r["msg_count"] for r in rows}
+    result = []
+    days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]
+    for dow in range(7):
+        for hour in range(24):
+            result.append({
+                "day": days[dow], "dow": dow, "hour": hour,
+                "count": grid.get((dow, hour), 0)
+            })
+    return result
+
+
+@app.get("/admin/health")
+def admin_health(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    db_size_mb = round(os.path.getsize(DB_PATH) / (1024 * 1024), 2) if os.path.exists(DB_PATH) else 0
+    total_messages = conn.execute("SELECT COUNT(*) FROM messages").fetchone()[0]
+    total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
+    conn.close()
+    uptime_seconds = int(time.time() - _SERVER_START_TIME)
+    hours, remainder = divmod(uptime_seconds, 3600)
+    minutes, _ = divmod(remainder, 60)
+    return {
+        "status": "ok",
+        "uptime": f"{hours}h {minutes}m",
+        "db_size_mb": db_size_mb,
+        "total_messages": total_messages,
+        "total_students": total_students,
+    }
+
+
+# ── Chat Logs ──────────────────────────────────────────────────────────────────
+
+@app.get("/admin/chat-logs")
+def admin_chat_logs(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT s.id AS student_id, s.name, s.email,
+               m.subject_id,
+               COUNT(*) AS message_count,
+               MAX(m.created_at) AS last_message_at
+        FROM messages m
+        JOIN students s ON s.id = m.student_id
+        WHERE m.role = 'user'
+        GROUP BY s.id, m.subject_id
+        ORDER BY last_message_at DESC
+    """).fetchall()
+    conn.close()
+    result = []
+    for r in rows:
+        d = dict(r)
+        subj = SUBJECTS.get(d["subject_id"])
+        d["subject_name"] = subj["name"] if subj else d["subject_id"]
+        d["subject_color"] = subj["color"] if subj else "#ccc"
+        result.append(d)
+    return result
+
+
+@app.get("/admin/chat-logs/{student_id}/{subject_id}")
+def admin_chat_log_thread(student_id: str, subject_id: str, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT role, content, created_at FROM messages WHERE student_id=? AND subject_id=? ORDER BY created_at ASC",
+        (student_id, subject_id)
+    ).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+
+# ── Study Plans (admin) ────────────────────────────────────────────────────────
+
+@app.get("/admin/study-plans")
+def admin_study_plans(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    students = conn.execute("""
+        SELECT s.id, s.name, s.email, sp.career_id, sp.avatar_color
+        FROM students s
+        LEFT JOIN student_profile sp ON sp.student_id = s.id
+        WHERE EXISTS (SELECT 1 FROM study_plan WHERE student_id = s.id)
+        ORDER BY s.name
+    """).fetchall()
+    today = datetime.utcnow().date().isoformat()
+    result = []
+    for st in students:
+        sid = st["id"]
+        plan_rows = conn.execute(
+            "SELECT day_number, subject_id, concept_id, target_date FROM study_plan WHERE student_id=? ORDER BY day_number",
+            (sid,)
+        ).fetchall()
+        covered_rows = conn.execute(
+            "SELECT subject_id, concept_id FROM concept_progress WHERE student_id=?", (sid,)
+        ).fetchall()
+        covered = {(r["subject_id"], r["concept_id"]) for r in covered_rows}
+        days_map = {}
+        for r in plan_rows:
+            d = r["day_number"]
+            if d not in days_map:
+                days_map[d] = {"day": d, "target_date": r["target_date"], "concepts": []}
+            days_map[d]["concepts"].append({
+                "subject_id": r["subject_id"],
+                "concept_id": r["concept_id"],
+                "covered": (r["subject_id"], r["concept_id"]) in covered,
+            })
+        plan = list(days_map.values())
+        total = sum(len(d["concepts"]) for d in plan)
+        done = sum(1 for d in plan for c in d["concepts"] if c["covered"])
+        overdue = sum(1 for d in plan for c in d["concepts"]
+                      if d["target_date"] <= today and not c["covered"])
+        career = CAREERS.get(st["career_id"]) if st["career_id"] else None
+        result.append({
+            "student_id": sid,
+            "name": st["name"],
+            "email": st["email"],
+            "avatar_color": st["avatar_color"],
+            "career_title": career["title"] if career else None,
+            "total_days": len(plan),
+            "total_concepts": total,
+            "covered_concepts": done,
+            "overdue_concepts": overdue,
+            "pct": round((done / total) * 100) if total > 0 else 0,
+            "plan": plan,
+        })
+    conn.close()
+    return result
+
+
+# ── CSV Export ─────────────────────────────────────────────────────────────────
+
+from fastapi.responses import Response as FastAPIResponse
+
+@app.get("/admin/export/students")
+def admin_export_students(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT s.name, s.email, s.created_at,
+               sp.career_id, sp.college, sp.year_of_study, sp.city, sp.state,
+               sp.streak_count, sp.last_active_at,
+               (SELECT COUNT(*) FROM concept_progress cp WHERE cp.student_id = s.id) AS concepts_covered,
+               (SELECT COUNT(*) FROM concept_progress cp WHERE cp.student_id = s.id AND cp.mastered_at IS NOT NULL) AS concepts_mastered,
+               (SELECT COUNT(*) FROM messages m WHERE m.student_id = s.id AND m.role='user') AS messages_sent,
+               (SELECT COUNT(DISTINCT subject_id) FROM concept_progress cp WHERE cp.student_id = s.id) AS subjects_touched
+        FROM students s
+        LEFT JOIN student_profile sp ON sp.student_id = s.id
+        ORDER BY s.created_at DESC
+    """).fetchall()
+    conn.close()
+    lines = ["Name,Email,Joined,Career,College,Year,City,State,Streak,Last Active,Concepts Covered,Concepts Mastered,Messages Sent,Subjects Touched"]
+    for r in rows:
+        career = CAREERS.get(r["career_id"])
+        career_title = career["title"] if career else ""
+        def esc(v): return f'"{str(v or "").replace(chr(34), chr(39))}"'
+        lines.append(",".join([
+            esc(r["name"]), esc(r["email"]), esc(r["created_at"][:10]),
+            esc(career_title), esc(r["college"]), esc(r["year_of_study"]),
+            esc(r["city"]), esc(r["state"]),
+            str(r["streak_count"] or 0), esc(r["last_active_at"] or ""),
+            str(r["concepts_covered"]), str(r["concepts_mastered"]),
+            str(r["messages_sent"]), str(r["subjects_touched"]),
+        ]))
+    csv_content = "\n".join(lines)
+    return FastAPIResponse(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=bversity_students.csv"}
+    )
+
+
+@app.get("/admin/export/progress")
+def admin_export_progress(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT s.name, s.email, cp.subject_id, cp.concept_id,
+               cp.first_covered_at, cp.mastered_at
+        FROM concept_progress cp
+        JOIN students s ON s.id = cp.student_id
+        ORDER BY s.name, cp.subject_id, cp.first_covered_at
+    """).fetchall()
+    conn.close()
+    lines = ["Student Name,Email,Subject,Concept,First Covered,Mastered At"]
+    for r in rows:
+        subj = SUBJECTS.get(r["subject_id"])
+        subject_name = subj["name"] if subj else r["subject_id"]
+        def esc(v): return f'"{str(v or "").replace(chr(34), chr(39))}"'
+        lines.append(",".join([
+            esc(r["name"]), esc(r["email"]),
+            esc(subject_name), esc(r["concept_id"].replace("_", " ")),
+            esc(r["first_covered_at"][:10] if r["first_covered_at"] else ""),
+            esc(r["mastered_at"][:10] if r["mastered_at"] else ""),
+        ]))
+    csv_content = "\n".join(lines)
+    return FastAPIResponse(
+        content=csv_content,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=bversity_progress.csv"}
+    )
+
+
+# ── Announcements ──────────────────────────────────────────────────────────────
+
+class AnnounceRequest(BaseModel):
+    subject: str
+    message: str
+    target: str = "all"  # "all" | "active_week" | career_id
+
+@app.post("/admin/announce")
+async def admin_announce(req: AnnounceRequest, background_tasks: BackgroundTasks, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    now = datetime.utcnow()
+    if req.target == "all":
+        students = conn.execute("SELECT s.id, s.name, s.email FROM students s").fetchall()
+    elif req.target == "active_week":
+        week_ago = (now - timedelta(days=7)).isoformat()
+        students = conn.execute("""
+            SELECT DISTINCT s.id, s.name, s.email FROM students s
+            JOIN messages m ON m.student_id = s.id
+            WHERE m.created_at >= ?
+        """, (week_ago,)).fetchall()
+    else:
+        students = conn.execute("""
+            SELECT s.id, s.name, s.email FROM students s
+            JOIN student_profile sp ON sp.student_id = s.id
+            WHERE sp.career_id = ?
+        """, (req.target,)).fetchall()
+    conn.close()
+
+    async def _send_all():
+        for st in students:
+            first = st["name"].split()[0]
+            body = (
+                _heading(req.subject) +
+                _para(req.message.replace("\n", "<br>")) +
+                _divider() +
+                _small(f"Sent to you by the Bversity team · <a href='https://university.bversity.io' style='color:#00A896'>Open Bversity</a>")
+            )
+            await _send_email(st["email"], req.subject, _email_wrap(body))
+
+    background_tasks.add_task(_send_all)
+    return {"queued": len(students)}
+
+@app.get("/admin/announce/preview")
+def admin_announce_preview(target: str = "all", x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    now = datetime.utcnow()
+    if target == "all":
+        count = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
+        names = [r["name"] for r in conn.execute("SELECT name FROM students LIMIT 5").fetchall()]
+    elif target == "active_week":
+        week_ago = (now - timedelta(days=7)).isoformat()
+        count = conn.execute("""
+            SELECT COUNT(DISTINCT student_id) FROM messages WHERE created_at >= ?
+        """, (week_ago,)).fetchone()[0]
+        names = [r["name"] for r in conn.execute("""
+            SELECT DISTINCT s.name FROM students s
+            JOIN messages m ON m.student_id = s.id
+            WHERE m.created_at >= ? LIMIT 5
+        """, (week_ago,)).fetchall()]
+    else:
+        count = conn.execute("SELECT COUNT(*) FROM student_profile WHERE career_id=?", (target,)).fetchone()[0]
+        names = [r["name"] for r in conn.execute("""
+            SELECT s.name FROM students s
+            JOIN student_profile sp ON sp.student_id = s.id
+            WHERE sp.career_id = ? LIMIT 5
+        """, (target,)).fetchall()]
+    conn.close()
+    return {"count": count, "sample_names": names}
+
+
+class ConceptFeedbackReq(BaseModel):
+    student_id: str
+    subject_id: str
+    concept_title: str
+    value: str  # 'up' or 'down'
+
+@app.post("/api/concept-feedback")
+def post_concept_feedback(req: ConceptFeedbackReq):
+    if req.value not in ("up", "down"):
+        raise HTTPException(status_code=400, detail="value must be 'up' or 'down'")
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO concept_feedback (student_id, subject_id, concept_title, value, created_at) VALUES (?, ?, ?, ?, ?)",
+        (req.student_id, req.subject_id, req.concept_title, req.value, datetime.utcnow().isoformat()),
+    )
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+
+class MessageFeedbackReq(BaseModel):
+    student_id: str
+    subject_id: str
+    message_idx: int
+    value: str  # 'up' or 'down'
+
+@app.post("/api/message-feedback")
+def post_message_feedback(req: MessageFeedbackReq):
+    if req.value not in ("up", "down"):
+        raise HTTPException(status_code=400, detail="value must be 'up' or 'down'")
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO message_feedback (student_id, subject_id, message_idx, value, created_at) VALUES (?, ?, ?, ?, ?)",
+        (req.student_id, req.subject_id, req.message_idx, req.value, datetime.utcnow().isoformat()),
+    )
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+
+@app.get("/api/admin/concept-notes/{subject_id}")
+def get_concept_notes(subject_id: str, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT concept_id, notes FROM concept_notes WHERE subject_id = ?", (subject_id,)
+    ).fetchall()
+    conn.close()
+    return {r["concept_id"]: r["notes"] for r in rows}
+
+
+class ConceptNotesReq(BaseModel):
+    notes: str
+
+@app.put("/api/admin/concept-notes/{subject_id}/{concept_id}")
+def put_concept_notes(subject_id: str, concept_id: str, req: ConceptNotesReq, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    conn.execute(
+        """INSERT INTO concept_notes (subject_id, concept_id, notes, updated_at)
+           VALUES (?, ?, ?, ?)
+           ON CONFLICT(subject_id, concept_id) DO UPDATE SET notes=excluded.notes, updated_at=excluded.updated_at""",
+        (subject_id, concept_id, req.notes, datetime.utcnow().isoformat()),
+    )
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+
+@app.get("/api/search-data/{student_id}")
+def get_search_data(student_id: str):
+    """Return all covered concepts (with names) + notes for client-side search."""
+    conn = get_db()
+    progress_rows = conn.execute(
+        "SELECT subject_id, concept_id, mastered_at FROM concept_progress WHERE student_id = ?",
+        (student_id,)
+    ).fetchall()
+    note_rows = conn.execute(
+        "SELECT id, subject_id, content, created_at FROM notes WHERE student_id = ? ORDER BY created_at DESC",
+        (student_id,)
+    ).fetchall()
+    conn.close()
+
+    # Build concept lookup for names/descs
+    concept_lookup = {}
+    for subj_id, concepts in CURRICULUM.items():
+        for c in concepts:
+            concept_lookup[(subj_id, c["id"])] = {"name": c["name"], "desc": c.get("desc", "")}
+
+    covered = []
+    for r in progress_rows:
+        meta = concept_lookup.get((r["subject_id"], r["concept_id"]), {})
+        subj = SUBJECTS.get(r["subject_id"], {})
+        covered.append({
+            "subject_id": r["subject_id"],
+            "subject_name": subj.get("name", r["subject_id"]),
+            "subject_color": subj.get("color", "#00A896"),
+            "concept_id": r["concept_id"],
+            "concept_name": meta.get("name", r["concept_id"].replace("_", " ").title()),
+            "concept_desc": meta.get("desc", ""),
+            "mastered": r["mastered_at"] is not None,
+        })
+
+    notes = [
+        {
+            "id": r["id"],
+            "subject_id": r["subject_id"],
+            "subject_name": SUBJECTS.get(r["subject_id"], {}).get("name", "") if r["subject_id"] else "",
+            "content": r["content"],
+            "created_at": r["created_at"],
+        }
+        for r in note_rows
+    ]
+    return {"covered": covered, "notes": notes}
+
+
+@app.get("/api/recall-check/{student_id}/{subject_id}")
+def recall_check(student_id: str, subject_id: str):
+    """Return whether a recall warmup is needed for this session."""
+    conn = get_db()
+    today = datetime.utcnow().date().isoformat()
+
+    total_msgs = conn.execute(
+        "SELECT COUNT(*) FROM messages WHERE student_id = ? AND subject_id = ?",
+        (student_id, subject_id)
+    ).fetchone()[0]
+
+    msgs_today = conn.execute(
+        "SELECT COUNT(*) FROM messages WHERE student_id = ? AND subject_id = ? AND date(created_at) = ?",
+        (student_id, subject_id, today)
+    ).fetchone()[0]
+
+    conn.close()
+    # Warmup needed: has prior history but nothing sent today
+    return {"needed": total_msgs > 0 and msgs_today == 0}
+
+
+@app.get("/api/career-pace/{student_id}")
+def get_career_pace(student_id: str):
+    """Return weekly mastery pace and per-subject progress for career narrative."""
+    conn = get_db()
+    now = datetime.utcnow()
+    two_weeks_ago = (now - timedelta(days=14)).isoformat()
+
+    # Concepts mastered in the last 14 days
+    recent_mastered = conn.execute(
+        """SELECT COUNT(*) as cnt FROM concept_progress
+           WHERE student_id = ? AND mastered_at IS NOT NULL AND mastered_at >= ?""",
+        (student_id, two_weeks_ago)
+    ).fetchone()["cnt"]
+    # Weekly pace (14-day window → 2 weeks)
+    weekly_pace = round(recent_mastered / 2, 1)
+
+    # All mastered concepts per subject
+    rows = conn.execute(
+        """SELECT subject_id,
+                  COUNT(*) as covered,
+                  SUM(CASE WHEN mastered_at IS NOT NULL THEN 1 ELSE 0 END) as mastered
+           FROM concept_progress WHERE student_id = ? GROUP BY subject_id""",
+        (student_id,)
+    ).fetchall()
+    per_subject = {r["subject_id"]: {"covered": r["covered"], "mastered": r["mastered"]} for r in rows}
+
+    # Session count last 7 days (active days)
+    week_ago = (now - timedelta(days=7)).isoformat()
+    active_days = conn.execute(
+        """SELECT COUNT(DISTINCT date(created_at)) FROM messages
+           WHERE student_id = ? AND role = 'user' AND created_at >= ?""",
+        (student_id, week_ago)
+    ).fetchone()[0]
+
+    conn.close()
+    return {
+        "weekly_pace": weekly_pace,
+        "per_subject": per_subject,
+        "active_days_last_week": active_days,
+    }
+
+
+# ── Talk to Founder ────────────────────────────────────────────────────────
+
+class FounderContactReq(BaseModel):
+    student_name:  str
+    student_email: str
+    reason:        str
+    message:       str
+
+@app.post("/contact-founder")
+async def contact_founder(req: FounderContactReq):
+    founder_email = "sudharsan@bversity.io"
+    html = f"""
+    <div style="font-family:Inter,sans-serif;max-width:600px;margin:0 auto;padding:24px;background:#f9f9f9">
+      <div style="background:#fff;border-radius:8px;padding:32px;border:1px solid #e8e4dc">
+        <p style="font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#9a9490;margin:0 0 4px">New message from a student</p>
+        <h2 style="font-size:22px;font-weight:700;color:#1a1a1a;margin:0 0 24px">{req.student_name}</h2>
+
+        <div style="background:#f8f6f1;border-left:3px solid #16c1ad;padding:12px 16px;margin-bottom:20px">
+          <p style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#9a9490;margin:0 0 4px">Reason</p>
+          <p style="font-size:15px;color:#1a1a1a;margin:0">{req.reason}</p>
+        </div>
+
+        <div style="margin-bottom:24px">
+          <p style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#9a9490;margin:0 0 8px">Message</p>
+          <p style="font-size:15px;color:#1a1a1a;line-height:1.6;margin:0;white-space:pre-wrap">{req.message}</p>
+        </div>
+
+        <div style="border-top:1px solid #e8e4dc;padding-top:16px">
+          <p style="font-size:13px;color:#9a9490;margin:0">Hit reply to respond directly to {req.student_name} at <strong>{req.student_email}</strong></p>
+        </div>
+      </div>
+    </div>
+    """
+    await _send_email(
+        to_email=founder_email,
+        subject=f"[Bversity] {req.student_name} — {req.reason}",
+        html=html,
+        reply_to=req.student_email,
+    )
+    return {"status": "sent"}
+
+
+# ── Image Config ───────────────────────────────────────────────────────────────
+
+@app.get("/admin/images")
+def get_images(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    return load_image_config()
+
+@app.get("/api/images")
+def get_images_public():
+    return load_image_config()
+
+class ImageUpdateReq(BaseModel):
+    section: str   # "careers", "clusters", "degrees"
+    key:     str
+    url:     str
+
+@app.post("/admin/images")
+def update_image(req: ImageUpdateReq, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    config = load_image_config()
+    if req.section not in config:
+        raise HTTPException(status_code=400, detail="Invalid section")
+    if req.key not in config[req.section]:
+        raise HTTPException(status_code=400, detail="Invalid key")
+    config[req.section][req.key]["url"] = req.url
+    save_image_config(config)
+    return {"status": "ok"}

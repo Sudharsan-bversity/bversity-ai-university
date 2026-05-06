@@ -269,7 +269,7 @@ const SUBJECT_IMAGES = {
   longevity_science:   'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=800&h=320&fit=crop&q=80',
 };
 
-const TUTOR_PHOTOS = {
+const TUTOR_AVATARS = {
   'Dr. Priya Nair':     'https://i.pravatar.cc/150?img=47',
   'Dr. Marcus Webb':    'https://i.pravatar.cc/150?img=11',
   'Dr. Kavya Reddy':    'https://i.pravatar.cc/150?img=45',
@@ -285,27 +285,27 @@ const TUTOR_PHOTOS = {
 
 const SUBJECTS = [
   { id: 'bioinformatics',     name: 'Bioinformatics',                             tutor: 'Dr. Priya Nair',    role: 'Senior Bioinformatics Scientist',                  org: 'Broad Institute of MIT and Harvard', color: '#00A896', description: 'Sequence analysis, BLAST, phylogenetics, NGS pipelines, protein structure, and computational biology tools',
-    intro: "I build computational pipelines to make sense of genomic data at scale — everything from cancer mutation signatures to population-level association studies. I've watched bioinformatics go from a niche specialty to the backbone of modern medicine, and I want to give you that foundation properly. By the end of this, you'll be fluent in the tools and concepts that the industry actually uses." },
+    intro: "I build computational pipelines to make sense of genomic data at scale, covering everything from cancer mutation signatures to population-level association studies. I've watched bioinformatics go from a niche specialty to the backbone of modern medicine, and I want to give you that foundation properly. By the end of this, you'll be fluent in the tools and concepts that the industry actually uses." },
   { id: 'genomics',           name: 'Genomics',                                    tutor: 'Dr. Marcus Webb',   role: 'Director of Genomics Research',                   org: 'Illumina',                           color: '#7B2D8B', description: 'Genome structure, sequencing technologies, variant analysis, GWAS, single-cell, and precision medicine',
-    intro: "I work at the company that sequences more of the world's DNA than anyone else. I've watched the cost of sequencing a genome drop from $3 billion to under $200 in my career — and what that's done to medicine is still unfolding. This subject will give you the conceptual and technical grounding to understand what's coming next." },
+    intro: "I work at the company that sequences more of the world's DNA than anyone else. I've watched the cost of sequencing a genome drop from $3 billion to under $200 in my career, and what that's done to medicine is still unfolding. This subject will give you the conceptual and technical grounding to understand what's coming next." },
   { id: 'drug_discovery',     name: 'Drug Discovery & Development',                tutor: 'Dr. Kavya Reddy',   role: 'Principal Scientist, Drug Discovery',             org: 'Genentech',                          color: '#E05C00', description: 'Target identification, HTS, medicinal chemistry, ADMET, preclinical development, and the full pipeline',
-    intro: "I've taken small molecule programs from target identification all the way through Phase I trials. I've seen molecules fail at every stage of the pipeline — and a few make it. I'll teach you why the process looks the way it does, what catastrophe you'd invite by skipping each stage, and how to think like a drug hunter." },
+    intro: "I've taken small molecule programs from target identification all the way through Phase I trials. I've seen molecules fail at every stage of the pipeline. A few make it. I'll teach you why the process looks the way it does, what catastrophe you'd invite by skipping each stage, and how to think like a drug hunter." },
   { id: 'clinical_trials',    name: 'Clinical Trials & Regulatory Affairs',        tutor: 'Dr. Elena Vasquez', role: 'Head of Regulatory Affairs',                      org: 'Novartis',                           color: '#0066CC', description: 'Trial phases, FDA/EMA regulations, ICH guidelines, adaptive designs, and NDA/MAA submissions',
-    intro: "I've submitted NDAs to both the FDA and the EMA, and I've been in the room when regulators push back. Most scientists understand the biology — very few understand what it takes to convince a regulator that your data is sufficient. That gap is exactly what this subject closes." },
+    intro: "I've submitted NDAs to both the FDA and the EMA, and I've been in the room when regulators push back. Most scientists understand the biology. Very few understand what it takes to convince a regulator that your data is sufficient. That gap is exactly what this subject closes." },
   { id: 'genai_ml',           name: 'Gen AI & Machine Learning for Life Sciences', tutor: 'Dr. Aisha Okonkwo', role: 'Director of Machine Learning',                    org: 'Recursion Pharmaceuticals',          color: '#6B3FA0', description: 'ML foundations, deep learning, protein language models, generative molecules, and AI-driven drug discovery',
-    intro: "I use AI to run millions of cellular experiments and find patterns no human could see. I've been at the intersection of ML and biology for a decade — before most people thought that was a real job. I'll be honest with you about where AI in life sciences is genuinely useful and where it's overhyped." },
+    intro: "I use AI to run millions of cellular experiments and find patterns no human could see. I've been at the intersection of ML and biology for a decade, before most people thought that was a real job. I'll be honest with you about where AI in life sciences is genuinely useful and where it's overhyped." },
   { id: 'biotech_business',   name: 'Biotech Business & Management',               tutor: 'Rohan Mehta',       role: 'VP of Corporate Strategy & Business Development', org: 'AstraZeneca',                        color: '#B5451B', description: 'Business models, financing, valuation, BD&L, market access, IP strategy, and building biotech companies',
-    intro: "Before AstraZeneca, I spent six years at McKinsey advising pharma and biotech companies on strategy, deals, and market access. I deliberately don't have a PhD — most of what this subject covers is learned in boardrooms and on term sheets, not in classrooms. I'll share what I've actually seen work." },
+    intro: "Before AstraZeneca, I spent six years at McKinsey advising pharma and biotech companies on strategy, deals, and market access. I deliberately don't have a PhD. Most of what this subject covers is learned in boardrooms and on term sheets, not in classrooms. I'll share what I've actually seen work." },
   { id: 'cell_gene_therapy',  name: 'Cell & Gene Therapy',                         tutor: 'Dr. James Okonkwo', role: 'Director of Vector Development',                  org: 'bluebird bio',                       color: '#0891B2', description: 'Viral vectors, CRISPR genome editing, CAR-T, in vivo and ex vivo gene therapy, CGT manufacturing and regulatory pathways',
-    intro: "I've been building viral vectors since before CRISPR existed, and I worked on early AAV programs that eventually became approved therapies. I've watched gene therapy go from an experimental curiosity to transforming patients' lives — and I've seen the failures that built the safety framework we have today. You'll need to understand both." },
+    intro: "I've been building viral vectors since before CRISPR existed. I worked on early AAV programs that eventually became approved therapies. I've watched gene therapy go from an experimental curiosity to transforming patients' lives, and I've seen the failures that built the safety framework we have today. You'll need to understand both." },
   { id: 'protein_engineering',name: 'Protein Engineering & Design',                tutor: 'Dr. Sophie Laurent', role: 'Lead, Computational Protein Design',              org: 'Genentech',                          color: '#BE185D', description: 'Directed evolution, AlphaFold, RFdiffusion, antibody engineering, de novo design, and therapeutic protein formats',
-    intro: "I work at the intersection of structural biology and deep learning — designing proteins computationally that actually fold and function. AlphaFold changed everything; things that took years now take weeks. But you need strong physical intuition before the computational tools make sense, and that's where we'll start." },
+    intro: "I work at the intersection of structural biology and deep learning, designing proteins computationally that actually fold and function. AlphaFold changed everything; things that took years now take weeks. But you need strong physical intuition before the computational tools make sense, and that's where we'll start." },
   { id: 'rna_therapeutics',   name: 'RNA Therapeutics',                            tutor: 'Dr. Amira Hassan',  role: 'VP RNA Platform Sciences',                        org: 'Moderna',                            color: '#B91C1C', description: 'mRNA design, siRNA, ASOs, LNP delivery, RNA vaccines, chemical modifications, and the RNA drug pipeline',
-    intro: "I was at Moderna before the COVID vaccine, and I watched mRNA go from a scientific curiosity to the fastest vaccine ever developed. RNA therapeutics is the most exciting drug platform in medicine right now — the reason is that every protein the human genome encodes is now potentially reachable. I'll start there and work forward." },
+    intro: "I was at Moderna before the COVID vaccine, and I watched mRNA go from a scientific curiosity to the fastest vaccine ever developed. RNA therapeutics is the most exciting drug platform in medicine right now. Every protein the human genome encodes is now potentially reachable. every protein the human genome encodes is now potentially reachable. I'll start there and work forward." },
   { id: 'biomanufacturing',   name: 'Biomanufacturing & Bioprocessing',            tutor: 'Dr. Carlos Reyes',  role: 'VP Bioprocess Development',                       org: 'Lonza',                              color: '#047857', description: 'Upstream and downstream bioprocessing, GMP, cell line development, scale-up, cell therapy manufacturing, and biosimilars',
-    intro: "I help companies scale their molecules from lab bench to commercial production — and I've seen what happens when that fails. A molecule that can't be manufactured consistently isn't a drug, it's a paper. Manufacturing is where science meets reality, and I want you to respect it as a scientific discipline, not a downstream afterthought." },
+    intro: "I help companies scale their molecules from lab bench to commercial production, and I've seen what happens when that fails. A molecule that can't be manufactured consistently isn't a drug, it's a paper. Manufacturing is where science meets reality, and I want you to respect it as a scientific discipline, not a downstream afterthought." },
   { id: 'longevity_science',  name: 'Longevity Science',                           tutor: 'Dr. Yuki Tanaka',   role: 'Senior Research Scientist',                       org: 'Calico Life Sciences',               color: '#4338CA', description: 'Hallmarks of aging, cellular senescence, epigenetic clocks, longevity pathways, proteostasis, and the geroscience clinical pipeline',
-    intro: "I work at the Alphabet-funded company trying to understand why we age. Longevity science has a credibility problem — too much hype, too many supplements, too many claims not backed by human data. I'll be rigorous with you about what the data actually shows, what's mechanism and what's speculation, and where the genuinely exciting frontiers are." },
+    intro: "I work at the Alphabet-funded company trying to understand why we age. Longevity science has a credibility problem: too much hype, too many supplements, too many claims not backed by human data. I'll be rigorous with you about what the data actually shows, what's mechanism and what's speculation, and where the genuinely exciting frontiers are." },
 ];
 
 const SUBJECT_HOURS = {
@@ -327,6 +327,47 @@ const CLUSTER_COLORS = {
   'Business & Commercial': '#0066CC',
   'Emerging & Hybrid':    '#7B2D8B',
 };
+
+const CLUSTER_IMAGES = {
+  'Science & Technical':  'https://images.unsplash.com/photo-1579165466741-7f35e4755660?w=1200&q=80',
+  'Business & Commercial': 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&q=80',
+  'Emerging & Hybrid':    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&q=80',
+};
+
+const CAREER_IMAGES = {
+  bioinformatics_scientist:       'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?w=900&q=80',
+  genomics_data_analyst:          'https://images.unsplash.com/photo-1614935151651-0bea6508db6b?w=900&q=80',
+  drug_discovery_scientist:       'https://images.unsplash.com/photo-1576086213369-97a306d36557?w=900&q=80',
+  clinical_research_associate:    'https://images.unsplash.com/photo-1581093806997-124204d9fa9d?w=900&q=80',
+  regulatory_affairs_associate:   'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=900&q=80',
+  computational_biologist:        'https://images.unsplash.com/photo-1518770660439-4636190af475?w=900&q=80',
+  pharmacovigilance_scientist:    'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=900&q=80',
+  medical_science_liaison:        'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=900&q=80',
+  biomarker_scientist:            'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=900&q=80',
+  clinical_data_manager:          'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&q=80',
+  biotech_bd_associate:           'https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=900&q=80',
+  market_access_analyst:          'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=900&q=80',
+  medical_affairs_associate:      'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=900&q=80',
+  genomics_commercial_specialist: 'https://images.unsplash.com/photo-1568219557405-376e23e4f7cf?w=900&q=80',
+  biotech_product_manager:        'https://images.unsplash.com/photo-1542744094-3a31f272c490?w=900&q=80',
+  life_sciences_consultant:       'https://images.unsplash.com/photo-1556761175-4b46a572b786?w=900&q=80',
+  biotech_venture_analyst:        'https://images.unsplash.com/photo-1559136555-9303baea8ebd?w=900&q=80',
+  licensing_partnerships:         'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=900&q=80',
+  ai_drug_discovery:              'https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=900&q=80',
+  precision_medicine_specialist:  'https://images.unsplash.com/photo-1576086476234-1103be98f096?w=900&q=80',
+  biotech_founder:                'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=900&q=80',
+};
+
+// Image config context — populated from /api/images, falls back to hardcoded maps above
+const ImgCtx = React.createContext(null);
+function useImgs() {
+  const ctx = React.useContext(ImgCtx);
+  return {
+    career:  (id)     => ctx?.careers?.[id]?.url     || CAREER_IMAGES[id]  || CLUSTER_IMAGES['Science & Technical'],
+    cluster: (name)   => ctx?.clusters?.[name]?.url  || CLUSTER_IMAGES[name] || CLUSTER_IMAGES['Science & Technical'],
+    degree:  (id)     => ctx?.degrees?.[id]?.url     || null,
+  };
+}
 
 // ── Utils ──────────────────────────────────────────────────────────────────
 
@@ -404,47 +445,92 @@ function formatInline(text) {
 
 function formatMessage(text) { return formatInline(text); }
 
-function ConceptCard({ data, color }) {
+function ConceptCard({ data, color, studentId, subjectId, savedId: initialSavedId }) {
   const c = color || '#16c1ad';
+  const [collapsed, setCollapsed] = useState(false);
+  const [savedId, setSavedId]     = useState(initialSavedId || null);
+  const [saving, setSaving]       = useState(false);
+
+  async function toggleSave() {
+    if (!studentId || saving) return;
+    setSaving(true);
+    try {
+      if (savedId) {
+        await fetch(`/api/saved-concepts/${studentId}/${savedId}`, { method: 'DELETE' });
+        setSavedId(null);
+      } else {
+        const res = await fetch(`/api/saved-concepts/${studentId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subject_id: subjectId || '', title: data.title, card_data: data }),
+        });
+        const json = await res.json();
+        setSavedId(json.id);
+      }
+    } catch {}
+    setSaving(false);
+  }
+
   return (
-    <div className="concept-card" style={{ '--cc-color': c }}>
-      <div className="concept-card-header">
+    <div className={`concept-card${collapsed ? ' concept-card--collapsed' : ''}`} style={{ '--cc-color': c }}>
+      <div className="concept-card-header" onClick={() => setCollapsed(v => !v)} style={{ cursor: 'pointer' }}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
         </svg>
         <span className="concept-card-label-top" style={{ color: c }}>Concept</span>
         <span className="concept-card-title">{data.title}</span>
-      </div>
-      <div className="concept-card-body">
-        <div className="concept-card-row">
-          <span className="concept-card-row-label">What it is</span>
-          <span className="concept-card-row-text">{data.what}</span>
+        <div className="concept-card-header-actions" onClick={e => e.stopPropagation()}>
+          <button
+            className={`cc-save-btn${savedId ? ' saved' : ''}`}
+            onClick={toggleSave}
+            disabled={saving}
+            title={savedId ? 'Remove from library' : 'Save to library'}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill={savedId ? c : 'none'} stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+            </svg>
+          </button>
+          <button className="cc-collapse-btn" onClick={() => setCollapsed(v => !v)} title={collapsed ? 'Expand' : 'Collapse'}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              {collapsed
+                ? <><polyline points="6 9 12 15 18 9"/></>
+                : <><polyline points="18 15 12 9 6 15"/></>}
+            </svg>
+          </button>
         </div>
-        <div className="concept-card-row">
-          <span className="concept-card-row-label">Why it matters</span>
-          <span className="concept-card-row-text">{data.why}</span>
-        </div>
-        {data.how && data.how.length > 0 && (
-          <div className="concept-card-row">
-            <span className="concept-card-row-label">How it works</span>
-            <ul className="concept-card-how">
-              {data.how.map((pt, i) => <li key={i}>{formatInline(pt)}</li>)}
-            </ul>
-          </div>
-        )}
-        {data.example && (
-          <div className="concept-card-row">
-            <span className="concept-card-row-label">Real example</span>
-            <span className="concept-card-row-text concept-card-example">{data.example}</span>
-          </div>
-        )}
-        {data.remember && (
-          <div className="concept-card-remember" style={{ borderColor: c + '40', background: c + '0d' }}>
-            <span className="concept-card-remember-star" style={{ color: c }}>★</span>
-            <span>{data.remember}</span>
-          </div>
-        )}
       </div>
+      {!collapsed && (
+        <div className="concept-card-body">
+          <div className="concept-card-row">
+            <span className="concept-card-row-label">What it is</span>
+            <span className="concept-card-row-text">{data.what}</span>
+          </div>
+          <div className="concept-card-row">
+            <span className="concept-card-row-label">Why it matters</span>
+            <span className="concept-card-row-text">{data.why}</span>
+          </div>
+          {data.how && data.how.length > 0 && (
+            <div className="concept-card-row">
+              <span className="concept-card-row-label">How it works</span>
+              <ul className="concept-card-how">
+                {data.how.map((pt, i) => <li key={i}>{formatInline(pt)}</li>)}
+              </ul>
+            </div>
+          )}
+          {data.example && (
+            <div className="concept-card-row">
+              <span className="concept-card-row-label">Real example</span>
+              <span className="concept-card-row-text concept-card-example">{data.example}</span>
+            </div>
+          )}
+          {data.remember && (
+            <div className="concept-card-remember" style={{ borderColor: c + '40', background: c + '0d' }}>
+              <span className="concept-card-remember-star" style={{ color: c }}>★</span>
+              <span>{data.remember}</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -498,15 +584,217 @@ function renderMessageContent(content, opts = {}) {
     }
   });
   if (pending.length) out.push(<p key="last">{pending.map((t, j) => j < pending.length - 1 ? [fi(t), <br key={j}/>] : fi(t))}</p>);
-  if (cardData) out.push(<ConceptCard key="cc" data={cardData} color={opts.color} />);
+  if (cardData) out.push(<ConceptCard key="cc" data={cardData} color={opts.color} studentId={opts.studentId} subjectId={opts.subjectId} savedId={opts.savedIds?.[cardData.title]} />);
   return out;
+}
+
+function ConceptNoteRow({ conceptId, notes, saving, onSave, color }) {
+  const [draft, setDraft] = React.useState(notes);
+  const [saved, setSaved] = React.useState(false);
+  React.useEffect(() => { setDraft(notes); }, [notes]);
+  async function handleSave() {
+    await onSave(conceptId, draft);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  }
+  return (
+    <div className="cn-notes-row">
+      <textarea
+        className="cn-notes-area"
+        placeholder="Faculty notes for AI (e.g. common confusion, emphasis, extra context)…"
+        value={draft}
+        onChange={e => setDraft(e.target.value)}
+        rows={2}
+      />
+      <button
+        className="cn-notes-save"
+        style={{ background: color || '#00A896' }}
+        disabled={saving || draft === notes}
+        onClick={handleSave}
+      >{saving ? 'Saving…' : saved ? 'Saved ✓' : 'Save note'}</button>
+    </div>
+  );
 }
 
 function subjectById(id) { return SUBJECTS.find(s => s.id === id); }
 
+// ── LinkedIn / Bio completion modal ────────────────────────────────────────
+
+function LinkedInModal({ student, onSaved }) {
+  const [linkedin, setLinkedin] = React.useState('');
+  const [bio, setBio]           = React.useState('');
+  const [saving, setSaving]     = React.useState(false);
+  const [error, setError]       = React.useState('');
+
+  async function handleSave() {
+    const url = linkedin.trim();
+    if (!url) { setError('Please enter your LinkedIn URL to continue.'); return; }
+    if (!url.includes('linkedin.com')) {
+      setError('Enter a valid LinkedIn URL (e.g. https://linkedin.com/in/yourname)');
+      return;
+    }
+    setSaving(true);
+    try {
+      await fetch(`/api/profile/${student.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ linkedin_url: url, bio: bio.trim() }),
+      });
+      onSaved({ linkedin_url: url, bio: bio.trim() });
+    } catch { setError('Could not save. Please try again.'); }
+    setSaving(false);
+  }
+
+  return (
+    <div className="li-modal-overlay">
+      <div className="li-modal">
+        <div className="li-modal-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="#0A66C2"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+        </div>
+        <h2 className="li-modal-title">One last thing before you begin</h2>
+        <p className="li-modal-sub">Bversity is a professional learning community. Your LinkedIn profile appears on the community map so fellow learners and our alumni network can find and connect with you.</p>
+        <div className="li-modal-field">
+          <label className="li-modal-label">LinkedIn URL <span className="li-modal-req">required</span></label>
+          <input
+            className="li-modal-input"
+            type="url"
+            placeholder="https://linkedin.com/in/yourname"
+            value={linkedin}
+            onChange={e => { setLinkedin(e.target.value); setError(''); }}
+            autoFocus
+          />
+          <span className="li-modal-hint">This is required to access the platform.</span>
+        </div>
+        <div className="li-modal-field">
+          <label className="li-modal-label">One-line bio <span className="li-modal-opt">optional</span></label>
+          <input
+            className="li-modal-input"
+            type="text"
+            placeholder="e.g. Final year Biotech at BITS Pilani, interested in drug discovery and pharma consulting"
+            maxLength={120}
+            value={bio}
+            onChange={e => setBio(e.target.value)}
+          />
+          <span className="li-modal-hint">Shown on the community map when others hover your dot.</span>
+        </div>
+        {error && <div className="li-modal-error">{error}</div>}
+        <div className="li-modal-actions">
+          <button className="li-modal-save" onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving…' : 'Save & enter Bversity →'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Sidebar ────────────────────────────────────────────────────────────────
 
-function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfile, onCommunity, onPrograms, onLogout, hasCareer, avatarColor }) {
+function SearchModal({ student, onStudy, onClose }) {
+  const [query, setQuery] = React.useState('');
+  const [data, setData]   = React.useState(null);
+  const inputRef = React.useRef(null);
+
+  React.useEffect(() => {
+    fetch(`/api/search-data/${student.id}`)
+      .then(r => r.json())
+      .then(setData)
+      .catch(() => {});
+    setTimeout(() => inputRef.current?.focus(), 50);
+  }, [student.id]);
+
+  const q = query.trim().toLowerCase();
+
+  const conceptResults = React.useMemo(() => {
+    if (!data || !q) return [];
+    return data.covered.filter(c =>
+      c.concept_name.toLowerCase().includes(q) ||
+      c.concept_desc.toLowerCase().includes(q) ||
+      c.subject_name.toLowerCase().includes(q)
+    ).slice(0, 8);
+  }, [data, q]);
+
+  const noteResults = React.useMemo(() => {
+    if (!data || !q) return [];
+    return data.notes.filter(n => n.content.toLowerCase().includes(q)).slice(0, 5);
+  }, [data, q]);
+
+  const hasResults = conceptResults.length > 0 || noteResults.length > 0;
+  const showEmpty  = q.length > 1 && !hasResults && data;
+  const showHint   = !q && data;
+
+  return (
+    <div className="search-overlay" onClick={onClose}>
+      <div className="search-modal" onClick={e => e.stopPropagation()}>
+        <div className="search-input-row">
+          <svg className="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            ref={inputRef}
+            className="search-input"
+            placeholder="Search your concepts and notes…"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Escape') onClose(); }}
+          />
+          <kbd className="search-kbd" onClick={onClose}>esc</kbd>
+        </div>
+
+        <div className="search-results">
+          {showHint && (
+            <div className="search-hint">
+              {data.covered.length > 0
+                ? `${data.covered.length} concepts studied · ${data.notes.length} notes`
+                : 'Start studying to see concepts here'}
+            </div>
+          )}
+
+          {conceptResults.length > 0 && (
+            <div className="search-group">
+              <div className="search-group-label">Concepts</div>
+              {conceptResults.map(c => (
+                <button key={`${c.subject_id}:${c.concept_id}`} className="search-result-row" onClick={() => { onStudy(c); onClose(); }}>
+                  <span className="search-result-dot" style={{ background: c.subject_color }} />
+                  <div className="search-result-info">
+                    <span className="search-result-name">{c.concept_name}</span>
+                    <span className="search-result-sub">{c.subject_name}</span>
+                  </div>
+                  <span className={`search-result-badge ${c.mastered ? 'mastered' : 'covered'}`}>
+                    {c.mastered ? 'Mastered' : 'Covered'}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {noteResults.length > 0 && (
+            <div className="search-group">
+              <div className="search-group-label">Notes</div>
+              {noteResults.map(n => (
+                <button key={n.id} className="search-result-row search-result-note" onClick={() => { onStudy(n); onClose(); }}>
+                  <svg className="search-note-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+                  </svg>
+                  <div className="search-result-info">
+                    <span className="search-result-name search-result-note-text">{n.content.slice(0, 80)}{n.content.length > 80 ? '…' : ''}</span>
+                    {n.subject_name && <span className="search-result-sub">{n.subject_name}</span>}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {showEmpty && (
+            <div className="search-empty">No results for "<strong>{query}</strong>"</div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfile, onCommunity, onPrograms, onLibrary, onLabs, onLogout, hasCareer, avatarColor, avatarNum, onSearch, onContact }) {
   const navItems = [
     {
       id: 'home',
@@ -530,6 +818,21 @@ function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfil
       active: view === 'career-map' || view === 'career-select',
     },
     {
+      id: 'library',
+      label: 'My Library',
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>,
+      onClick: onLibrary,
+      active: view === 'library',
+    },
+    {
+      id: 'labs',
+      label: 'Innovation Labs',
+      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 2v7.527a2 2 0 01-.211.896L4.72 18.578A1 1 0 005.596 20h12.808a1 1 0 00.876-1.422L14.21 10.423A2 2 0 0114 9.527V2"/><line x1="8.5" y1="2" x2="15.5" y2="2"/><line x1="7" y1="16" x2="17" y2="16"/></svg>,
+      onClick: onLabs,
+      active: view === 'labs' || view === 'lab-project',
+      sublabel: 'Real-world projects',
+    },
+    {
       id: 'community',
       label: 'Community',
       icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>,
@@ -542,14 +845,14 @@ function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfil
       icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>,
       onClick: onPrograms,
       active: view === 'programs',
-      badge: 'Admissions Open',
+      sublabel: 'Admissions open · 2026',
     },
   ];
 
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        <img src="/logo-1.png" alt="Bversity" className="sidebar-logo-img" />
+        <img src="/logo-3.png" alt="Bversity" className="sidebar-logo-img" />
       </div>
 
       <nav className="sidebar-nav">
@@ -560,15 +863,27 @@ function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfil
             onClick={item.onClick}
           >
             <span className="sidebar-item-icon">{item.icon}</span>
-            <span className="sidebar-item-label">{item.label}</span>
+            <span className="sidebar-item-label">
+              {item.label}
+              {item.sublabel && <span className="sidebar-item-sublabel">{item.sublabel}</span>}
+            </span>
             {item.badge && <span className="sidebar-item-badge">{item.badge}</span>}
           </button>
         ))}
       </nav>
 
       <div className="sidebar-bottom">
+        <button className="sidebar-founder-btn" onClick={onContact}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+          </svg>
+          <span>Talk to Sudharsan</span>
+        </button>
         <div className="sidebar-user" onClick={onProfile} style={{ cursor: 'pointer' }} title="Edit profile">
-          <div className="sidebar-avatar" style={{ background: avatarColor || 'var(--teal)' }}>{student.name.charAt(0).toUpperCase()}</div>
+          {avatarNum
+            ? <img src={`/avatars/Number=${avatarNum}.png`} alt={student.name} className="sidebar-avatar-img" />
+            : <div className="sidebar-avatar" style={{ background: avatarColor || 'var(--teal)' }}>{student.name.charAt(0).toUpperCase()}</div>
+          }
           <div className="sidebar-user-info">
             <span className="sidebar-user-name">{student.name}</span>
             <span className="sidebar-user-sub">View profile</span>
@@ -586,6 +901,423 @@ function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfil
 
 // ── Login ──────────────────────────────────────────────────────────────────
 
+// ── Industry Innovation Labs data ──────────────────────────────────────────
+
+const INDUSTRY_LABS = [
+  {
+    subject_id: 'bioinformatics', subject_name: 'Bioinformatics', color: '#00A896',
+    projects: [
+      {
+        id: 'bio_p1', title: 'Decode a Rare Disease Gene', time: '2–3 hours', difficulty: 'Beginner',
+        tools: [{ name: 'ClinVar', url: 'https://www.ncbi.nlm.nih.gov/clinvar/' }, { name: 'gnomAD', url: 'https://gnomad.broadinstitute.org/' }, { name: 'NCBI Gene', url: 'https://www.ncbi.nlm.nih.gov/gene/' }, { name: 'UniProt', url: 'https://www.uniprot.org/' }],
+        scenario: "You're a junior bioinformatician at a rare disease research institute. A clinical geneticist walks in with a case: a 7-year-old with progressive muscle weakness, no confirmed diagnosis after two years of testing. Whole-exome sequencing has flagged three variants in the DMD gene. Your job is to interpret them.",
+        problem: 'Determine which variant is most likely pathogenic, justify your reasoning using clinical databases, and produce a 1-page variant interpretation report.',
+        why_it_matters: 'Variant interpretation is one of the most in-demand skills in clinical genomics. Every genomics lab, hospital genetics department, and rare disease biotech needs people who can do this accurately.',
+        expected_output: 'A 1-page variant interpretation report: variant details, ACMG evidence, classification, and a clear recommendation to the clinician.',
+        steps: [
+          { id: 's1', text: 'Open ClinVar and search for the DMD gene. Browse pathogenic variants — note what types are reported (nonsense, frameshift, missense). Get familiar with how ClinVar classifies variants.', hint: 'Use the Gene filter on the left sidebar. Look for variants with "Pathogenic" or "Likely pathogenic" significance. ClinVar shows the evidence submitted by labs worldwide.' },
+          { id: 's2', text: 'Open gnomAD and search for the DMD gene. Understand what allele frequency means: a variant seen in >1% of the population is unlikely to cause a rare disease. Note the AF threshold you will use (<0.01%).', hint: 'gnomAD shows how common a variant is across 125,000+ exomes. Rare disease variants are typically absent or extremely rare (AF < 0.0001). A high AF = likely benign.' },
+          { id: 's3', text: 'Look up DMD on NCBI Gene. Read the gene summary. Understand what dystrophin does and why loss-of-function causes disease. Write 2 sentences summarising this.', hint: 'DMD encodes dystrophin, a structural protein in muscle fibres. Without it, muscle cells rupture during contraction. Loss-of-function variants (frameshift, nonsense) disrupt the reading frame and prevent functional protein production.' },
+          { id: 's4', text: 'Classify each of three hypothetical variants: (A) c.8713C>T (p.Arg2905*) — a nonsense variant, absent from gnomAD, reported pathogenic in ClinVar. (B) c.4515G>A (p.Glu1505=) — synonymous, in gnomAD at AF 0.3%. (C) c.9274G>A (p.Gly3092Ser) — missense, no ClinVar entries, AF 0.005%. Write ACMG classification for each.', hint: 'Variant A: PVS1 (null variant in a gene where LoF causes disease) + PS1 (same amino acid change as known pathogenic) = Pathogenic. Variant B: synonymous + common = Benign. Variant C: rare missense, no functional data = Uncertain Significance.' },
+          { id: 's5', text: 'Write your 1-page report. Structure: Patient context → Variants identified → Evidence per variant → Final classification → Recommendation to clinician. Keep it under 450 words. Be direct — clinicians need clear conclusions.', hint: 'A good report says: "Variant A (c.8713C>T) is classified Pathogenic based on PVS1 and ClinVar evidence. This is consistent with a diagnosis of Duchenne Muscular Dystrophy. We recommend genetic counselling and referral to a neuromuscular specialist." No hedging.' },
+          { id: 's6', text: 'Review your report. Does it tell the clinician what to do next? Is every classification backed by at least two pieces of evidence? Would a non-specialist understand it? Finalise.', hint: 'Read it aloud. If any sentence is unclear, rewrite it. Precision and clarity are both required in clinical reporting.' },
+        ],
+        rubric: ['Correctly identified the pathogenic variant with at least two pieces of evidence', 'Applied ACMG criteria accurately to all three variants', 'Report is structured, specific, and actionable for a clinician', 'Demonstrates understanding of what the DMD gene does and why the variant causes disease'],
+        whats_next: ['Try Project 2: Build a Sequence Homology Pipeline', 'Continue the Bioinformatics curriculum', 'Attempt the Bioinformatics Capstone'],
+      },
+      {
+        id: 'bio_p2', title: 'Build a Sequence Homology Pipeline', time: '3–4 hours', difficulty: 'Intermediate',
+        tools: [{ name: 'NCBI BLASTp', url: 'https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE=Proteins' }, { name: 'Clustal Omega', url: 'https://www.ebi.ac.uk/Tools/msa/clustalo/' }, { name: 'iTOL', url: 'https://itol.embl.de/' }, { name: 'UniProt', url: 'https://www.uniprot.org/' }],
+        scenario: "You've joined a biotech startup engineering novel enzymes for gene editing. Your PI found a promising bacterial nuclease in a published paper and wants to know: how conserved is it across species, and are there natural variants worth testing? Before spending lab time, she wants a computational answer.",
+        problem: 'Identify homologs of a target protein using BLAST, perform a multiple sequence alignment, build a phylogenetic tree, and identify the most conserved — and therefore functionally critical — regions.',
+        why_it_matters: 'Homology analysis is used every day in drug target validation, protein engineering, and evolutionary biology. The ability to identify conserved functional residues from sequence alone is a core skill.',
+        expected_output: 'A phylogenetic tree image, annotated alignment highlighting conserved regions, and a 1-paragraph written recommendation for which species variant to test first.',
+        steps: [
+          { id: 's1', text: 'Go to UniProt. Search for "Cas9 Streptococcus pyogenes" and open the SpCas9 entry (Q99ZW2). Download the protein sequence in FASTA format.', hint: 'The FASTA download is under the Sequences section. The format starts with a > header line followed by the amino acid sequence. Copy the entire thing including the > line.' },
+          { id: 's2', text: 'Go to NCBI BLASTp. Paste your FASTA sequence. Set database to "UniProtKB/Swiss-Prot", limit results to 15 hits, and run. Wait for results.', hint: 'BLASTp compares your protein sequence against a database. The E-value measures statistical significance — lower is more significant. Identity % tells you how similar the sequences are.' },
+          { id: 's3', text: 'From your BLAST results, select 8 hits from different bacterial species. Aim for a range of identity percentages (30–95%). Download their sequences and combine them with your original SpCas9 into a single FASTA file.', hint: 'Diversity matters for a good tree. Pick hits from different genera, not just Streptococcus. A range of identity values will give a more informative phylogenetic analysis.' },
+          { id: 's4', text: 'Upload all 9 sequences to Clustal Omega and run a multiple sequence alignment. Download the alignment output.', hint: 'Clustal Omega aligns all sequences simultaneously. Positions where all sequences have the same amino acid are 100% conserved. These are your most important residues.' },
+          { id: 's5', text: 'Examine the alignment output. Identify at least 3 columns that are identical across all species. Look up what these positions correspond to in SpCas9 — are they in the RuvC or HNH nuclease domains? Write one sentence per conserved region.', hint: 'SpCas9 has two nuclease domains: HNH (cuts the target strand) and RuvC (cuts the non-target strand). Key catalytic residues include D10 (RuvC) and H840 (HNH). If these are conserved in your alignment, that is significant.' },
+          { id: 's6', text: 'Build a phylogenetic tree. Use the Newick tree output from Clustal Omega, upload it to iTOL, and download or screenshot the visualisation. Label each branch with the species name.', hint: 'iTOL (Interactive Tree of Life) can import Newick format trees directly. Once uploaded, use the display options to show labels and branch lengths.' },
+          { id: 's7', text: 'Write a 1-paragraph recommendation: which species variant would you prioritise for lab testing, and why? Consider: how close it is to SpCas9 (easier to predict behaviour), whether its active site residues are conserved, and whether the organism it comes from has any useful properties.', hint: 'A good recommendation considers both scientific rationale (active site conservation) and practical factors (the closer to SpCas9, the more predictable the behaviour in human cells). SaCas9 from S. aureus is a good real-world example — smaller, packaged more easily into AAV.' },
+        ],
+        rubric: ['BLASTp search performed correctly with diverse, meaningful species selected', 'Conserved regions identified and their functional significance explained', 'Phylogenetic tree is correctly constructed and interpretable', 'Recommendation shows understanding of both biology and practical constraints'],
+        whats_next: ['Try Project 1: Decode a Rare Disease Gene', 'Continue the Bioinformatics curriculum', 'Attempt the Bioinformatics Capstone'],
+      },
+    ],
+  },
+  {
+    subject_id: 'genomics', subject_name: 'Genomics', color: '#7B2D8B',
+    projects: [
+      {
+        id: 'gen_p1', title: 'Interpret a Clinical WGS Case', time: '2–3 hours', difficulty: 'Beginner',
+        tools: [{ name: 'GWAS Catalog', url: 'https://www.ebi.ac.uk/gwas/' }, { name: 'ClinVar', url: 'https://www.ncbi.nlm.nih.gov/clinvar/' }, { name: 'OMIM', url: 'https://www.omim.org/' }, { name: 'gnomAD', url: 'https://gnomad.broadinstitute.org/' }],
+        scenario: "You're a genomics analyst at a precision medicine company. A clinician has referred a 45-year-old woman with a strong family history of breast and ovarian cancer. Her whole-genome sequencing report has returned three flagged variants: one in BRCA1, one in PALB2, and one in ATM. Your job is to interpret clinical significance and draft the recommendation.",
+        problem: 'Evaluate three cancer predisposition variants, determine which represent actionable findings, and produce a structured clinical genomics report.',
+        why_it_matters: 'Clinical genome interpretation is the bridge between sequencing technology and patient care. Genomics analysts at hospitals, cancer centres, and diagnostics companies do exactly this work every day.',
+        expected_output: 'A structured 1-page clinical genomics report with variant classifications, evidence, and a clinical recommendation for each gene.',
+        steps: [
+          { id: 's1', text: 'Open OMIM (omim.org) and search for BRCA1, PALB2, and ATM. For each gene, note: what syndrome is associated with it, what cancers it increases risk for, and what the inheritance pattern is.', hint: 'BRCA1 is associated with Hereditary Breast and Ovarian Cancer syndrome (HBOC), autosomal dominant. PALB2 is now recognised as a high-risk breast cancer gene. ATM confers moderate risk. Note the relative risk increases.' },
+          { id: 's2', text: 'Search ClinVar for a pathogenic BRCA1 variant: c.5266dupC (p.Gln1756Profs*74). Note how many labs have submitted evidence, what the review status is, and what conditions it is associated with.', hint: 'c.5266dupC (formerly 5382insC) is one of the most common BRCA1 founder mutations. ClinVar shows "5 stars" for variants with expert panel review. Look at the evidence submitters — you will see ENIGMA, a major international consortium.' },
+          { id: 's3', text: 'Now look up an ATM variant: c.7271T>G (p.Val2424Gly) in ClinVar. This variant has conflicting interpretations. Note which labs classified it as pathogenic and which as uncertain. Understand why the same variant gets different classifications.', hint: 'Conflicting interpretations arise when labs use different evidence weightings. Some labs require functional data; others use population frequency alone. The variant\'s penetrance (how often it causes disease) is also debated for ATM.' },
+          { id: 's4', text: 'Check gnomAD for both variants. Note the allele frequency. A pathogenic cancer predisposition variant should be very rare (<0.001% in the general population). Does what you see match the classifications?', hint: 'BRCA1 founder mutations are extremely rare globally but enriched in certain populations (Ashkenazi Jewish). Even then, AF is typically <0.5%. An AF of >1% would be inconsistent with a highly penetrant disease variant.' },
+          { id: 's5', text: 'Assign clinical significance to each of the three variants using ACMG criteria: BRCA1 (pathogenic), ATM (uncertain significance), PALB2 (assume: likely pathogenic). Write the evidence basis for each classification in 2–3 sentences.', hint: 'For BRCA1: PVS1 (frameshift/null variant) + PS4 (observed in many affected individuals) = Pathogenic. For ATM: conflicting evidence, no functional data = Uncertain Significance. For PALB2 likely pathogenic: population data + segregation data.' },
+          { id: 's6', text: 'Write your clinical report. Include: patient demographics, variants found, classification per variant, what each means for cancer risk, and a recommendation (e.g., referral to genetic counsellor, surveillance protocol, cascade testing for family members).', hint: 'Actionable findings (BRCA1 pathogenic) require immediate referral. Uncertain significance findings should be reported but NOT used to drive clinical decisions — and you must say this explicitly. Family cascade testing is standard for pathogenic findings.' },
+        ],
+        rubric: ['Correctly classified all three variants with evidence cited', 'Demonstrated understanding of ACMG criteria and why uncertain significance cannot drive clinical decisions', 'Recommendations are appropriate and specific (not generic)', 'Report is structured and written for a clinical audience'],
+        whats_next: ['Try Project 2: Design a Liquid Biopsy Panel', 'Continue the Genomics curriculum', 'Attempt the Genomics Capstone'],
+      },
+      {
+        id: 'gen_p2', title: 'Design a Liquid Biopsy Panel', time: '3–4 hours', difficulty: 'Intermediate',
+        tools: [{ name: 'Foundation One CDx label', url: 'https://www.accessdata.fda.gov/cdrh_docs/pdf17/P170019C.pdf' }, { name: 'COSMIC', url: 'https://cancer.sanger.ac.uk/cosmic' }, { name: 'ClinicalTrials.gov', url: 'https://clinicaltrials.gov/' }, { name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }],
+        scenario: "You're a genomics scientist at a diagnostics startup building a ctDNA liquid biopsy panel for non-small cell lung cancer (NSCLC). Your VP has asked you to design a 5-gene panel that covers the most clinically actionable mutations, justify every gene inclusion, and compare your panel to Foundation One Liquid CDx.",
+        problem: 'Select 5 genes for an NSCLC liquid biopsy panel, justify each with clinical evidence (approved therapies or trial data), and compare your panel to an existing commercial product.',
+        why_it_matters: 'Liquid biopsy is one of the fastest-growing areas in oncology diagnostics. Designing a gene panel requires understanding both the biology of cancer and the clinical landscape of approved targeted therapies.',
+        expected_output: 'A 1-page panel design document: 5 genes with justification, matched therapies, and a comparison table against Foundation One Liquid CDx.',
+        steps: [
+          { id: 's1', text: 'Open COSMIC (cancer.sanger.ac.uk). Search for "lung" in the Cancer Gene Census. Identify the top 10 most frequently mutated genes in lung adenocarcinoma. Write down the top 5 you will investigate further.', hint: 'COSMIC tracks somatic mutations across thousands of tumour types. For NSCLC adenocarcinoma, the most commonly mutated genes include EGFR, KRAS, ALK (fusion), ROS1 (fusion), MET, BRAF, RET, NTRK1, and TP53.' },
+          { id: 's2', text: 'For each of your 5 candidate genes, search ClinicalTrials.gov or PubMed for an FDA-approved targeted therapy. Write the gene, the mutation type (e.g., EGFR exon 19 deletion), the matched drug (e.g., osimertinib), and the approval year.', hint: 'Strong panel genes have approved therapies: EGFR → osimertinib (Tagrisso), ALK → alectinib (Alecensa), ROS1 → crizotinib, BRAF V600E → dabrafenib+trametinib, MET exon 14 → capmatinib. Each represents a companion diagnostic opportunity.' },
+          { id: 's3', text: 'Download the Foundation One Liquid CDx FDA label (link above). Find the list of biomarkers it reports. Note which genes it includes for NSCLC. How many of your 5 genes overlap?', hint: 'Foundation One Liquid CDx reports 324 genes but highlights specific biomarkers for matched therapies. For NSCLC, look at Table 1 in the label which lists therapeutic indications by biomarker. It covers EGFR, ALK, ROS1, BRAF, MET, RET, and NTRK1/2/3.' },
+          { id: 's4', text: 'Now consider sensitivity vs. specificity for a liquid biopsy panel. ctDNA circulates at very low allele frequencies (<0.1% in early disease). What does this mean for your panel design? Should you prioritise genes with hotspot mutations or broad coverage?', hint: 'Hotspot panels (targeting specific known mutations like KRAS G12C, EGFR exon 19 del) offer higher sensitivity at low allele frequency because you know exactly where to look. Broad coverage panels can detect novel mutations but require deeper sequencing. For a 5-gene panel, hotspot design is more practical.' },
+          { id: 's5', text: 'Finalise your 5-gene panel. For each gene write: (1) mutation type targeted, (2) frequency in NSCLC (from COSMIC), (3) matched approved therapy, (4) why you included it over alternatives.', hint: 'A good panel maximises clinical actionability per gene. TP53 is commonly mutated but has no matched therapy — so despite high frequency, it adds less clinical value than EGFR or ALK. Justify inclusions in terms of patient impact.' },
+          { id: 's6', text: 'Build a comparison table: your panel vs. Foundation One Liquid CDx. Columns: gene, mutation type, matched therapy, included in F1? Conclude with 1 paragraph: what does your focused panel offer that a 324-gene panel does not? (Think: turnaround time, cost, sensitivity at low VAF.)', hint: 'Focused panels have advantages: faster turnaround, lower cost, higher sensitivity for targeted mutations (you can sequence deeper at fewer loci), and simpler data interpretation. The trade-off is missing novel or rare mutations.' },
+        ],
+        rubric: ['5 genes selected with clear evidence-based justification and matched approved therapies', 'Demonstrates understanding of liquid biopsy sensitivity and allele frequency considerations', 'Comparison to Foundation One CDx is accurate and shows understanding of commercial landscape', 'Panel design shows awareness of clinical utility vs. breadth trade-offs'],
+        whats_next: ['Try Project 1: Interpret a Clinical WGS Case', 'Continue the Genomics curriculum', 'Attempt the Genomics Capstone'],
+      },
+    ],
+  },
+  {
+    subject_id: 'drug_discovery', subject_name: 'Drug Discovery & Development', color: '#E05C00',
+    projects: [
+      {
+        id: 'dd_p1', title: 'Target an Undrugged Protein', time: '2–3 hours', difficulty: 'Beginner',
+        tools: [{ name: 'ChEMBL', url: 'https://www.ebi.ac.uk/chembl/' }, { name: 'PDB', url: 'https://www.rcsb.org/' }, { name: 'UniProt', url: 'https://www.uniprot.org/' }, { name: 'Open Targets', url: 'https://www.opentargets.org/' }],
+        scenario: "You're a drug discovery scientist at a startup working on pancreatic cancer. Most pancreatic cancers are driven by KRAS mutations — historically called 'undruggable.' Amgen's sotorasib changed that in 2021 for KRAS G12C in lung cancer, but the KRAS G12D mutation (dominant in pancreatic cancer) still has no approved therapy. Your challenge is to assess whether KRAS G12D is a viable target today.",
+        problem: 'Evaluate KRAS G12D as a drug target using public databases: assess target validity, existing chemical matter, structural tractability, and write a 1-page target assessment memo.',
+        why_it_matters: 'Target selection is the most consequential decision in drug discovery. A well-reasoned target assessment memo is exactly what a drug discovery team produces before committing years of work and hundreds of millions of dollars.',
+        expected_output: 'A 1-page target assessment memo covering: disease linkage, existing compounds, structural analysis, and a go/no-go recommendation with rationale.',
+        steps: [
+          { id: 's1', text: 'Open Open Targets (opentargets.org). Search for KRAS. Find its overall association score with pancreatic cancer and lung cancer. Note the evidence types contributing to the score (genetic, somatic mutation, literature).', hint: 'Open Targets aggregates genetic and clinical evidence for target-disease associations. A high score means strong evidence that the target is causally involved in the disease. Look at the "Somatic mutations" evidence for KRAS in pancreatic cancer — it should be very high.' },
+          { id: 's2', text: 'Search ChEMBL for KRAS. Find how many bioactive compounds have been reported. Filter to compounds with activity against KRAS G12C specifically. Note the contrast with KRAS G12D — how many approved drugs target each?', hint: 'ChEMBL will show sotorasib and adagrasib targeting KRAS G12C. For KRAS G12D, you will find experimental compounds in early development but no approved drugs. This contrast is the heart of the project.' },
+          { id: 's3', text: 'Open the RCSB PDB. Search for "KRAS G12D" structures. Open one structure. Look at the binding pocket around position 12. Is there a clear pocket for a small molecule to bind? Note the GDP/GTP binding site.', hint: 'KRAS is a GTPase — it cycles between GDP-bound (inactive) and GTP-bound (active) states. The G12D mutation locks it in the active state. The challenge is that KRAS has a very shallow binding groove, unlike classic enzyme active sites. Look for the switch I and switch II regions.' },
+          { id: 's4', text: 'Search PubMed for "KRAS G12D inhibitor 2023 2024." Find at least one experimental compound that has shown activity. Note the compound name, mechanism (covalent vs. non-covalent), and what stage of development it is in.', hint: 'MRTX1133 from Mirati Therapeutics is a non-covalent KRAS G12D inhibitor that reached clinical trials in 2023. Others include compounds from Revolution Medicines and Relay Therapeutics. Note that G12D is harder than G12C because there is no cysteine for covalent warhead attachment.' },
+          { id: 's5', text: 'Summarise the target landscape in a structured table: Disease linkage (strong/moderate/weak), Genetic validation (yes/no), Existing approved drugs (yes/no), Structural tractability (high/medium/low), Clinical compounds (yes/no).', hint: 'KRAS G12D: Disease linkage = strong (>90% of pancreatic cancers). Genetic validation = yes (oncogenic driver). Approved drugs = no. Structural tractability = medium (improving). Clinical compounds = yes (MRTX1133, others). This is a genuinely tractable but hard target.' },
+          { id: 's6', text: 'Write your 1-page target assessment memo. Structure: Background → Target Biology → Drug Discovery Landscape → Structural Assessment → Recommendation. Your recommendation should be "Go" or "No Go" with clear rationale. State what the key risk is.', hint: 'A strong memo is decisive. Example conclusion: "We recommend pursuing KRAS G12D as a primary target. Genetic validation is unambiguous. The structural challenge of the flat binding pocket has been addressed by recent non-covalent inhibitors. Key risk: differentiation from MRTX1133 — our programme must identify a clear competitive advantage in potency, selectivity, or PK profile."' },
+        ],
+        rubric: ['Target assessment covers all five dimensions with evidence from public databases', 'Demonstrates understanding of KRAS biology and why it was historically undruggable', 'Structural analysis shows engagement with PDB data, not just text descriptions', 'Recommendation is clear, decisive, and backed by specific evidence'],
+        whats_next: ['Try Project 2: Reverse-Engineer a Phase III Failure', 'Continue the Drug Discovery curriculum', 'Attempt the Drug Discovery Capstone'],
+      },
+      {
+        id: 'dd_p2', title: 'Reverse-Engineer a Phase III Failure', time: '3–4 hours', difficulty: 'Intermediate',
+        tools: [{ name: 'ClinicalTrials.gov', url: 'https://clinicaltrials.gov/' }, { name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }, { name: 'FDA Drug Databases', url: 'https://www.fda.gov/drugs/drug-approvals-and-databases' }],
+        scenario: "Solanezumab was Eli Lilly's anti-amyloid antibody for Alzheimer's disease. It passed Phase II and entered two large Phase III trials — EXPEDITION and EXPEDITION2 — involving thousands of patients and nearly a billion dollars in investment. Both trials failed to meet their primary endpoints. Lilly continued with a third trial. It also failed. You are going to figure out why.",
+        problem: "Using publicly available clinical trial data, reconstruct why solanezumab failed across three Phase III trials, identify the key scientific and design errors, and propose what you would have done differently.",
+        why_it_matters: 'Understanding drug failures is as important as understanding successes. The mistakes made in Alzheimer\'s drug development — and the lessons from solanezumab specifically — reshaped how the entire field designs trials and selects patients.',
+        expected_output: 'A structured 1-page failure analysis: timeline, hypothesis, what the data showed, why it failed, and 3 specific things you would have done differently.',
+        steps: [
+          { id: 's1', text: 'Search ClinicalTrials.gov for "solanezumab." Open the EXPEDITION3 trial (NCT01900665). Read the study design: primary endpoint, patient population (mild vs. moderate Alzheimer\'s), intervention, and duration.', hint: 'EXPEDITION3 enrolled patients with mild Alzheimer\'s specifically — this was a design change from the earlier trials after a post-hoc analysis suggested the drug might work better in milder disease. Note the primary endpoint: CDR-SB (Clinical Dementia Rating Sum of Boxes).' },
+          { id: 's2', text: 'Search PubMed for "solanezumab EXPEDITION results." Find the NEJM paper (Doody et al., 2014) reporting EXPEDITION and EXPEDITION2 results. Note the primary outcome and whether the drug met it. What did the secondary outcomes show?', hint: 'The primary endpoint was not met. However, a pre-specified secondary analysis of mild Alzheimer\'s patients showed a 34% slowing of cognitive decline. This is what justified EXPEDITION3 — which ultimately also failed.' },
+          { id: 's3', text: 'Read about the amyloid hypothesis: the idea that amyloid-beta plaques cause Alzheimer\'s. Solanezumab targeted soluble amyloid-beta, not plaques. Search PubMed for "soluble vs. insoluble amyloid Alzheimer\'s" and note the debate.', hint: 'Solanezumab binds soluble monomeric amyloid-beta — the form circulating in the bloodstream — rather than insoluble plaques. The hypothesis was that clearing soluble amyloid would prevent plaque formation. Critics argued the drug needed to engage the actual plaques in the brain. Compare this to lecanemab, which targets protofibrils and was approved in 2023.' },
+          { id: 's4', text: 'Identify the three most likely reasons solanezumab failed: (1) wrong patient population, (2) wrong target form of amyloid, (3) treatment too late. Write one paragraph of evidence for each, citing the trial data or biology.', hint: 'Wrong population: the drug was tested in symptomatic patients where brain damage was already extensive. Wrong form: monomeric amyloid may not be the toxic species. Too late: amyloid accumulates 10–15 years before symptoms — by diagnosis, the window may have closed. The A4 trial tested solanezumab in pre-symptomatic patients — it also failed.' },
+          { id: 's5', text: 'Now propose 3 specific design changes. For each: what would you change, what evidence supports the change, and what risk does it carry?', hint: 'Example changes: (1) Use PET imaging to confirm amyloid burden before enrolling patients — ensure you are treating the right patients. (2) Target protofibrils or plaques instead of monomers — like lecanemab does. (3) Enrich for APOE4 carriers who have higher amyloid burden and faster progression. Each change has a trade-off: smaller eligible population, higher trial cost, etc.' },
+          { id: 's6', text: 'Write your 1-page failure analysis. Structure: What was the drug and hypothesis → What the trials showed → Three reasons it failed → Three things you would have done differently. Be specific — reference actual trial names, endpoints, and biology.', hint: 'The best failure analyses are honest and specific. Do not say "the endpoint was not met." Say "CDR-SB declined equally in the solanezumab and placebo arms, suggesting no slowing of cognitive decline at any stage of disease studied." Precision is what separates a good analyst from a generic one.' },
+        ],
+        rubric: ['Accurately reconstructed the trial timeline and primary outcomes', 'Demonstrated understanding of the amyloid hypothesis and where solanezumab fit within it', 'Three failure reasons are evidence-based, specific, and biologically grounded', 'Proposed changes are realistic and show understanding of trial design trade-offs'],
+        whats_next: ['Try Project 1: Target an Undrugged Protein', 'Continue the Drug Discovery curriculum', 'Attempt the Drug Discovery Capstone'],
+      },
+    ],
+  },
+  {
+    subject_id: 'clinical_trials', subject_name: 'Clinical Trials & Regulatory Affairs', color: '#0066CC',
+    projects: [
+      {
+        id: 'ct_p1', title: 'Annotate a Real FDA Drug Approval', time: '2–3 hours', difficulty: 'Beginner',
+        tools: [{ name: 'FDA Drugs@FDA', url: 'https://www.accessdata.fda.gov/scripts/cder/daf/' }, { name: 'ClinicalTrials.gov', url: 'https://clinicaltrials.gov/' }, { name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }],
+        scenario: "You've just joined the regulatory affairs team at a mid-size oncology biotech. Your VP wants you to understand how FDA approval packages are structured before you start working on your own NDA. She gives you an assignment: download the complete review for a recently approved drug and annotate it — identify the pivotal trial, the primary endpoint, the safety signal that almost blocked approval, and the label restrictions that resulted.",
+        problem: "Read and annotate the FDA medical review for osimertinib (Tagrisso) — the third-generation EGFR inhibitor approved for NSCLC. Map the clinical evidence to the approval decision.",
+        why_it_matters: 'Being able to read and interpret an FDA medical review is a core skill for regulatory affairs, medical affairs, and clinical development roles. These documents are publicly available and form the foundation of how drugs reach patients.',
+        expected_output: 'A structured annotation document: pivotal trial summary, primary endpoint and result, key safety findings, label restrictions, and your assessment of the approval rationale.',
+        steps: [
+          { id: 's1', text: 'Go to FDA Drugs@FDA. Search for "osimertinib." Find the original NDA approval (2015). Download the "Medical Review" PDF. It will be long (100+ pages) — you do not need to read every page.', hint: 'Drugs@FDA organises reviews by application number. Osimertinib\'s original NDA was approved under Breakthrough Therapy designation. Look for the summary sections first: the Medical Officer\'s review and the statistical review. Skip the raw data appendices.' },
+          { id: 's2', text: 'Find the pivotal trial in the review. What was it called? What was the study design (single-arm, randomised, blinded)? What was the patient population? Note these in your annotation.', hint: 'The pivotal trial for the original approval was AURA Extension — a single-arm Phase II trial. Note: this was an accelerated approval based on response rate (ORR), not survival. Understand why FDA accepted a single-arm design for this indication.' },
+          { id: 's3', text: 'Find the primary endpoint and the result. Was the endpoint objective response rate (ORR), progression-free survival (PFS), or overall survival (OS)? What was the result and how does it compare to historical controls?', hint: 'ORR of 57% in T790M-positive NSCLC patients who had progressed on prior EGFR therapy. This was substantially higher than chemotherapy in the same setting (~20% ORR). FDA accepted this as clinically meaningful for accelerated approval.' },
+          { id: 's4', text: 'Find the safety section. What were the most common adverse events? Was there a specific safety signal that required a Black Box Warning, label restriction, or REMS? Note it.', hint: 'Osimertinib has a risk of QTc prolongation and interstitial lung disease (ILD). ILD occurred in ~3% of patients in trials and was fatal in some cases. Look for how FDA addressed this in the label — there should be a "Warnings and Precautions" section.' },
+          { id: 's5', text: 'Read the label (Prescribing Information). Find: (1) the approved indication, (2) any patient selection requirement (companion diagnostic?), (3) the key warnings. Note how the approval was later converted from accelerated to regular approval.', hint: 'Osimertinib requires cobas EGFR Mutation Test v2 as a companion diagnostic for T790M detection. The approval was later expanded to first-line based on the FLAURA trial showing PFS benefit vs. first-gen EGFR inhibitors. Note how the indication evolved.' },
+          { id: 's6', text: 'Write your annotation document. Include: Drug name and mechanism → Pivotal trial design and population → Primary endpoint and result → Key safety signals and how FDA addressed them → Label restrictions → Your 1-paragraph assessment of why FDA approved it despite being a single-arm trial.', hint: 'Your assessment should explain the regulatory reasoning: unmet medical need (no options after T790M resistance), substantial effect size (57% ORR in a population with rapidly progressing disease), and the commitment to a confirmatory trial. This is how Accelerated Approval is supposed to work.' },
+        ],
+        rubric: ['Pivotal trial correctly identified and described with study design details', 'Primary endpoint and result stated accurately with comparison to historical control', 'Safety signal identified and label consequence explained', 'Assessment of approval rationale shows understanding of Accelerated Approval pathway'],
+        whats_next: ['Try Project 2: Write a Phase II Protocol Synopsis', 'Continue the Clinical Trials curriculum', 'Attempt the Clinical Trials Capstone'],
+      },
+      {
+        id: 'ct_p2', title: 'Write a Phase II Protocol Synopsis', time: '3–4 hours', difficulty: 'Intermediate',
+        tools: [{ name: 'ICH E6 GCP Guidelines', url: 'https://database.ich.org/sites/default/files/E6_R2__Guideline.pdf' }, { name: 'ClinicalTrials.gov', url: 'https://clinicaltrials.gov/' }, { name: 'FDA Guidance Documents', url: 'https://www.fda.gov/regulatory-information/search-fda-guidance-documents' }],
+        scenario: "Your biotech has just completed a Phase I trial for BV-101, a novel KRAS G12C inhibitor. Dose-limiting toxicities were defined, the MTD was established at 600mg BID, and early efficacy signals were seen in NSCLC patients. The CMO wants a Phase II protocol synopsis ready in two weeks for the board to review before the IND amendment is filed.",
+        problem: 'Write a 1-page Phase II protocol synopsis for a fictitious KRAS G12C inhibitor in NSCLC, covering study design, patient population, primary and secondary endpoints, and stopping rules.',
+        why_it_matters: 'Protocol writing is a core skill for clinical development, regulatory affairs, and medical affairs roles. A synopsis is what gets presented to FDA, the IRB, and the board — it must be precise, complete, and scientifically justified.',
+        expected_output: 'A 1-page protocol synopsis with all required sections filled in, following ICH E6 structure, with justified endpoint selection.',
+        steps: [
+          { id: 's1', text: 'Read the ICH E6 R2 guideline (section 6: Protocol and Protocol Amendment). List the 10 elements that every clinical trial protocol must contain. These will become your synopsis sections.', hint: 'ICH E6 Section 6 lists: background/rationale, objectives, design, selection/withdrawal criteria, treatment, efficacy/safety assessments, statistics, direct access to source data, ethics, and data handling. Your synopsis needs all of these in condensed form.' },
+          { id: 's2', text: 'Define your study design. Will this be single-arm or randomised? What is the control arm if randomised? What is the treatment duration? Justify each choice.', hint: 'For a Phase II oncology trial, single-arm with historical control is acceptable if the primary endpoint is response rate and the control rate is well-established. Randomisation against docetaxel (a common second-line NSCLC therapy) would be more rigorous but slower to enrol. State your reasoning.' },
+          { id: 's3', text: 'Define your patient population. Write the inclusion criteria (3–5) and exclusion criteria (3–5). Be specific: EGFR/ALK wild-type? KRAS G12C confirmed by local testing? Prior platinum-based therapy? ECOG status?', hint: 'Inclusion: NSCLC with confirmed KRAS G12C mutation (by an approved CDx or validated local test), ≥1 prior line of therapy (platinum-based), ECOG PS 0–1, adequate organ function. Exclusion: symptomatic CNS metastases, prior KRAS inhibitor treatment, active autoimmune disease requiring systemic treatment.' },
+          { id: 's4', text: 'Select your primary endpoint and justify it. Options: objective response rate (ORR), progression-free survival (PFS), or disease control rate (DCR). Explain why you chose it and what threshold would constitute a meaningful result.', hint: 'ORR is the most common Phase II primary endpoint in oncology — it is measurable earlier than PFS or OS, and FDA accepts it for accelerated approval. A meaningful threshold for KRAS G12C NSCLC second-line: ORR >30% (historical rate with docetaxel is ~10%). Use Simon\'s two-stage design to minimise exposure to an ineffective drug.' },
+          { id: 's5', text: 'Select 3 secondary endpoints. For each, explain what it measures and why it matters to regulators and prescribers.', hint: 'Good secondary endpoints: (1) Duration of response (DoR) — how long responses last. (2) Progression-free survival (PFS) — time from enrolment to progression or death. (3) Safety and tolerability — AE rates, dose reductions, discontinuations. These give a fuller picture than ORR alone.' },
+          { id: 's6', text: 'Write stopping rules for safety. Under what circumstances would the trial be paused or terminated early? Reference CTCAE grade definitions.', hint: 'Example stopping rules: ≥3 Grade 4 adverse events in the first 15 patients pause for safety review. If confirmed ILD Grade ≥2 occurs in >5% of patients, the trial is suspended. Early efficacy stopping: if ORR exceeds 60% at interim analysis, consider expanding the cohort. Use specific numbers — not vague language.' },
+          { id: 's7', text: 'Assemble your synopsis. One page, all sections present. Title → Background (2 sentences) → Objectives → Study Design → Population → Endpoints → Stopping Rules → Statistical Analysis Plan (sample size justification). Have a colleague or peer read it — is every section clear?', hint: 'For sample size: assume null ORR 10%, target ORR 30%, 80% power, α 0.05 (one-sided). Simon\'s two-stage design requires ~46 evaluable patients. State this explicitly in the statistical section.' },
+        ],
+        rubric: ['All ICH E6 required sections are present and complete', 'Patient population (inclusion/exclusion) is specific and scientifically justified', 'Primary endpoint selection is justified with reference to historical control and regulatory precedent', 'Stopping rules are specific, use CTCAE grading, and cover both safety and efficacy scenarios'],
+        whats_next: ['Try Project 1: Annotate a Real FDA Approval', 'Continue the Clinical Trials curriculum', 'Attempt the Clinical Trials Capstone'],
+      },
+    ],
+  },
+  {
+    subject_id: 'genai_ml', subject_name: 'Gen AI & Machine Learning for Life Sciences', color: '#6B3FA0',
+    projects: [
+      {
+        id: 'ai_p1', title: 'Predict a Protein Structure with ColabFold', time: '2–3 hours', difficulty: 'Beginner',
+        tools: [{ name: 'ColabFold (AlphaFold2)', url: 'https://colab.research.google.com/github/sokrypton/ColabFold/blob/main/AlphaFold2.ipynb' }, { name: 'RCSB PDB', url: 'https://www.rcsb.org/' }, { name: 'iCn3D Viewer', url: 'https://www.ncbi.nlm.nih.gov/Structure/icn3d/' }],
+        scenario: "You're a computational biologist at a drug discovery startup. Your target protein has no crystal structure in the PDB — the experimental team is backed up for months. Your PI asks you to run an AlphaFold prediction using ColabFold (free, runs in a browser), compare it to a homologous structure that does exist in the PDB, and assess how much you can trust the predicted model.",
+        problem: "Run an AlphaFold2 prediction for a real protein using ColabFold, visualise the structure, interpret the pLDDT confidence scores, and compare your predicted structure to its experimental PDB counterpart.",
+        why_it_matters: 'AlphaFold changed structural biology overnight. Every drug discovery team now uses it. Understanding what the model predicts well (and what it does not) is essential for anyone using it to drive decisions.',
+        expected_output: 'A structure image with confidence scores annotated, a written comparison to the PDB structure, and a 1-paragraph assessment of where the model can and cannot be trusted.',
+        steps: [
+          { id: 's1', text: 'Open ColabFold in Google Colab (link above — you need a free Google account). In the "query_sequence" field, paste this sequence for lysozyme (PDB: 1LYZ): KVFERCELARTLKRLGMDGYRGISLANWMCLAKWESGYNTRATNYNAGDRSTDYGIFQINSRYWCNDGKTPGAVNACHLSCSALLQDNIADAVACAKRVVRDPQGIRAWVAWRNRCQNRDVRQYVQGCGV. Run all cells.', hint: 'ColabFold runs AlphaFold2 in the cloud for free. Click Runtime → Run All and accept the prompts. The prediction takes 5–15 minutes depending on server load. You will get a PDB file and confidence plots.' },
+          { id: 's2', text: 'When the run completes, download the top-ranked model (rank_001). Also download the pLDDT confidence plot. Note the overall pLDDT score — above 90 is high confidence, 70–90 is moderate, below 70 is low confidence.', hint: 'pLDDT (predicted Local Distance Difference Test) is AlphaFold\'s per-residue confidence metric. High pLDDT (blue in the standard colouring) means the prediction is reliable. Low pLDDT (red/orange) often corresponds to disordered regions.' },
+          { id: 's3', text: 'Open RCSB PDB. Search for 1LYZ (hen egg white lysozyme). Download the PDB file. This is the experimental crystal structure you will compare to your prediction.', hint: '1LYZ was determined by X-ray crystallography at 2.0Å resolution. It is one of the most-studied proteins in history. Your AlphaFold prediction should be highly accurate for this protein since it is a small, well-structured globular protein with no disordered regions.' },
+          { id: 's4', text: 'Open iCn3D (link above). Load your ColabFold predicted structure. Colour it by pLDDT score. Note which regions are high confidence vs. low confidence. Take a screenshot.', hint: 'In iCn3D, use File → Open → PDB File to load your model. Under Style → Color → Temperature Factor you can visualise pLDDT scores (stored in the B-factor column of the ColabFold output). Blue = high confidence, red = low confidence.' },
+          { id: 's5', text: 'Load the 1LYZ experimental structure in iCn3D. Visually compare the two structures. Do the secondary structure elements (alpha helices, beta sheets) align? Are there any major differences in loop regions?', hint: 'For lysozyme, the prediction should be very close to the experimental structure. Look for differences in loop regions — these are often less well-predicted. The core alpha helices should be essentially identical.' },
+          { id: 's6', text: 'Write your 1-paragraph assessment. Answer: Where does the model perform well? Where should you be cautious? If you were using this prediction to design a drug binding site, which regions would you trust and which would you validate experimentally first?', hint: 'Key point: AlphaFold predictions for structured regions of well-folded proteins are highly reliable. Loop regions, termini, and intrinsically disordered regions are less reliable. For drug design, you should trust core structural elements but validate binding pocket geometry experimentally before committing to a lead series.' },
+        ],
+        rubric: ['ColabFold run successfully completed with correct sequence', 'pLDDT confidence scores correctly interpreted and annotated', 'Comparison to experimental structure is substantive and identifies specific differences', 'Assessment demonstrates understanding of where AlphaFold can and cannot be trusted'],
+        whats_next: ['Try Project 2: Build a QSAR Bioactivity Classifier', 'Continue the Gen AI & ML curriculum', 'Attempt the Gen AI & ML Capstone'],
+      },
+      {
+        id: 'ai_p2', title: 'Build a QSAR Bioactivity Classifier', time: '4–5 hours', difficulty: 'Intermediate',
+        tools: [{ name: 'ChEMBL', url: 'https://www.ebi.ac.uk/chembl/' }, { name: 'Google Colab (Python)', url: 'https://colab.research.google.com/' }, { name: 'RDKit Docs', url: 'https://www.rdkit.org/docs/' }],
+        scenario: "You're at a computational chemistry team within a mid-size pharma. Your team is screening thousands of compounds for activity against EGFR — a well-validated oncology target. Running wet lab assays on all of them would take years. Your job is to build a simple QSAR (Quantitative Structure-Activity Relationship) model using public ChEMBL data that can predict which compounds are likely to be active before they ever go into the lab.",
+        problem: "Download EGFR bioactivity data from ChEMBL, featurise compounds with molecular fingerprints using RDKit, train a random forest classifier, and evaluate it with ROC-AUC and a confusion matrix.",
+        why_it_matters: 'QSAR modelling is used in every major pharma company to prioritise compounds before expensive assays. Understanding how to build, evaluate, and honestly critique these models is a foundational skill in computational drug discovery.',
+        expected_output: 'A working Colab notebook with the full pipeline, a ROC-AUC curve, a confusion matrix, and a written critique of the model\'s limitations.',
+        steps: [
+          { id: 's1', text: 'Open Google Colab. Create a new notebook. Install and import: rdkit, pandas, scikit-learn, matplotlib. Run: !pip install rdkit pandas scikit-learn matplotlib', hint: 'In Colab: !pip install rdkit installs RDKit. Import with: from rdkit import Chem; from rdkit.Chem import AllChem, DataStructs; import pandas as pd; from sklearn.ensemble import RandomForestClassifier; from sklearn.metrics import roc_auc_score, confusion_matrix' },
+          { id: 's2', text: 'Go to ChEMBL. Search for "EGFR" as a target. Filter to human EGFR (CHEMBL203). Export bioactivity data as CSV (IC50 values, standard type = IC50, organism = Homo sapiens). Download and upload to Colab.', hint: 'ChEMBL will give you thousands of compounds with IC50 values against EGFR. Export with standard filters: Standard Type = IC50, Standard Units = nM. You want the SMILES column and the standard_value column at minimum.' },
+          { id: 's3', text: 'In your notebook, load the CSV. Create a binary label: active (IC50 ≤ 1000 nM = 1) vs. inactive (IC50 > 1000 nM = 0). Drop rows with missing SMILES. Print class distribution.', hint: 'df["label"] = (df["standard_value"] <= 1000).astype(int). Check class balance — if you have 90% actives and 10% inactives, your model will be biased. Note the imbalance ratio as it affects your evaluation strategy.' },
+          { id: 's4', text: 'Generate Morgan fingerprints for each compound using RDKit. Convert to a numpy array for model input. Morgan fingerprints encode circular atom environments — they are the standard representation for QSAR models.', hint: 'mols = [Chem.MolFromSmiles(s) for s in df["canonical_smiles"]]; fps = [AllChem.GetMorganFingerprintAsBitVect(m, 2, nBits=2048) for m in mols if m is not None]; X = np.array(fps). Use radius=2, nBits=2048 as standard parameters.' },
+          { id: 's5', text: 'Split data 80/20 train/test. Train a RandomForestClassifier (n_estimators=100). Predict on the test set. Calculate ROC-AUC. Plot the ROC curve and confusion matrix.', hint: 'from sklearn.model_selection import train_test_split; X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y). A ROC-AUC of 0.85+ is good for QSAR. 0.7–0.85 is acceptable. Below 0.7 suggests the model is not useful.' },
+          { id: 's6', text: 'Write a 1-paragraph critique of your model. Address: What does the ROC-AUC tell you? What are the limitations of Morgan fingerprints as features? Why might this model fail on structurally novel compounds? What would you do next to improve it?', hint: 'Key limitations: Morgan fingerprints capture local atom environments but miss 3D shape and conformational flexibility. The model was trained on historical data — it will perform poorly on compounds with novel scaffolds (applicability domain problem). Next steps: use 3D descriptors, add pharmacophore features, or switch to a graph neural network.' },
+        ],
+        rubric: ['Working notebook with complete pipeline from data loading to evaluation', 'ROC-AUC correctly calculated and plotted with proper train/test split', 'Critique demonstrates understanding of QSAR model limitations, not just accuracy reporting', 'Discussion of applicability domain and what the model cannot reliably predict'],
+        whats_next: ['Try Project 1: Predict a Protein Structure with ColabFold', 'Continue the Gen AI & ML curriculum', 'Attempt the Gen AI & ML Capstone'],
+      },
+    ],
+  },
+  {
+    subject_id: 'biotech_business', subject_name: 'Biotech Business & Management', color: '#B5451B',
+    projects: [
+      {
+        id: 'bb_p1', title: 'Tear Down a Real Biotech Acquisition', time: '2–3 hours', difficulty: 'Beginner',
+        tools: [{ name: 'SEC EDGAR', url: 'https://www.sec.gov/cgi-bin/browse-edgar' }, { name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }, { name: 'Evaluate Pharma (free tier)', url: 'https://www.evaluate.com/vantage' }, { name: 'BMS press releases', url: 'https://news.bms.com/' }],
+        scenario: "In 2022, Bristol Myers Squibb acquired Turning Point Therapeutics for $4.1 billion — a 122% premium to the 60-day average share price. At the time, Turning Point's lead asset repotrectinib had not yet received FDA approval. You are an analyst at a life sciences investment bank. Your MD wants a deal teardown memo on your desk by tomorrow morning.",
+        problem: "Reconstruct the strategic rationale for BMS's $4.1B acquisition of Turning Point Therapeutics — what they were buying, why they paid a 122% premium, and whether it was worth it.",
+        why_it_matters: "Deal analysis is a core skill for BD, corporate strategy, investment banking, and VC roles. Understanding what drives biotech M&A premiums — pipeline value, competitive dynamics, strategic fit — is how you evaluate deals in real time.",
+        expected_output: "A 1-page deal teardown memo: what BMS bought, why they paid the premium, the key risks, and your verdict on whether it was a good deal.",
+        steps: [
+          { id: 's1', text: "Search PubMed for 'repotrectinib ROS1 NSCLC.' Read the TRIDENT-1 trial abstract. Note the response rate, duration of response, and how it compared to existing ROS1 inhibitors (crizotinib, lorlatinib).", hint: "Repotrectinib showed ~91% ORR in treatment-naive ROS1-positive NSCLC in TRIDENT-1. More importantly, it showed ~40% ORR in patients who had already received 1–2 prior ROS1 inhibitors. This 'next-generation' activity in a pre-treated population is the scientific anchor of the deal." },
+          { id: 's2', text: "Search SEC EDGAR for the BMS acquisition proxy statement (S-4 or DEFM14A filing for Turning Point Therapeutics). Find the disclosed deal terms: upfront payment, any contingent value rights (CVRs), and the acquiree board's fairness opinion.", hint: "The BMS acquisition was an all-cash deal at $76 per share, no CVRs. The Turning Point board hired Centerview Partners to provide a fairness opinion. The S-4 will show the financial analysis supporting the price — look for the DCF and comparable company analysis sections." },
+          { id: 's3', text: "Estimate what BMS was paying for. At the time of acquisition, repotrectinib was in Phase 3. What is the ROS1-positive NSCLC market size? What was the estimated peak sales potential? How does $4.1B relate to a risk-adjusted NPV?", hint: "ROS1-positive NSCLC is ~1–2% of NSCLC patients (~4,000 new US patients/year). At ~$150,000/year treatment cost and high penetration, peak US sales could be $500–800M. Apply a 60% probability of approval and a 12% discount rate — you can back into roughly $1–1.5B rNPV. The premium above that represents competitive urgency and pipeline optionality." },
+          { id: 's4', text: "Identify 3 strategic reasons BMS paid a 122% premium beyond the DCF value. Think about: competitive dynamics (who else might have bid?), BMS's existing oncology portfolio, and what Turning Point's pipeline beyond repotrectinib offered.", hint: "Strategic reasons: (1) BMS needed a next-gen ROS1 asset to compete with Roche/Genentech's entrectinib and Pfizer's lorlatinib. (2) Turning Point had a broad kinase inhibitor platform with additional pipeline assets. (3) There was likely competitive tension — Pfizer, Roche, and Merck were all potential buyers, which pushed the price up. Fear of losing the deal to a competitor is a real premium driver." },
+          { id: 's5', text: "Identify 2 key risks of the deal at the time it was announced. What could go wrong between signing and value realisation?", hint: "Risk 1: FDA approval uncertainty — repotrectinib was not yet approved, and accelerated approval timelines can slip. Risk 2: Commercial execution — the ROS1-positive NSCLC market is small and requires precise patient identification through companion diagnostics. If testing rates are low, peak sales fall. Repotrectinib was approved in late 2023 as Augtyro." },
+          { id: 's6', text: "Write your 1-page teardown memo. Structure: The asset (what BMS bought) → The price and what justified it → Strategic rationale beyond DCF → Key risks → Your verdict (was it a good deal?). Be direct — your MD needs a view, not a summary.", hint: "A good verdict is specific: 'At $4.1B, BMS paid ~3x rNPV, which is aggressive but defensible given competitive urgency and platform optionality. The real question is whether repotrectinib can hold share against next-generation competitors in the pre-treated setting — the TRIDENT-1 data suggest yes. We rate this a strategically sound acquisition at a full price.'" },
+        ],
+        rubric: ["Correctly identified what BMS was acquiring and the clinical data supporting the premium", "rNPV logic is present — attempted to reconcile deal price with commercial opportunity", "Three strategic rationale points go beyond DCF and show understanding of competitive dynamics", "Verdict is specific, direct, and justified — not just a summary of what happened"],
+        whats_next: ["Try Project 2: Build a Market Size Model for a New Modality", "Continue the Biotech Business curriculum", "Attempt the Biotech Business Capstone"],
+      },
+      {
+        id: 'bb_p2', title: 'Build a Market Size Model for RNA Therapeutics', time: '3–4 hours', difficulty: 'Intermediate',
+        tools: [{ name: 'WHO Disease Statistics', url: 'https://www.who.int/data/gho' }, { name: 'FDA Orange Book', url: 'https://www.accessdata.fda.gov/scripts/cder/ob/' }, { name: 'ClinicalTrials.gov', url: 'https://clinicaltrials.gov/' }, { name: 'Google Sheets / Excel', url: 'https://sheets.google.com' }],
+        scenario: "You're a strategy analyst at a life sciences VC fund. The partners are evaluating whether to lead a $50M Series B in an RNA therapeutics company focused on rare liver diseases. Before the partners meeting, you need a bottom-up market size model that tells them: what is the realistic addressable market for RNA liver drugs over the next 10 years?",
+        problem: "Build a bottom-up market size model for RNA therapeutics in rare liver diseases, including patient population estimates, treatment penetration assumptions, pricing benchmarks, and a 10-year revenue projection.",
+        why_it_matters: "Market modelling is a core skill for VC, BD, strategy, and investor relations roles. A credible bottom-up model — grounded in epidemiology and pricing benchmarks, not top-down percentages — is what separates a rigorous analyst from a generic one.",
+        expected_output: "A market model spreadsheet with all assumptions visible and a 1-page investment memo summarising the opportunity and your key assumptions.",
+        steps: [
+          { id: 's1', text: "Open a new Google Sheet. Create columns: Disease, Global Prevalence, US Prevalence, Diagnosed Rate, Treatment-Eligible Rate, Year 5 Penetration, Year 10 Penetration, Price per patient/year, Year 5 Revenue, Year 10 Revenue.", hint: "A bottom-up model builds the market from patient counts, not percentages of a total market. This is more credible because every assumption is visible and challengeable. Start with the diseases — pick 3: Transthyretin Amyloidosis (ATTR), Alpha-1 Antitrypsin Deficiency (AATD), and Acute Hepatic Porphyria (AHP)." },
+          { id: 's2', text: "Look up global and US prevalence for each disease. ATTR: ~50,000 US patients (hATTR subtype). AATD: ~100,000 symptomatic US patients. AHP: ~3,000 diagnosed US patients. Enter these in your model with sources noted in a comment.", hint: "Be precise about what you are counting. ATTR has two forms: hereditary (hATTR, ~50,000 US) and wild-type (wtATTR, much larger but different treatment dynamics). For a rare liver RNA drug focus, use hATTR. Note your disease scope decision explicitly." },
+          { id: 's3', text: "Add a 'Diagnosed Rate' column. Not all patients are diagnosed — especially in rare diseases. Research diagnosis rates for each: AATD is chronically underdiagnosed (~10% diagnosed). ATTR diagnosis has improved with technetium scintigraphy but remains at ~20–30% in the US. Adjust your patient numbers.", hint: "Diagnosed rate is the fraction of prevalent patients who have a confirmed diagnosis and are potentially accessible for treatment. For ATTR, ~20% diagnosed = ~10,000 US diagnosed patients. This is your starting pool before applying any additional filters." },
+          { id: 's4', text: "Add pricing benchmarks. Look up current list prices: Alnylam's patisiran (Onpattro) launched at ~$450,000/patient/year. Givosiran (Givlaari) for AHP: ~$575,000/year. Use these as anchors for your price assumptions.", hint: "RNA therapeutics command ultra-high prices due to small patient populations and transformative efficacy. Your model price assumption should be $400,000–$600,000/patient/year for rare disease RNA drugs. Note that net price after rebates is typically 20–30% lower than list price." },
+          { id: 's5', text: "Build penetration curves for Year 1, 5, and 10. A new RNA therapy entering a rare disease market typically reaches 10–15% penetration by Year 3, 30–40% by Year 5, 50–60% by Year 10 in well-diagnosed populations. Apply these to your diagnosed patient pool.", hint: "Penetration is slower in poorly-diagnosed diseases (AATD) and faster in better-characterised ones (AHP, where Alnylam already built physician awareness with givosiran). Adjust accordingly. Also apply an annual price erosion assumption of 2–5% per year as biosimilars or competitors may enter." },
+          { id: 's6', text: "Calculate Year 5 and Year 10 total revenues across all three diseases. Sum them. Write your 1-page investment memo: What is the realistic addressable US market by Year 10? What is the key assumption driving the model? What would cause the model to be wrong on the upside and downside?", hint: "A rigorous memo names the single biggest assumption: for ATTR, it is likely diagnosis rate improvement driven by AI-assisted echocardiography screening. Upside: ATTR diagnosis rate reaches 50% (better screening). Downside: oral tafamidis (Pfizer's Vyndaqel) takes the majority of market share before RNA drugs reach peak penetration." },
+        ],
+        rubric: ["Bottom-up model built from patient populations, not top-down percentages", "Diagnosis rate and penetration rate assumptions are explicitly stated and justified", "Pricing benchmarks are grounded in real approved RNA drugs", "Investment memo identifies the key assumption and directional risks clearly"],
+        whats_next: ["Try Project 1: Tear Down a Real Biotech Acquisition", "Continue the Biotech Business curriculum", "Attempt the Biotech Business Capstone"],
+      },
+    ],
+  },
+  {
+    subject_id: 'cell_gene_therapy', subject_name: 'Cell & Gene Therapy', color: '#0891B2',
+    projects: [
+      {
+        id: 'cgt_p1', title: 'Design a Gene Therapy Vector for Duchenne MD', time: '3–4 hours', difficulty: 'Intermediate',
+        tools: [{ name: 'Addgene Vector Database', url: 'https://www.addgene.org/vector-database/' }, { name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }, { name: 'ClinicalTrials.gov', url: 'https://clinicaltrials.gov/' }, { name: 'FDA ATMP Guidance', url: 'https://www.fda.gov/vaccines-blood-biologics/cellular-gene-therapy-products' }],
+        scenario: "You're a vector biologist at a gene therapy startup. Your CSO has asked you to design the AAV vector construct for a microdystrophin gene therapy targeting Duchenne Muscular Dystrophy (DMD). Sarepta's Elevidys was approved in 2023 — you need to understand what they built and design a next-generation vector with a rationale for why it would be better.",
+        problem: "Design a complete AAV vector construct for microdystrophin delivery in DMD: choose the serotype, promoter, payload, and ITR configuration. Justify each choice against existing approved products.",
+        why_it_matters: "Vector design is the most technically critical decision in gene therapy development. Every element — serotype, promoter, transgene design — directly determines whether the therapy will work, be safe, and be manufacturable.",
+        expected_output: "A vector design document: serotype choice with rationale, promoter selection, microdystrophin construct design, safety considerations, and a 1-paragraph comparison to Elevidys.",
+        steps: [
+          { id: 's1', text: "Search PubMed for 'microdystrophin AAV DMD clinical trial.' Find the paper describing Sarepta's construct (SRP-9001, now Elevidys). Note the AAV serotype used, the promoter, and the microdystrophin design (which dystrophin domains are included).", hint: "Elevidys uses AAV9 as the serotype (broad muscle tropism, crosses blood-brain barrier). The promoter is MHCK7 (muscle-specific, high expression in cardiac and skeletal muscle). The microdystrophin includes spectrin-like repeats and the ABD domain — roughly 138kDa, fitting within AAV's 4.7kb packaging limit." },
+          { id: 's2', text: "Open Addgene's Vector Database. Search for AAV vectors used in DMD or microdystrophin studies. Compare AAV8 vs. AAV9 vs. AAVrh74 for muscle tropism, immune profile, and prevalence of pre-existing antibodies in the human population.", hint: "AAVrh74 (used by Sarepta in earlier constructs) has lower pre-existing neutralising antibody prevalence than AAV9 in some populations. AAV9 reaches cardiac muscle well but has higher seroprevalence. For your next-gen design, consider: if you want to re-dose (not possible with current AAVs due to immune response), you need a different serotype or immune evasion strategy." },
+          { id: 's3', text: "Design your microdystrophin construct. The full dystrophin cDNA is 11.1kb — far too large for AAV. You need to select which domains to keep. Research which domains are essential: the actin-binding domain (ABD), the central rod domain (how many spectrin-like repeats?), and the C-terminal domain.", hint: "Essential domains for function: N-terminal ABD (binds F-actin), at least 4 spectrin-like repeats (R1-R3, R24 are commonly used), and the C-terminal domain (binds the DGC complex). Hinge regions H1, H2, H3 are needed for flexibility. The key trade-off: more repeats = better function but larger construct size." },
+          { id: 's4', text: "Choose your promoter. Options: CMV (ubiquitous, strong but silenced over time), CK8 or MHCK7 (muscle-specific, avoids off-target expression), MCK (strong in mature muscle). Justify your choice for DMD.", hint: "Muscle-specific promoters (MHCK7, CK8) are preferred for DMD because they restrict expression to skeletal and cardiac muscle, reducing off-target liver expression and potential immunogenicity. Sarepta uses MHCK7. A next-gen improvement could be a promoter with stronger cardiac expression given DMD cardiomyopathy is a major cause of death." },
+          { id: 's5', text: "Address safety: what are the three main safety risks of your AAV construct and how would you mitigate each?", hint: "Risk 1: Pre-existing neutralising antibodies — mitigate by screening patients pre-dosing (exclude seropositive patients or use immunosuppression). Risk 2: Immune response to microdystrophin (seen in some Elevidys patients) — mitigate with transient immunosuppression protocol. Risk 3: Genotoxicity — AAV integrates rarely but randomly; mitigate by selecting a self-complementary design and avoiding strong enhancers near proto-oncogenes." },
+          { id: 's6', text: "Write a 1-paragraph comparison to Elevidys. What design choices did you make differently and why? What would be the key experiment to validate your next-gen construct is superior?", hint: "Be specific: if you chose AAVrh74 over AAV9, explain the seroprevalence rationale. If you added extra spectrin-like repeats, cite the functional data showing improved muscle force. The key validation experiment: a head-to-head comparison in mdx mice measuring specific muscle force (not just western blot) and cardiac function at 6 months." },
+        ],
+        rubric: ["Serotype choice is justified with reference to tropism, seroprevalence, and immune profile data", "Microdystrophin domain selection is scientifically grounded — essential domains identified correctly", "Promoter choice is appropriate for DMD and justified against alternatives", "Safety risks are specific and mitigations are realistic and evidence-based"],
+        whats_next: ["Try Project 2: Audit a Real Gene Therapy FDA Approval", "Continue the Cell & Gene Therapy curriculum", "Attempt the CGT Capstone"],
+      },
+      {
+        id: 'cgt_p2', title: 'Audit a Real Gene Therapy FDA Approval', time: '2–3 hours', difficulty: 'Beginner',
+        tools: [{ name: 'FDA Biologics License Applications', url: 'https://www.fda.gov/vaccines-blood-biologics/biologics-license-applications-bla-process' }, { name: 'FDA Elevidys Approval Package', url: 'https://www.fda.gov/vaccines-blood-biologics/biologics-license-applications-bla-process/elevidys' }, { name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }],
+        scenario: "Elevidys (delandistrogene moxeparvovec) became the first approved gene therapy for Duchenne Muscular Dystrophy in June 2023 — and it was controversial. FDA granted accelerated approval over the objection of its own advisory committee. You are a regulatory consultant. A client wants to understand what FDA required, what the controversy was, and what the confirmatory trial must show.",
+        problem: "Audit the Elevidys FDA approval: understand the clinical evidence package, the accelerated approval controversy, the surrogate endpoint debate, and what the EMBARK confirmatory trial must demonstrate.",
+        why_it_matters: "Analysing a controversial approval teaches you more about FDA's decision-making than any textbook. The Elevidys approval is a masterclass in surrogate endpoints, unmet medical need, and the politics of accelerated approval.",
+        expected_output: "A structured audit document: evidence package summary, why the advisory committee voted against approval, FDA's reasoning for overriding them, and what EMBARK must show for full approval.",
+        steps: [
+          { id: 's1', text: "Search PubMed for 'delandistrogene moxeparvovec Elevidys FDA 2023.' Find the NEJM paper by Mendell et al. reporting the pivotal trial results. Note the primary endpoint, the result, and the patient age range studied.", hint: "The pivotal trial used microdystrophin expression (measured by western blot as % of normal) as the primary endpoint — a surrogate biomarker. The trial showed significant increase in microdystrophin expression. The controversy is whether this protein expression translates to clinical benefit (functional improvement)." },
+          { id: 's2', text: "Find the FDA advisory committee meeting transcript or briefing document for Elevidys (May 2023). What was the committee vote? What was the main concern they raised about the surrogate endpoint?", hint: "The Peripheral and Central Nervous System Drugs Advisory Committee voted 8-6 against approval. The core concern: microdystrophin expression is a surrogate endpoint — there was no statistically significant evidence that it translated to functional improvement (e.g., North Star Ambulatory Assessment scores). FDA overrode the adcom recommendation, which is unusual and controversial." },
+          { id: 's3', text: "Understand FDA's reasoning for overriding the committee. Search for 'FDA Elevidys accelerated approval reasoning 2023.' What unmet medical need argument did FDA make? What surrogate endpoint validation did they cite?", hint: "FDA's reasoning: (1) DMD is a devastating, life-limiting disease with significant unmet need. (2) Microdystrophin production is reasonably likely to predict clinical benefit based on the natural history of partial dystrophin expression in Becker MD patients (who have less severe disease than DMD). This is the 'reasonably likely to predict' standard for accelerated approval surrogates." },
+          { id: 's4', text: "Find the EMBARK confirmatory trial on ClinicalTrials.gov. Note: primary endpoint, patient population, trial duration, and expected completion date. This is what Sarepta must show to convert to full approval.", hint: "EMBARK uses the North Star Ambulatory Assessment (NSAA) as the primary functional endpoint — this is a validated clinical outcome measure. The trial compares treated vs. placebo in ambulatory DMD patients aged 4–7. If NSAA improvement is not significant at 52 weeks, FDA could withdraw approval." },
+          { id: 's5', text: "The EMBARK trial reported top-line results in late 2023. Search for 'EMBARK Elevidys results 2023 Sarepta.' Did the trial meet its primary endpoint? What happened to the FDA approval status?", hint: "EMBARK did not meet its primary NSAA endpoint at 52 weeks (p=0.17). Despite this, FDA expanded Elevidys approval in June 2024 to all ambulatory DMD patients aged 4 and older — another controversial decision. The secondary endpoint (100-metre walk test) was met. This created significant debate about FDA's standards." },
+          { id: 's6', text: "Write your audit document. Structure: What was approved and on what evidence → Advisory committee recommendation and why FDA overrode it → What EMBARK needed to show → What it actually showed → Your assessment: did FDA make the right call? Should Elevidys remain on the market?", hint: "There is no right answer — this is a genuine scientific and ethical debate. A good assessment acknowledges both sides: the urgency argument (these children have no other options and the disease is rapidly progressing) vs. the evidence standard argument (approving drugs without functional evidence sets a dangerous precedent and may mislead families). Take a position and defend it." },
+        ],
+        rubric: ["Correctly identified the surrogate endpoint and the clinical concern about it", "Advisory committee vote and FDA override reasoning accurately described", "EMBARK trial design and results accurately reported", "Final assessment takes a clear position with evidence-based reasoning — not neutral"],
+        whats_next: ["Try Project 1: Design a Gene Therapy Vector", "Continue the Cell & Gene Therapy curriculum", "Attempt the CGT Capstone"],
+      },
+    ],
+  },
+  {
+    subject_id: 'protein_engineering', subject_name: 'Protein Engineering & Design', color: '#BE185D',
+    projects: [
+      {
+        id: 'pe_p1', title: 'Engineer Stability Mutations for a Therapeutic Antibody', time: '3–4 hours', difficulty: 'Intermediate',
+        tools: [{ name: 'RCSB PDB', url: 'https://www.rcsb.org/' }, { name: 'iCn3D Structure Viewer', url: 'https://www.ncbi.nlm.nih.gov/Structure/icn3d/' }, { name: 'DynaMut2', url: 'https://biosig.lab.uq.edu.au/dynamut2/' }, { name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }],
+        scenario: "You're a protein engineer at a biologics company. Your antibody lead, based on trastuzumab (Herceptin), has a thermal stability problem — it aggregates at 37°C during manufacture. The CMC team is demanding a more stable variant before they can scale up. Your job is to identify the aggregation-prone regions and propose point mutations to improve thermal stability.",
+        problem: "Using trastuzumab's crystal structure and free computational tools, identify aggregation-prone regions and propose 3 point mutations to improve thermal stability. Justify each mutation structurally.",
+        why_it_matters: "Protein stability engineering is one of the most practically important skills in therapeutic protein development. Unstable antibodies aggregate, lose potency, cause adverse immune reactions, and fail in manufacturing. Every biologic program faces this challenge.",
+        expected_output: "A mutation proposal document: 3 mutations with structural justification, predicted stability impact, and the experimental validation assay you would run to confirm.",
+        steps: [
+          { id: 's1', text: "Open RCSB PDB. Search for trastuzumab — load structure 1N8Z (trastuzumab Fab in complex with HER2). Open it in iCn3D. Get familiar with the structure: identify the heavy chain (H), light chain (L), CDR loops (the antigen-binding loops), and the framework regions.", hint: "In iCn3D, use Analysis → Sequences to see the chain layout. The CDR loops are the most variable regions — they form the antigen-binding site. The framework regions form the stable scaffold. Aggregation often occurs at exposed hydrophobic patches on the CDR loops." },
+          { id: 's2', text: "Identify hydrophobic patches on the antibody surface that might drive aggregation. In iCn3D, colour the structure by hydrophobicity (Style → Color → Hydrophobicity). Large exposed hydrophobic patches on loop regions are aggregation-prone.", hint: "Hydrophobic residues prefer to be buried in the protein core. When they are exposed on the surface (often in CDR loops), they can drive aggregation by sticking to other antibody molecules. Look for Trp, Phe, Leu, Ile, Val residues in loop regions that are solvent-exposed." },
+          { id: 's3', text: "Search PubMed for 'trastuzumab stability engineering mutations' or 'antibody aggregation CDR mutations.' Find at least one paper reporting mutations that improved antibody stability. Note the specific residues changed and the experimental validation.", hint: "Several groups have published trastuzumab stability engineering studies. Common strategies include: replacing exposed Trp or Phe in CDRs with less hydrophobic residues, introducing disulfide bonds in the VH-VL interface, or grafting CDRs onto more stable framework scaffolds." },
+          { id: 's4', text: "Propose Mutation 1: target an exposed hydrophobic residue you identified in Step 2. Go to DynaMut2 (link above), upload the 1N8Z PDB file, enter your mutation, and predict the ΔΔG (stability change). A negative ΔΔG means stabilising.", hint: "DynaMut2 is a free web server that predicts the thermodynamic effect of point mutations on protein stability. Input: PDB file, chain ID, residue number, wildtype residue, mutant residue. Output: predicted ΔΔG in kcal/mol. Negative = stabilising. Try conservative mutations first: replace Trp with Ala or Ser in a non-essential loop position." },
+          { id: 's5', text: "Propose Mutations 2 and 3 using the same DynaMut2 workflow. For each: note the position, the WT→mutant change, the predicted ΔΔG, and one sentence of structural justification (why does this mutation improve stability?)", hint: "Good mutations to explore: (1) Removing a buried cavity by filling it with a larger hydrophobic residue. (2) Adding a salt bridge by introducing a charged residue near an oppositely-charged partner. (3) Reducing entropy of a flexible loop by replacing Gly with Ala. Each strategy has a different mechanistic basis." },
+          { id: 's6', text: "Specify the experimental validation assay for each mutation. How would you confirm the mutation actually improves stability without harming antigen binding?", hint: "Thermal shift assay (DSF/nanoDSF): measure Tm of WT vs. mutant — a higher Tm means more stable. Size-exclusion chromatography (SEC): measure aggregation at 37°C over 4 weeks. SPR (surface plasmon resonance): confirm binding affinity to HER2 is unchanged (mutations must not reduce potency). All three assays are standard in biologics CMC development." },
+        ],
+        rubric: ["Aggregation-prone regions identified with structural reasoning (not just listed)", "DynaMut2 used correctly and ΔΔG values interpreted accurately", "Each mutation has a clear mechanistic justification beyond 'it is predicted to be stabilising'", "Experimental validation plan is specific and would actually distinguish stabilised from unstable variants"],
+        whats_next: ["Try Project 2: Trace a Computational Protein Design", "Continue the Protein Engineering curriculum", "Attempt the Protein Engineering Capstone"],
+      },
+      {
+        id: 'pe_p2', title: 'Trace a De Novo Protein Design from Computation to Experiment', time: '2–3 hours', difficulty: 'Beginner',
+        tools: [{ name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }, { name: 'RCSB PDB', url: 'https://www.rcsb.org/' }, { name: 'Baker Lab Design Server', url: 'https://design.ipd.uw.edu/' }],
+        scenario: "The Baker Lab at the University of Washington published a landmark 2023 paper designing proteins from scratch using RFdiffusion — proteins with no natural counterpart, built to perform specific functions. You are a science writer at a biotech investor newsletter. Your readers are smart but not protein engineers. Your job is to explain this paper's significance and trace how one designed protein went from a computational model to experimental validation.",
+        problem: "Read and interpret the key RFdiffusion paper (Watson et al., 2023, Nature), trace how one specific designed protein was validated experimentally, and produce a 600-word explainer that non-experts can understand.",
+        why_it_matters: "The ability to translate cutting-edge science into clear, accessible language is one of the most underrated skills in biotech. BD professionals, investors, and medical affairs teams all need people who can do this accurately and compellingly.",
+        expected_output: "A 600-word explainer document covering: what RFdiffusion does, how one designed protein was validated, what this means for drug discovery, and one honest limitation.",
+        steps: [
+          { id: 's1', text: "Search PubMed for 'RFdiffusion de novo protein design Watson 2023 Nature.' Find and read the abstract and introduction. Note: what problem does RFdiffusion solve? What is the key innovation compared to previous methods?", hint: "RFdiffusion uses a diffusion model (the same class of AI behind image generators like DALL-E) to generate protein backbone structures from scratch. The key innovation is that it can design proteins for specific tasks: binding a target, building a symmetric assembly, or scaffolding a functional motif. Previous methods (Rosetta) required extensive human-guided search." },
+          { id: 's2', text: "Find the section of the paper where they design protein binders for a specific target. Which target did they choose as a case study? What was the experimental validation method? What affinity did the top binder achieve?", hint: "One major case study is designing binders for influenza hemagglutinin (HA). The computational designs were synthesised, expressed, and tested by SPR (surface plasmon resonance) for binding affinity. Top binders achieved low nanomolar or sub-nanomolar affinity — comparable to antibodies but in a smaller, more stable scaffold." },
+          { id: 's3', text: "Find a designed protein from the paper that has a structure deposited in the PDB. Search the RCSB PDB for 'RFdiffusion 2023.' Open the structure. Compare the experimental (crystal structure) to the computational prediction. Note the RMSD if reported.", hint: "Several designed proteins from the paper had crystal structures solved to validate the design. An RMSD < 1.5Å between the design model and crystal structure means the computational prediction was essentially correct. This experimental validation is what makes the results trustworthy — not just the computational model." },
+          { id: 's4', text: "Find one failure case or limitation in the paper. What types of proteins or design challenges did RFdiffusion struggle with? Be specific.", hint: "RFdiffusion performs better on structured, globular proteins than on intrinsically disordered proteins or membrane proteins. The paper reports success rates — what percentage of designed sequences expressed correctly and showed the designed function. Not all designs work. The success rate varies by task complexity." },
+          { id: 's5', text: "Draft your 600-word explainer. Structure: Hook (why should a biotech investor care?) → What RFdiffusion does in plain language → The experiment (what they built and how they confirmed it worked) → What this means for drug discovery → One honest limitation. Avoid jargon — every technical term must be explained.", hint: "Good hook: 'For 50 years, protein engineers have worked like archaeologists — sifting through evolution's library of natural proteins to find useful sequences. RFdiffusion does something fundamentally different: it builds proteins that have never existed.' Then explain the technology without using words like 'diffusion model' without explaining what that means." },
+          { id: 's6', text: "Review your explainer. Read it as if you are a life sciences investor who last took biology in university. Does every paragraph make sense without prior knowledge? Is the limitation clearly framed as a limitation, not buried? Is it exactly 600 words (±50)?", hint: "Common mistakes: starting paragraphs with 'Furthermore' or 'In conclusion'; using unexplained acronyms (RMSD, SPR, PDB); making claims the paper does not support ('this will cure cancer'). The best science writing is precise, clear, and honest about uncertainty." },
+        ],
+        rubric: ["RFdiffusion's innovation clearly explained without jargon or unexplained acronyms", "Experimental validation accurately described — specific protein, specific assay, specific result", "Drug discovery implications are plausible and grounded in the paper's evidence", "Limitation is specific and honest, not softened into a non-criticism"],
+        whats_next: ["Try Project 1: Engineer Stability Mutations", "Continue the Protein Engineering curriculum", "Attempt the Protein Engineering Capstone"],
+      },
+    ],
+  },
+  {
+    subject_id: 'rna_therapeutics', subject_name: 'RNA Therapeutics', color: '#B91C1C',
+    projects: [
+      {
+        id: 'rna_p1', title: 'Design an mRNA Vaccine Sequence', time: '3–4 hours', difficulty: 'Intermediate',
+        tools: [{ name: 'Benchling (free)', url: 'https://benchling.com/signup' }, { name: 'NCBI Nucleotide', url: 'https://www.ncbi.nlm.nih.gov/nucleotide/' }, { name: 'EMBOSS Backtranseq', url: 'https://www.ebi.ac.uk/Tools/st/emboss_backtranseq/' }, { name: 'mFold RNA folding', url: 'http://www.unafold.org/mfold/applications/rna-folding-form.php' }],
+        scenario: "It's 2019. Moderna's scientists have just been handed a new target: they need to design an mRNA sequence that encodes a stabilised coronavirus spike protein for a potential vaccine. You are going to recreate the key design decisions they faced — before COVID-19 changed everything.",
+        problem: "Design a codon-optimised mRNA sequence for a stabilised viral spike protein: choose the antigen, apply proline stabilisation mutations, codon-optimise the sequence, add 5' cap and UTR elements, and assess secondary structure.",
+        why_it_matters: "mRNA sequence design is now a foundational skill in RNA therapeutics. Every mRNA vaccine and therapeutic in development goes through exactly these steps. Understanding the logic behind each design choice is what separates a sequence engineer from someone who just runs software.",
+        expected_output: "A complete mRNA design document: antigen choice rationale, 2P stabilisation mutations, codon-optimised sequence (first 30 codons), UTR elements selected, and mFold secondary structure screenshot with interpretation.",
+        steps: [
+          { id: 's1', text: "Go to NCBI Nucleotide. Search for 'SARS-CoV-2 spike protein mRNA' and find the original Wuhan-1 strain spike protein sequence (accession MN908947 or QHD43416 for the protein). Download the spike protein amino acid sequence in FASTA format.", hint: "The spike protein is 1273 amino acids. You will not be designing the full mRNA — you will work with the first 100 amino acids and the key furin cleavage site region. Understanding the full sequence helps you appreciate the design problem: 1273 amino acids × 3 nucleotides/codon = ~3,800 nucleotide mRNA before UTRs." },
+          { id: 's2', text: "Research the '2P' proline stabilisation mutations. Search PubMed for 'prefusion spike stabilisation 2P mutations Wrapp 2020 Science.' What do K986P and V987P do to the spike protein, and why does this matter for an mRNA vaccine?", hint: "The native spike protein is metastable — it folds from a prefusion conformation (the one antibodies neutralise best) to a post-fusion conformation after it fuses with the host cell. 2P mutations (two prolines at positions 986-987) lock the protein in the prefusion conformation, which is far more immunogenic. Moderna and BioNTech both used this strategy in their COVID vaccines." },
+          { id: 's3', text: "Codon-optimise the first 30 amino acids of the spike protein for human expression. Use EMBOSS Backtranseq with the human codon usage table. Compare your codon-optimised sequence to the native coronavirus sequence — what percentage of codons changed?", hint: "Codon optimisation replaces rare human codons with common ones, increasing translation efficiency. Coronaviruses have evolved codon usage optimised for their own host biology — these are often different from optimal human codons. Expect 30–50% of codons to change. The goal is maximum protein expression from the mRNA." },
+          { id: 's4', text: "Design your 5' UTR. Research what the Moderna mRNA-1273 5' UTR looks like (it has been published). Key elements: a 5' cap (m7G), the Kozak sequence for ribosome recognition, and a stem-loop structure. Write the 5' UTR sequence you would use and justify each element.", hint: "The Moderna 5' UTR is based on human alpha-globin mRNA UTR — naturally highly translated. Key elements: 5' cap (m7GpppN) — required for ribosome recognition and mRNA stability; Kozak sequence (GCCACCAUGG) immediately before the start codon — optimal for ribosome loading; avoid secondary structure near the start codon." },
+          { id: 's5', text: "Run your designed sequence (5' UTR + first 90 nucleotides of spike coding sequence) through mFold RNA folding server. Screenshot the predicted secondary structure. Identify any stem-loops forming near the start codon — these reduce translation efficiency and should be avoided.", hint: "Ideal mRNA structure near the 5' end: minimal secondary structure in the 5' UTR (allows ribosome scanning), the start codon (AUG) in an accessible, unstructured region. If mFold shows a strong stem-loop overlapping your AUG, you need to change flanking codons to disrupt it while maintaining the amino acid sequence." },
+          { id: 's6', text: "Write your design document. Structure: Antigen choice and 2P rationale → Codon optimisation strategy and % change → 5' UTR design and element justification → mFold structure assessment → One design challenge you would need to solve next (e.g., poly-A tail length, pseudouridine modification, LNP formulation).", hint: "The next challenge to mention: pseudouridine modification. Native mRNA contains uridine, which triggers innate immune sensing (TLR7/8). Moderna and BioNTech replaced all uridines with N1-methylpseudouridine (m1Ψ) — this eliminates immune stimulation and dramatically increases protein expression. This is the most important chemical modification in mRNA therapeutics." },
+        ],
+        rubric: ["2P stabilisation mutations correctly described with mechanistic understanding of why they work", "Codon optimisation performed and % codon change noted", "5' UTR elements are all present and individually justified", "mFold structure interpreted correctly — secondary structure near AUG identified and addressed"],
+        whats_next: ["Try Project 2: Reconstruct the COVID Vaccine Design", "Continue the RNA Therapeutics curriculum", "Attempt the RNA Therapeutics Capstone"],
+      },
+      {
+        id: 'rna_p2', title: 'Reconstruct the COVID Vaccine Design Decisions', time: '2–3 hours', difficulty: 'Beginner',
+        tools: [{ name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }, { name: 'FDA mRNA-1273 EUA Review', url: 'https://www.fda.gov/media/144434/download' }, { name: 'BioNTech BNT162b2 paper', url: 'https://pubmed.ncbi.nlm.nih.gov/33301246/' }],
+        scenario: "January 10, 2020. The SARS-CoV-2 genome sequence is posted online. Within hours, Moderna's team begins designing mRNA-1273. 66 days later, the first human is injected in a Phase I trial. You are going to reconstruct every major design decision they made in those 66 days — and understand the molecular biology behind each one.",
+        problem: "Trace the key sequence design decisions behind mRNA-1273 from antigen selection to first-in-human injection: antigen choice, proline stabilisation, chemical modifications, LNP formulation, and manufacturing strategy.",
+        why_it_matters: "mRNA-1273 is the most consequential mRNA product ever made. Every decision in its design is now a case study for the entire field. Understanding what they chose and why gives you a framework for designing any mRNA therapeutic.",
+        expected_output: "A structured decision log: 6 key design decisions, the reasoning behind each, and a 1-paragraph reflection on what you would have done differently with hindsight.",
+        steps: [
+          { id: 's1', text: "Search PubMed for 'Corbett mRNA-1273 design 2020 NEJM' — this is the Moderna Phase I paper. Read the methods section on vaccine design. Note: what antigen did they choose and what stabilisation strategy did they use?", hint: "Corbett et al., NEJM 2020 (DOI 10.1056/NEJMoa2024671). Key design: full-length spike protein with K986P/V987P 2P proline mutations, transmembrane anchor (to present on cell surface), and furin cleavage site preserved. Alternative they considered: just the receptor-binding domain (RBD). They chose full-length for broader antibody response." },
+          { id: 's2', text: "Find the section on chemical modifications. What nucleoside modification was used in mRNA-1273? Why was this modification critical for safety and efficacy?", hint: "mRNA-1273 uses N1-methylpseudouridine (m1Ψ) to replace all uridines. This modification: (1) prevents innate immune sensing via TLR7/8 and RIG-I (unmodified mRNA is immunostimulatory), (2) dramatically increases translational efficiency (the modified mRNA makes more spike protein per cell), and (3) reduces cytotoxicity. Karikó and Weissman won the 2023 Nobel Prize for this discovery." },
+          { id: 's3', text: "Research the LNP formulation. What are the four components of the Moderna LNP? What does each component do? Search 'Moderna SM-102 LNP formulation mRNA' for the ionisable lipid component.", hint: "Moderna's LNP contains: (1) SM-102 — an ionisable lipid (positively charged at low pH for mRNA loading, neutral at physiological pH to reduce toxicity); (2) DSPC — a phospholipid for structural stability; (3) cholesterol — membrane fluidity; (4) PEG-DMG — polyethylene glycol lipid for stealth (prevents immune clearance). The SM-102 ionisable lipid is the proprietary component and the subject of IP disputes with BioNTech." },
+          { id: 's4', text: "Read the FDA EUA review for mRNA-1273 (link above — page 1–30 of the briefing document). What was the primary endpoint in COVE Phase III? What was the efficacy result?", hint: "Primary endpoint: prevention of symptomatic COVID-19 at least 14 days after the second dose in participants without prior SARS-CoV-2 infection. Result: 94.1% efficacy (94.5% in the primary analysis). The placebo arm had 185 cases; the vaccine arm had 11 cases. Note: this was efficacy against symptomatic disease — not infection per se." },
+          { id: 's5', text: "Compare Moderna's mRNA-1273 to BioNTech's BNT162b2 (Pfizer/BioNTech). Find the BNT162b2 paper (Polack et al., NEJM 2020). What are the three key differences between the two vaccines?", hint: "Key differences: (1) Antigen: BNT162b2 uses full-length spike with 2P mutations (same as Moderna); BNT162b2b1 (an earlier candidate) used just the RBD. (2) LNP formulation: different ionisable lipid (ALC-0315 vs SM-102). (3) Dose: Moderna 100μg vs BioNTech 30μg. (4) Storage: Moderna was -20°C stable; BioNTech originally required -70°C (later improved). These differences drove different deployment strategies." },
+          { id: 's6', text: "Write your 1-paragraph reflection. With hindsight (and the knowledge of Omicron immune escape, waning immunity, and the bivalent booster strategy): what one design decision would you revisit, and what would you change?", hint: "Strong reflection options: (1) Would you target RBD alone for better immune focusing? (2) Would you use a self-amplifying mRNA design to allow lower doses? (3) Would you use a pan-coronavirus conserved antigen to prepare for variants? There is no 'correct' answer — the reflection should show understanding of the trade-offs, not just describe the current approach." },
+        ],
+        rubric: ["All six design decisions correctly identified and their molecular basis explained", "m1Ψ modification correctly described with both the immune evasion and translation enhancement mechanisms", "LNP four-component formulation correctly explained", "Reflection is specific, takes a position, and shows understanding of the real trade-offs"],
+        whats_next: ["Try Project 1: Design an mRNA Vaccine Sequence", "Continue the RNA Therapeutics curriculum", "Attempt the RNA Therapeutics Capstone"],
+      },
+    ],
+  },
+  {
+    subject_id: 'longevity_science', subject_name: 'Longevity Science', color: '#4338CA',
+    projects: [
+      {
+        id: 'lon_p1', title: 'Interpret an Epigenetic Aging Clock', time: '2–3 hours', difficulty: 'Beginner',
+        tools: [{ name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }, { name: 'Aging.ai', url: 'https://aging.ai/' }, { name: 'DNA methylation clock explainer', url: 'https://www.nature.com/articles/s41574-020-0432-6' }],
+        scenario: "You've just joined the research team at a longevity biotech. Your company is running a clinical trial testing an intervention (caloric restriction + rapamycin) to slow biological aging. The primary outcome is change in biological age as measured by epigenetic clocks. Your supervisor wants you to understand exactly what these clocks measure, what they do not measure, and how to interpret a participant's result.",
+        problem: "Understand how epigenetic aging clocks work, interpret a hypothetical participant's clock result, identify the 3 most modifiable biological age drivers, and write a data interpretation memo.",
+        why_it_matters: "Epigenetic aging clocks are becoming the primary outcome measure in longevity clinical trials. Anyone working in longevity medicine, geroscience, or precision health needs to understand what these biomarkers mean and what they cannot tell you.",
+        expected_output: "A 1-page data interpretation memo: clock mechanism, participant interpretation, 3 modifiable drivers, and the clock's key limitation in clinical trial use.",
+        steps: [
+          { id: 's1', text: "Search PubMed for 'Horvath epigenetic clock 2013 Genome Biology.' Read the abstract and introduction. What does the clock measure? How was it built? What is the correlation between DNA methylation age and chronological age?", hint: "Horvath's clock measures DNA methylation at 353 CpG sites. It was trained on ~8,000 samples across 51 tissue types. The correlation between methylation age and chronological age is r=0.96 — remarkably accurate across tissues and ages. Key point: the clock measures biological age, not chronological age — they diverge, and that divergence is what we care about clinically." },
+          { id: 's2', text: "Find the DunedinPACE clock paper (Belsky et al., 2022, eLife). How is DunedinPACE different from Horvath's original clock? What does it measure that chronological clocks do not?", hint: "DunedinPACE measures the pace of aging — how fast someone is aging right now — rather than their current biological age. It was trained on longitudinal data from the Dunedin cohort. A DunedinPACE of 1.0 means you are aging at the average rate. 0.8 means 20% slower. 1.2 means 20% faster. This is more useful for intervention trials than a static biological age estimate." },
+          { id: 's3', text: "Interpret a hypothetical participant result: Chronological age 45, Horvath GrimAge 51, DunedinPACE 1.15, GrimAge components elevated: smoking pack-years surrogate, plasminogen activator inhibitor-1 (PAI-1). What does this profile tell you clinically?", hint: "GrimAge 51 at chronological age 45 = 6 years of accelerated aging. DunedinPACE 1.15 = aging 15% faster than average. Elevated PAI-1 is associated with cardiovascular and metabolic disease risk. The smoking surrogate being elevated suggests either current/former smoking or significant oxidative stress. This participant is at substantially elevated mortality risk." },
+          { id: 's4', text: "Identify 3 modifiable factors that have the strongest evidence for reducing epigenetic age. Search PubMed for 'epigenetic clock reversal intervention' or 'biological age reduction lifestyle.' Note the intervention, the study, and the magnitude of effect.", hint: "Best-evidence interventions: (1) Exercise — multiple studies show 1–3 year biological age reduction with sustained aerobic + resistance training. (2) Diet quality — Mediterranean diet and caloric restriction both associated with slower DunedinPACE. (3) Sleep — poor sleep quality accelerates epigenetic aging by 1–2 years. Rapamycin and metformin have early trial data but less human evidence than lifestyle factors." },
+          { id: 's5', text: "Identify the single biggest limitation of using epigenetic clocks as a primary endpoint in a 12-month clinical trial.", hint: "The biggest limitation: clocks were calibrated on chronological age, not on actual health outcomes. We do not yet know that reducing your epigenetic age by 2 years on a clock translates to 2 fewer years of disease or mortality. The clock is a proxy — a very good one, but the clinical validation is still ongoing. The TRIIM-X trial (growth hormone + metformin + DHEA) showed clock reversal but was a small, uncontrolled study." },
+          { id: 's6', text: "Write your 1-page memo. Structure: What the clock measures (2 sentences) → Participant interpretation → 3 modifiable drivers with evidence level → Key limitation and how you would address it in trial design.", hint: "Address the limitation practically: in your trial, you would use multiple clocks (Horvath, GrimAge, DunedinPACE) and require concordant improvement across at least 2 to call a response. You would also track clinical biomarkers (inflammatory markers, cardiovascular risk scores) as co-primaries to build the link between clock improvement and health outcomes." },
+        ],
+        rubric: ["Epigenetic clock mechanism correctly explained — CpG methylation basis understood", "Participant interpretation is specific and clinically relevant, not generic", "3 modifiable interventions are evidence-graded — distinguishes between strong and preliminary evidence", "Limitation is the key causal validation gap, not a secondary methodological point"],
+        whats_next: ["Try Project 2: Analyse the TAME Trial", "Continue the Longevity Science curriculum", "Attempt the Longevity Science Capstone"],
+      },
+      {
+        id: 'lon_p2', title: 'Analyse the TAME Trial and the Future of Geroscience', time: '2–3 hours', difficulty: 'Beginner',
+        tools: [{ name: 'TAME Trial website', url: 'https://www.afar.org/tame-trial' }, { name: 'ClinicalTrials.gov', url: 'https://clinicaltrials.gov/' }, { name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }],
+        scenario: "The TAME trial (Targeting Aging with Metformin) is the first clinical trial in history designed to target the biology of aging itself — not a specific disease, but aging as a process. FDA approved it as a trial, which required a landmark regulatory decision: recognising 'aging' as a modifiable condition. You are a science policy analyst advising a government health agency on whether to fund a second TAME-like trial.",
+        problem: "Analyse the TAME trial design, its regulatory significance, the metformin evidence base, and produce a policy memo recommending whether to fund a follow-on geroscience trial.",
+        why_it_matters: "The TAME trial is redefining what clinical trials can target. Understanding its design, regulatory novelty, and the metformin evidence base is essential for anyone working in longevity medicine, health policy, or geroscience.",
+        expected_output: "A 1-page policy memo: TAME trial design summary, regulatory significance, evidence for metformin as a geroscience intervention, and a funding recommendation with conditions.",
+        steps: [
+          { id: 's1', text: "Read the TAME trial overview at afar.org/tame-trial. Then find the TAME protocol on ClinicalTrials.gov (NCT03077360). Note: primary endpoint, patient population, intervention, duration, and sample size.", hint: "TAME enrolls 3,000 participants aged 65–79 without diabetes (metformin is already standard of care for diabetes — this trial tests it in aging per se). Primary endpoint: a composite of first occurrence of any of 6 conditions (MI, stroke, heart failure, cancer, dementia, death). Duration: 6 years. This composite endpoint was chosen specifically because FDA would not accept 'aging' as a primary endpoint." },
+          { id: 's2', text: "Understand the regulatory innovation. Search 'FDA aging indication TAME Barzilai' and find Nir Barzilai's description of the FDA negotiations. What did FDA agree to that was unprecedented?", hint: "FDA agreed that the composite endpoint (multiple age-related conditions) could serve as a regulatory endpoint for a drug targeting aging. This implicitly recognised that aging is a targetable biological process. The regulatory significance: if TAME succeeds, metformin could receive an indication for 'slowing aging' — something no drug has ever had." },
+          { id: 's3', text: "Review the evidence base for metformin as a longevity intervention. Find the UK CPRD observational study (Bannister et al., 2014, Diabetes, Obesity and Metabolism) showing diabetic patients on metformin outlived matched non-diabetic controls. What is the main limitation of this evidence?", hint: "The Bannister study found metformin-treated diabetics had lower mortality than matched non-diabetic controls — suggesting metformin's effects go beyond glucose control. The key limitation: this is observational data. Confounders include healthy user bias (people stable enough to take metformin long-term may be healthier to begin with). TAME is a randomised controlled trial specifically designed to address this confounding." },
+          { id: 's4', text: "Identify the proposed mechanism of metformin's longevity effect. Search PubMed for 'metformin AMPK mTOR aging mechanism.' What cellular pathways does it activate/inhibit?", hint: "Metformin activates AMPK (AMP-activated protein kinase) by inhibiting Complex I of the mitochondrial electron transport chain. AMPK activation: inhibits mTORC1 (reducing protein synthesis and cell growth signals associated with aging), activates autophagy (cellular cleanup), and improves mitochondrial function. These are core longevity pathways also targeted by caloric restriction." },
+          { id: 's5', text: "Identify 2 design limitations of the TAME trial. What would you change in a follow-on trial?", hint: "Limitations: (1) Only one drug — cannot assess combination approaches (metformin + rapamycin + NAD+ precursors). (2) Six-year duration — for practical policy decisions, we need shorter biomarker-based endpoints. (3) No biological aging clock as co-primary — if DunedinPACE or GrimAge were included, you could see biological effect before 6 years of clinical follow-up. In a follow-on trial, add validated aging clocks as co-primaries." },
+          { id: 's6', text: "Write your 1-page policy memo. Structure: TAME summary → Regulatory significance → Metformin evidence strength and limitations → Your recommendation (fund a follow-on trial? Yes/No/Conditional) → 2 conditions or modifications you would require.", hint: "A 'Conditional Yes' is the most defensible recommendation. Condition 1: the follow-on trial must include epigenetic aging clocks as co-primary endpoints to shorten the feedback loop. Condition 2: the trial should include a combination arm (metformin + rapamycin) since animal data shows synergy. State the risk: if TAME itself fails, public and regulatory appetite for geroscience trials may shrink significantly." },
+        ],
+        rubric: ["TAME trial design accurately described with correct primary endpoint and population", "Regulatory significance correctly explained — what FDA agreed to and why it matters", "Metformin mechanism is specific (AMPK → mTOR pathway) and the observational evidence limitation is correctly identified", "Policy recommendation is specific, takes a clear position, and conditions are realistic"],
+        whats_next: ["Try Project 1: Interpret an Epigenetic Aging Clock", "Continue the Longevity Science curriculum", "Attempt the Longevity Science Capstone"],
+      },
+    ],
+  },
+];
+
 // ── Shared constants ───────────────────────────────────────────────────────
 
 const YEAR_OPTIONS = ['1st Year', '2nd Year', '3rd Year', '4th Year', "Master's", 'PhD', 'Working Professional', 'Other'];
@@ -600,7 +1332,9 @@ const USE_CASES = [
       </svg>
     ),
     title: 'Career Direction',
-    desc: 'Break into or level up within biotech and life sciences',
+    desc: 'Find exactly where your biology degree leads in biotech',
+    tag: 'Picks a career path for you',
+    needsCareer: true,
   },
   {
     id: 'industry_readiness',
@@ -610,39 +1344,81 @@ const USE_CASES = [
       </svg>
     ),
     title: 'Industry Readiness',
-    desc: "In a science degree and want to be industry-ready before you graduate",
+    desc: 'Learn how clinical trials, genomics and drug discovery actually work in industry',
+    tag: 'Career-mapped curriculum',
+    needsCareer: true,
   },
   {
-    id: 'emerging_fields',
+    id: 'stay_ahead',
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
       </svg>
     ),
     title: 'Stay Ahead',
-    desc: 'Stay current with AI, genomics, longevity and what\'s reshaping the industry',
+    desc: 'Longevity, AI in drug discovery, RNA therapeutics. Stay current on what\'s reshaping biotech',
+    tag: 'Explore freely, no fixed path',
+    needsCareer: false,
   },
   {
-    id: 'domain_depth',
+    id: 'forward_deployed',
     icon: (
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
         <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
       </svg>
     ),
-    title: 'Domain Depth',
-    desc: 'Building or working at a biotech company and need rapid domain knowledge',
+    title: 'Forward Deployed Engineer',
+    desc: 'Bridge science and technology inside pharma and biotech. The most in-demand hybrid role',
+    tag: 'Emerging & Hybrid careers',
+    needsCareer: true,
+    cluster: 'Emerging & Hybrid',
   },
 ];
 const AVATAR_COLORS = ['#16c1ad','#109285','#1f1f1f','#636363','#0066CC','#6B3FA0','#B5451B','#059669','#DB2777','#E05C00'];
 
 // ── Profile View ───────────────────────────────────────────────────────────
 
-function StudentAvatar({ name, color, size = 40 }) {
+function StudentAvatar({ name, color, size = 40, avatarNum = null }) {
+  if (avatarNum) {
+    return (
+      <img
+        src={`/avatars/Number=${avatarNum}.png`}
+        alt={name}
+        className="student-avatar-img"
+        style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
+      />
+    );
+  }
   const bg = color || '#16c1ad';
   return (
     <div className="student-avatar-circle" style={{ width: size, height: size, background: bg, fontSize: size * 0.38 }}>
       {name.charAt(0).toUpperCase()}
+    </div>
+  );
+}
+
+function AvatarPicker({ current, onSelect, onClose }) {
+  const TOTAL = 116;
+  return (
+    <div className="avatar-picker-backdrop" onClick={onClose}>
+      <div className="avatar-picker-panel" onClick={e => e.stopPropagation()}>
+        <div className="avatar-picker-header">
+          <span className="avatar-picker-title">Choose your avatar</span>
+          <button className="avatar-picker-close" onClick={onClose}>✕</button>
+        </div>
+        <div className="avatar-picker-grid">
+          {Array.from({ length: TOTAL }, (_, i) => i + 1).map(n => (
+            <button
+              key={n}
+              className={`avatar-picker-item ${current === n ? 'selected' : ''}`}
+              onClick={() => { onSelect(n); onClose(); }}
+            >
+              <img src={`/avatars/Number=${n}.png`} alt={`Avatar ${n}`} />
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -664,8 +1440,11 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
   const [motivation, setMotivation]   = useState(profileData?.motivation || '');
   const [tutorNote, setTutorNote]     = useState(profileData?.tutor_note || '');
   const [avatarColor, setAvatarColor] = useState(profileData?.avatar_color || AVATAR_COLORS[0]);
+  const [avatarNum, setAvatarNum]     = useState(profileData?.avatar_num || null);
+  const [showPicker, setShowPicker]   = useState(false);
   const [linkedin, setLinkedin]       = useState(profileData?.linkedin_url || '');
   const [github, setGithub]           = useState(profileData?.github_url || '');
+  const [bio, setBio]                 = useState(profileData?.bio || '');
   const [city, setCity]               = useState(profileData?.city || '');
   const [state, setState]             = useState(profileData?.state || '');
   const [showOnMap, setShowOnMap]     = useState(profileData?.show_on_map !== 0);
@@ -680,13 +1459,13 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           college, year_of_study: year, aspirations, motivation,
-          tutor_note: tutorNote, avatar_color: avatarColor,
-          linkedin_url: linkedin, github_url: github,
+          tutor_note: tutorNote, avatar_color: avatarColor, avatar_num: avatarNum,
+          linkedin_url: linkedin, github_url: github, bio,
           city, state, show_on_map: showOnMap ? 1 : 0,
         }),
       });
       setSaved(true);
-      onProfileUpdated({ avatar_color: avatarColor, linkedin_url: linkedin, github_url: github, city, state });
+      onProfileUpdated({ avatar_color: avatarColor, avatar_num: avatarNum, linkedin_url: linkedin, github_url: github, bio, city, state });
       setTimeout(() => setSaved(false), 2500);
     } catch {}
     finally { setSaving(false); }
@@ -697,22 +1476,47 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
 
   return (
     <div className="profile-view">
-      <div className="profile-header">
-        <button className="chat-back-btn" onClick={onBack}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      <div className="profile-hero">
+        <button className="profile-hero-back" onClick={onBack}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           Back
         </button>
-        <h2 className="profile-title">My Profile</h2>
+        <div className="profile-hero-inner">
+          <div className="profile-avatar-wrap" onClick={() => setShowPicker(true)} title="Change avatar">
+            <StudentAvatar name={student.name} color={avatarColor} avatarNum={avatarNum} size={72} />
+            <span className="profile-avatar-edit">Change</span>
+          </div>
+          <div>
+            <div className="profile-hero-name">{student.name}</div>
+            {profileData?.career_title && (
+              <div className="profile-hero-role">{profileData.career_title}</div>
+            )}
+            {(profileData?.college || profileData?.city) && (
+              <div className="profile-hero-meta">
+                {[profileData.college, profileData.city].filter(Boolean).join(' · ')}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="profile-body">
-        {/* Avatar section */}
-        <div className="profile-avatar-section">
-          <StudentAvatar name={student.name} color={avatarColor} size={72} />
-          <div className="profile-avatar-right">
-            <div className="profile-name">{student.name}</div>
-            <div className="profile-avatar-label">Pick your colour</div>
-            <div className="profile-color-picker">
+        {/* Avatar picker */}
+        <div className="profile-section">
+          <h3 className="profile-section-title">Your Avatar</h3>
+          <div className="profile-avatar-row">
+            <StudentAvatar name={student.name} color={avatarColor} avatarNum={avatarNum} size={56} />
+            <button className="profile-avatar-change-btn" onClick={() => setShowPicker(true)}>
+              Choose from 116 avatars →
+            </button>
+            {avatarNum && (
+              <button className="profile-avatar-reset-btn" onClick={() => setAvatarNum(null)}>
+                Use initial
+              </button>
+            )}
+          </div>
+          {!avatarNum && (
+            <div className="profile-color-picker" style={{ marginTop: 10 }}>
               {AVATAR_COLORS.map(c => (
                 <button
                   key={c}
@@ -722,8 +1526,15 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
                 />
               ))}
             </div>
-          </div>
+          )}
         </div>
+        {showPicker && (
+          <AvatarPicker
+            current={avatarNum}
+            onSelect={setAvatarNum}
+            onClose={() => setShowPicker(false)}
+          />
+        )}
 
         <div className="profile-divider" />
 
@@ -780,9 +1591,22 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
             ) : (
               <div className="profile-nudge">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                GitHub is essential for bioinformatics & AI roles — employers check it. <a href="https://github.com/signup" target="_blank" rel="noreferrer">Create a free account →</a>
+                GitHub is essential for bioinformatics & AI roles. Employers check it. <a href="https://github.com/signup" target="_blank" rel="noreferrer">Create a free account →</a>
               </div>
             )}
+          </div>
+
+          <div className="profile-field">
+            <label>One-line bio</label>
+            <input
+              type="text"
+              className="profile-input"
+              placeholder="e.g. 2nd-year PhD working on CRISPR diagnostics"
+              maxLength={100}
+              value={bio}
+              onChange={e => setBio(e.target.value)}
+            />
+            <div className="profile-nudge" style={{ color: 'rgba(255,255,255,0.35)' }}>Shown on the community map when others hover your dot.</div>
           </div>
         </div>
 
@@ -818,9 +1642,9 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
           <div className="profile-field">
             <label>Why Bversity?</label>
             <div className="onboarding-chips">
-              {MOTIVATION_OPTIONS.map(m => (
+              {USE_CASES.map(m => (
                 <button key={m.id} type="button" className={`onboarding-chip ${motivation === m.id ? 'selected' : ''}`} onClick={() => setMotivation(m.id)}>
-                  {m.label}
+                  {m.title}
                 </button>
               ))}
             </div>
@@ -870,8 +1694,6 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
 
 // ── Onboarding ─────────────────────────────────────────────────────────────
 
-const TOTAL_ONBOARDING_STEPS = 4;
-
 function OnboardingView({ student, careerProfile, onComplete }) {
   const [step, setStep]                   = useState(1);
   const [college, setCollege]             = useState(careerProfile?.waitlist_university || '');
@@ -899,9 +1721,9 @@ function OnboardingView({ student, careerProfile, onComplete }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          college: college.trim() || '—',
-          year_of_study: year || '—',
-          aspirations: aspirations.trim() || '—',
+          college: college.trim() || '',
+          year_of_study: year || '',
+          aspirations: aspirations.trim() || '',
           motivation,
           tutor_note: tutorNote.trim(),
           career_id: selectedCareerId,
@@ -918,6 +1740,48 @@ function OnboardingView({ student, careerProfile, onComplete }) {
     }
   }
 
+  const totalSteps = motivation === 'stay_ahead' ? 3 : 4;
+  // For forward_deployed, auto-lock cluster so step 3 skips the cluster picker
+  const effectiveCluster = motivation === 'forward_deployed' ? 'Emerging & Hybrid' : selectedCluster;
+
+  function goFromStep2() {
+    if (motivation === 'stay_ahead') {
+      setStep(4);
+    } else if (motivation === 'forward_deployed') {
+      setSelectedCluster('Emerging & Hybrid');
+      setStep(3);
+    } else {
+      setStep(3);
+    }
+  }
+
+  function goBackFromStep3() {
+    if (motivation === 'forward_deployed') {
+      setSelectedCluster('');
+      setSelectedCareerId('');
+      setStep(2);
+    } else if (selectedCluster) {
+      setSelectedCluster('');
+      setSelectedCareerId('');
+    } else {
+      setStep(2);
+    }
+  }
+
+  function goBackFromStep4() {
+    if (motivation === 'stay_ahead') {
+      setStep(2);
+    } else {
+      setStep(3);
+    }
+  }
+
+  // Display step number: for stay_ahead, step 4 shows as step 3
+  function displayStep(s) {
+    if (motivation === 'stay_ahead' && s === 4) return 3;
+    return s;
+  }
+
   const canStep1 = college.trim() && year;
   const canStep2 = !!motivation;
   const canStep3 = !!selectedCareerId;
@@ -931,13 +1795,13 @@ function OnboardingView({ student, careerProfile, onComplete }) {
   return (
     <div className={`onboarding-screen ${step === 3 ? 'onboarding-screen--wide' : ''}`}>
       <div className="onboarding-progress">
-        {Array.from({ length: TOTAL_ONBOARDING_STEPS }, (_, i) => (
-          <div key={i} className={`onboarding-pip ${i + 1 <= step ? 'active' : ''}`} />
+        {Array.from({ length: totalSteps }, (_, i) => (
+          <div key={i} className={`onboarding-pip ${i + 1 <= displayStep(step) ? 'active' : ''}`} />
         ))}
       </div>
 
       <div className={`onboarding-card ${step === 3 ? 'onboarding-card--wide' : ''}`}>
-        <div className="onboarding-step-label">Step {step} of {TOTAL_ONBOARDING_STEPS}</div>
+        <div className="onboarding-step-label">Step {displayStep(step)} of {totalSteps}</div>
 
         {/* ── Step 1: Background ── */}
         {step === 1 && (
@@ -984,6 +1848,7 @@ function OnboardingView({ student, careerProfile, onComplete }) {
                   <span className="ob-usecase-icon">{uc.icon}</span>
                   <span className="ob-usecase-title">{uc.title}</span>
                   <span className="ob-usecase-desc">{uc.desc}</span>
+                  {uc.tag && <span className="ob-usecase-tag">{uc.tag}</span>}
                   {motivation === uc.id && <span className="ob-usecase-check">✓</span>}
                 </button>
               ))}
@@ -997,7 +1862,7 @@ function OnboardingView({ student, careerProfile, onComplete }) {
             </div>
             <div className="onboarding-nav">
               <button className="onboarding-back" onClick={() => setStep(1)}>← Back</button>
-              <button className="onboarding-next" disabled={!canStep2} onClick={() => setStep(3)}>
+              <button className="onboarding-next" disabled={!canStep2} onClick={goFromStep2}>
                 Continue <ArrowIcon />
               </button>
             </div>
@@ -1005,10 +1870,10 @@ function OnboardingView({ student, careerProfile, onComplete }) {
         )}
 
         {/* ── Step 3a: Cluster picker ── */}
-        {step === 3 && !selectedCluster && (
+        {step === 3 && !effectiveCluster && (
           <>
             <h2 className="onboarding-heading">Which world do you see yourself in?</h2>
-            <p className="onboarding-sub">This shapes how we personalise your curriculum — you can always change it later.</p>
+            <p className="onboarding-sub">This shapes how we personalise your curriculum. You can always change it later.</p>
             <div className="ob-cluster-grid">
               {[
                 {
@@ -1020,7 +1885,7 @@ function OnboardingView({ student, careerProfile, onComplete }) {
                     </svg>
                   ),
                   headline: 'Science & Technical',
-                  desc: 'Research, data, and the pipeline. Roles where science is your primary tool — from bench to bioinformatics.',
+                  desc: 'Research, data, and the pipeline. Roles where science is your primary tool, from bench to bioinformatics.',
                   examples: 'Bioinformatician · Drug Discovery Scientist · Clinical Research Associate',
                 },
                 {
@@ -1032,7 +1897,7 @@ function OnboardingView({ student, careerProfile, onComplete }) {
                     </svg>
                   ),
                   headline: 'Business & Commercial',
-                  desc: 'Strategy, deals, and market access. Roles where science meets business — from BD to consulting.',
+                  desc: 'Strategy, deals, and market access. Roles where science meets business, from BD to consulting.',
                   examples: 'Life Sciences Consultant · BD Associate · Market Access Analyst',
                 },
                 {
@@ -1044,7 +1909,7 @@ function OnboardingView({ student, careerProfile, onComplete }) {
                     </svg>
                   ),
                   headline: 'Emerging & Hybrid',
-                  desc: 'The frontier. Roles that barely existed 10 years ago — AI, precision medicine, and building your own company.',
+                  desc: 'The frontier. Roles that barely existed 10 years ago: AI, precision medicine, and building your own company.',
                   examples: 'AI Drug Discovery · Precision Medicine Specialist · Biotech Founder',
                 },
               ].map(cl => (
@@ -1065,28 +1930,28 @@ function OnboardingView({ student, careerProfile, onComplete }) {
             </div>
             <div className="ob-explore-skip">
               <button className="ob-explore-btn" onClick={() => { setSelectedCareerId(''); setStep(4); }}>
-                I'm not sure yet — I'll just explore for now →
+                I'm not sure yet. Explore for now →
               </button>
             </div>
           </>
         )}
 
         {/* ── Step 3b: Career picker within cluster ── */}
-        {step === 3 && !!selectedCluster && (
+        {step === 3 && !!effectiveCluster && (
           <>
             <div className="ob-cluster-back-row">
-              <button type="button" className="ob-cluster-back-btn" onClick={() => { setSelectedCluster(''); setSelectedCareerId(''); }}>
-                ← Back to clusters
+              <button type="button" className="ob-cluster-back-btn" onClick={goBackFromStep3}>
+                {motivation === 'forward_deployed' ? '← Back' : '← Back to clusters'}
               </button>
-              <span className="ob-cluster-badge" style={{ background: CLUSTER_COLORS[selectedCluster] + '18', color: CLUSTER_COLORS[selectedCluster] }}>
-                {selectedCluster}
+              <span className="ob-cluster-badge" style={{ background: CLUSTER_COLORS[effectiveCluster] + '18', color: CLUSTER_COLORS[effectiveCluster] }}>
+                {effectiveCluster}
               </span>
             </div>
             <h2 className="onboarding-heading">Now pick your target role</h2>
-            <p className="onboarding-sub">Your entire learning roadmap is built around this — every subject, every concept, made relevant to where you're headed.</p>
+            <p className="onboarding-sub">Your entire learning roadmap is built around this. Every subject, every concept, made relevant to where you're headed.</p>
             <div className="ob-career-grid ob-career-grid--full">
-              {careers.filter(c => c.cluster === selectedCluster).map(career => {
-                const color = CLUSTER_COLORS[selectedCluster];
+              {careers.filter(c => c.cluster === effectiveCluster).map(career => {
+                const color = CLUSTER_COLORS[effectiveCluster];
                 return (
                   <div key={career.id}
                     className={`ob-career-card ${selectedCareerId === career.id ? 'selected' : ''}`}
@@ -1109,14 +1974,14 @@ function OnboardingView({ student, careerProfile, onComplete }) {
               })}
             </div>
             <div className="onboarding-nav" style={{ marginTop: '1.5rem' }}>
-              <button className="onboarding-back" onClick={() => { setSelectedCluster(''); setSelectedCareerId(''); }}>← Back</button>
+              <button className="onboarding-back" onClick={goBackFromStep3}>← Back</button>
               <button className="onboarding-next" disabled={!canStep3} onClick={() => setStep(4)}>
                 Continue <ArrowIcon />
               </button>
             </div>
             <div className="ob-explore-skip">
               <button className="ob-explore-btn" onClick={() => { setSelectedCareerId(''); setStep(4); }}>
-                I'm not sure yet — I'll just explore for now →
+                I'm not sure yet. Explore for now →
               </button>
             </div>
           </>
@@ -1149,7 +2014,7 @@ function OnboardingView({ student, careerProfile, onComplete }) {
               </label>
             </div>
             <div className="onboarding-nav">
-              <button className="onboarding-back" onClick={() => setStep(3)}>← Back</button>
+              <button className="onboarding-back" onClick={goBackFromStep4}>← Back</button>
               <button className="onboarding-next onboarding-finish" disabled={saving} onClick={() => handleFinish(false)}>
                 {saving ? 'Setting up…' : "Let's go →"}
               </button>
@@ -1181,7 +2046,7 @@ function HowItWorksOverlay({ onClose, onGetStarted, onRequestAccess }) {
           <div className="hiw-tag">Bversity Adaptive Learning Intelligence</div>
           <h2 className="hiw-title">The world's first AI-Native University for Biotech &amp; Life Sciences</h2>
           <p className="hiw-desc">
-            A new kind of university built for the AI era. Not lectures, not video courses, not a fixed curriculum. Bversity is designed from the ground up to be living, adaptive, and career-first. The university of what's next, built to accelerate your career readiness in the fast-evolving life sciences industry.
+            Not lectures. Not video courses. A living, adaptive university built career-first for the AI era.
           </p>
         </div>
 
@@ -1191,28 +2056,28 @@ function HowItWorksOverlay({ onClose, onGetStarted, onRequestAccess }) {
             <div className="hiw-uc-icon">🧭</div>
             <div className="hiw-uc-body">
               <div className="hiw-uc-title">Career Direction</div>
-              <div className="hiw-uc-desc">Not sure what your biology degree leads to? Explore real career paths in biotech, from Drug Discovery Scientist to Bioinformatics Engineer, and find exactly where you fit.</div>
+              <div className="hiw-uc-desc">Find exactly where your biology degree leads in biotech.</div>
             </div>
           </div>
           <div className="hiw-use-case">
             <div className="hiw-uc-icon">🏭</div>
             <div className="hiw-uc-body">
               <div className="hiw-uc-title">Industry Readiness</div>
-              <div className="hiw-uc-desc">Build the domain knowledge that companies actually look for. Go beyond university theory and learn how clinical trials, genomics pipelines, and drug discovery work in the real world.</div>
+              <div className="hiw-uc-desc">Learn how clinical trials, genomics pipelines and drug discovery actually work in industry.</div>
             </div>
           </div>
           <div className="hiw-use-case">
             <div className="hiw-uc-icon">⚡</div>
             <div className="hiw-uc-body">
               <div className="hiw-uc-title">Stay Ahead of Emerging Fields</div>
-              <div className="hiw-uc-desc">Longevity science, AI in drug discovery, RNA therapeutics. Bversity keeps you current on the fastest-moving areas of biotech that are reshaping the industry right now.</div>
+              <div className="hiw-uc-desc">Longevity, AI in drug discovery, RNA therapeutics. Stay current on what's reshaping biotech right now.</div>
             </div>
           </div>
           <div className="hiw-use-case">
             <div className="hiw-uc-icon">🚀</div>
             <div className="hiw-uc-body">
               <div className="hiw-uc-title">Become a Forward Deployed Engineer</div>
-              <div className="hiw-uc-desc">The most in-demand hybrid role in biotech. Bridge science and technology, and deploy AI solutions directly inside pharma and biotech companies alongside scientists.</div>
+              <div className="hiw-uc-desc">The most in-demand hybrid role in biotech. Bridge science and technology inside pharma and biotech companies.</div>
             </div>
           </div>
         </div>
@@ -1230,7 +2095,7 @@ function HowItWorksOverlay({ onClose, onGetStarted, onRequestAccess }) {
             <div className="hiw-step-num">2</div>
             <div className="hiw-step-text">
               <strong>See exactly what it takes</strong>
-              <span>Your personalized learning track shows every skill and subject you need — in the right order.</span>
+              <span>Your personalized learning track shows every skill and subject you need, in the right order.</span>
             </div>
           </div>
           <div className="hiw-step">
@@ -1464,15 +2329,378 @@ function WaitlistForm({ onBack, onCountUpdate }) {
   );
 }
 
+// ── Sample Weekly Report Modal ───────────────────────────────────────────────
+
+function SampleReportModal({ onClose }) {
+  const SAMPLE = {
+    name: 'Arjun Sharma',
+    week: 'Week of 28 Apr 2025',
+    narrative: '"Arjun, this was a strong week. You covered 8 concepts across two subjects and your evening sessions are getting longer, a sign the material is clicking. The one area to watch: Market Sizing and Regulatory Pathways have been sitting in \'covered\' for a while. One focused session on each would push them to mastered and meaningfully move your career readiness score."',
+    sessions: 3, wow_sessions: '+1',
+    concepts_covered: 8, wow_concepts: '+3',
+    concepts_mastered: 2,
+    quizzes: '2 / 3',
+    streak: 5,
+    peak_time: 'Evening',
+    peak_day: 'Wednesday',
+    avg_session: '34 min',
+    avg_msgs: '12 messages',
+    learning_style: 'Deep diver',
+    strongest_concept: 'Drug Discovery Fundamentals',
+    stuck_concepts: ['Market Sizing', 'Regulatory Pathways'],
+    active_subjects: ['Life Sciences Fundamentals', 'Biotech Business'],
+    career_title: 'Biotech Business Development Associate',
+    career_readiness: 24,
+    untouched: ['Investor Pitch Deck Anatomy', 'Term Sheet Negotiation'],
+  };
+
+  function downloadPDF() {
+    const html = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Bversity Weekly Report: Sample</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f4f6f9; padding: 32px 16px; }
+    .doc { max-width: 580px; margin: 0 auto; border-radius: 12px; overflow: hidden; box-shadow: 0 8px 40px rgba(0,0,0,0.15); }
+    .hdr { background: #07142A; padding: 28px 32px 24px; }
+    .hdr-row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+    .brand { font-size: 18px; font-weight: 900; color: #fff; }
+    .brand-sub { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    .report-meta { text-align: right; font-size: 11px; color: rgba(255,255,255,0.45); line-height: 1.6; }
+    .hdr-title { font-size: 21px; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+    .hdr-narrative { margin-top: 12px; font-size: 13px; color: rgba(255,255,255,0.72); line-height: 1.65; font-style: italic; }
+    .body { background: #fff; padding: 28px 32px; border: 1px solid #E8EDF3; border-top: none; border-radius: 0 0 12px 12px; }
+    .section-label { font-size: 10px; font-weight: 700; color: #9EABBE; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 10px; }
+    .stats-row { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+    .stat-box { flex: 1; min-width: 90px; background: #F0FBF9; border-radius: 10px; padding: 14px 12px; text-align: center; }
+    .stat-val { font-size: 26px; font-weight: 900; color: #16c1ad; line-height: 1; }
+    .stat-lbl { font-size: 11px; color: #07142A; margin-top: 4px; line-height: 1.3; }
+    .stat-delta { font-size: 10px; color: #16a34a; margin-top: 3px; font-weight: 600; }
+    .streak { font-size: 13px; color: #07142A; font-weight: 600; margin-bottom: 4px; }
+    .divider { border-top: 1px solid #E8EDF3; margin: 18px 0; }
+    .row { display: flex; gap: 8px; margin-bottom: 7px; align-items: flex-start; }
+    .row-label { font-size: 12px; color: #9EABBE; min-width: 140px; flex-shrink: 0; }
+    .row-value { font-size: 12px; color: #07142A; font-weight: 600; }
+    .cta { text-align: center; margin-bottom: 16px; }
+    .cta-btn { display: inline-block; background: #16c1ad; color: #fff; border-radius: 8px; padding: 12px 28px; font-size: 13px; font-weight: 700; text-decoration: none; }
+    .footer { text-align: center; font-size: 11px; color: #9EABBE; }
+    .watermark { text-align: center; font-size: 11px; color: #ccc; margin-top: 16px; letter-spacing: 2px; }
+    @media print {
+      body { background: #fff; padding: 0; }
+      .doc { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="doc">
+  <div class="hdr">
+    <div class="hdr-row">
+      <div><div class="brand">Bversity</div><div class="brand-sub">AI University · School of Bioscience</div></div>
+      <div class="report-meta">Weekly Learning Report<br>${SAMPLE.week}</div>
+    </div>
+    <div class="hdr-title">Your week at Bversity, ${SAMPLE.name.split(' ')[0]} 🧬</div>
+    <div class="hdr-narrative">${SAMPLE.narrative}</div>
+  </div>
+  <div class="body">
+    <div class="section-label">This Week</div>
+    <div class="stats-row">
+      <div class="stat-box"><div class="stat-val">${SAMPLE.sessions}</div><div class="stat-lbl">Sessions</div><div class="stat-delta">${SAMPLE.wow_sessions} vs last week</div></div>
+      <div class="stat-box"><div class="stat-val">${SAMPLE.concepts_covered}</div><div class="stat-lbl">Concepts Covered</div><div class="stat-delta">${SAMPLE.wow_concepts} vs last week</div></div>
+      <div class="stat-box"><div class="stat-val">${SAMPLE.concepts_mastered}</div><div class="stat-lbl">Concepts Mastered</div></div>
+      <div class="stat-box"><div class="stat-val">${SAMPLE.quizzes}</div><div class="stat-lbl">Quizzes Passed</div></div>
+    </div>
+    <div class="streak">🔥 ${SAMPLE.streak}-day streak. Keep it going!</div>
+    <div class="divider"></div>
+    <div class="section-label">Your Learning Pattern</div>
+    <div class="row"><div class="row-label">Peak time</div><div class="row-value">${SAMPLE.peak_time} learner · most active on ${SAMPLE.peak_day}s</div></div>
+    <div class="row"><div class="row-label">Session length</div><div class="row-value">Avg ${SAMPLE.avg_session} · ${SAMPLE.avg_msgs} per session</div></div>
+    <div class="row"><div class="row-label">Learning style</div><div class="row-value">${SAMPLE.learning_style}</div></div>
+    <div class="divider"></div>
+    <div class="section-label">Concepts</div>
+    <div class="row"><div class="row-label">Latest mastery</div><div class="row-value">${SAMPLE.strongest_concept} ✓</div></div>
+    <div class="row"><div class="row-label">Needs attention</div><div class="row-value">${SAMPLE.stuck_concepts.join(', ')}</div></div>
+    <div class="row"><div class="row-label">Active subjects</div><div class="row-value">${SAMPLE.active_subjects.join(', ')}</div></div>
+    <div class="divider"></div>
+    <div class="section-label">Career Path</div>
+    <div class="row"><div class="row-label">Target role</div><div class="row-value">${SAMPLE.career_title} · ${SAMPLE.career_readiness}% career ready</div></div>
+    <div class="row"><div class="row-label">Not yet started</div><div class="row-value">${SAMPLE.untouched.join(', ')}</div></div>
+    <div class="divider"></div>
+    <div class="cta"><div class="cta-btn">Continue Learning →</div></div>
+    <div class="footer">Sent every Monday · university.bversity.io</div>
+  </div>
+</div>
+<div class="watermark">SAMPLE REPORT</div>
+<script>window.onload = function() { window.print(); };<\/script>
+</body>
+</html>`;
+    const w = window.open('', '_blank', 'width=700,height=900');
+    w.document.write(html);
+    w.document.close();
+  }
+
+  const s = SAMPLE;
+  const navy = '#07142A';
+  const teal = '#16c1ad';
+  const tealDim = '#0d9e8e';
+  const muted = '#7A8FA6';
+  const border = '#E8EDF3';
+  const bg = '#F4F6F9';
+
+  function StatBox({ val, label, delta }) {
+    return (
+      <div style={{ flex: 1, minWidth: 90, background: '#F0FBF9', borderRadius: 10, padding: '14px 12px', textAlign: 'center' }}>
+        <div style={{ fontSize: 26, fontWeight: 900, color: teal, lineHeight: 1 }}>{val}</div>
+        <div style={{ fontSize: 11, color: navy, marginTop: 4, lineHeight: 1.3 }}>{label}</div>
+        {delta && <div style={{ fontSize: 10, color: '#16a34a', marginTop: 3, fontWeight: 600 }}>{delta} vs last week</div>}
+      </div>
+    );
+  }
+
+  function SectionLabel({ children }) {
+    return <div style={{ fontSize: 10, fontWeight: 700, color: muted, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 10 }}>{children}</div>;
+  }
+
+  function Divider() {
+    return <div style={{ borderTop: `1px solid ${border}`, margin: '18px 0' }} />;
+  }
+
+  function Row({ label, value }) {
+    return (
+      <div style={{ display: 'flex', gap: 8, marginBottom: 7, alignItems: 'flex-start' }}>
+        <div style={{ fontSize: 12, color: muted, minWidth: 140 }}>{label}</div>
+        <div style={{ fontSize: 12, color: navy, fontWeight: 600 }}>{value}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="sample-report-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="sample-report-shell">
+
+        {/* Toolbar — hidden on print */}
+        <div className="sample-report-toolbar no-print">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <span style={{ fontSize: 13, color: '#3D5166', fontWeight: 600 }}>Sample Weekly Report</span>
+            <span style={{ fontSize: 11, color: muted, background: bg, border: `1px solid ${border}`, borderRadius: 99, padding: '2px 10px' }}>Preview</span>
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button className="sample-report-print-btn" onClick={downloadPDF}>⬇ Download PDF</button>
+            <button className="sample-report-close-btn" onClick={onClose}>✕</button>
+          </div>
+        </div>
+
+        {/* Document */}
+        <div className="sample-report-doc" id="sample-report-doc">
+
+          {/* Header */}
+          <div style={{ background: navy, borderRadius: '12px 12px 0 0', padding: '28px 32px 24px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 900, color: '#fff', letterSpacing: -0.5 }}>Bversity</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>AI University · School of Bioscience</div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)' }}>Weekly Learning Report</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>{s.week}</div>
+              </div>
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: '#fff', letterSpacing: -0.5 }}>Your week at Bversity, {s.name.split(' ')[0]} 🧬</div>
+            <div style={{ marginTop: 12, fontSize: 13, color: 'rgba(255,255,255,0.7)', lineHeight: 1.6, fontStyle: 'italic', maxWidth: 520 }}>
+              {s.narrative}
+            </div>
+          </div>
+
+          {/* Body */}
+          <div style={{ padding: '28px 32px', background: '#fff', borderRadius: '0 0 12px 12px', border: `1px solid ${border}`, borderTop: 'none' }}>
+
+            {/* Stats */}
+            <SectionLabel>This Week</SectionLabel>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 14, flexWrap: 'wrap' }}>
+              <StatBox val={s.sessions} label="Sessions" delta={s.wow_sessions} />
+              <StatBox val={s.concepts_covered} label="Concepts Covered" delta={s.wow_concepts} />
+              <StatBox val={s.concepts_mastered} label="Concepts Mastered" />
+              <StatBox val={s.quizzes} label="Quizzes Passed" />
+            </div>
+            <div style={{ fontSize: 13, color: navy, fontWeight: 600, marginBottom: 6 }}>
+              🔥 {s.streak}-day streak. Keep it going!
+            </div>
+
+            <Divider />
+
+            {/* Learning pattern */}
+            <SectionLabel>Your Learning Pattern</SectionLabel>
+            <Row label="Peak time" value={`${s.peak_time} learner · most active on ${s.peak_day}s`} />
+            <Row label="Session length" value={`Avg ${s.avg_session} · ${s.avg_msgs} per session`} />
+            <Row label="Learning style" value={s.learning_style} />
+
+            <Divider />
+
+            {/* Concepts */}
+            <SectionLabel>Concepts</SectionLabel>
+            <Row label="Latest mastery" value={`${s.strongest_concept} ✓`} />
+            <Row label="Needs attention" value={s.stuck_concepts.join(', ')} />
+            <Row label="Active subjects" value={s.active_subjects.join(', ')} />
+
+            <Divider />
+
+            {/* Career */}
+            <SectionLabel>Career Path</SectionLabel>
+            <Row label="Target role" value={`${s.career_title} · ${s.career_readiness}% career ready`} />
+            <Row label="Not yet started" value={s.untouched.join(', ')} />
+
+            <Divider />
+
+            {/* CTA */}
+            <div style={{ textAlign: 'center', marginBottom: 16 }}>
+              <div style={{ display: 'inline-block', background: teal, color: '#fff', borderRadius: 8, padding: '12px 28px', fontSize: 13, fontWeight: 700 }}>
+                Continue Learning →
+              </div>
+            </div>
+            <div style={{ textAlign: 'center', fontSize: 11, color: muted }}>
+              Sent every Monday · university.bversity.io
+            </div>
+          </div>
+
+          {/* Sample watermark */}
+          <div className="sample-report-watermark no-print">SAMPLE</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Re-entry Screen ─────────────────────────────────────────────────────────
+
+function ReEntryScreen({ student, onGo, onDismiss }) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch(`/api/reentry/${student.id}`)
+      .then(r => r.json())
+      .then(d => { setData(d); setLoading(false); })
+      .catch(() => { setLoading(false); onDismiss(); });
+  }, [student.id]);
+
+  if (loading) return (
+    <div className="reentry-shell">
+      <div className="reentry-loading">
+        <div className="reentry-loading-dot" /><div className="reentry-loading-dot" /><div className="reentry-loading-dot" />
+      </div>
+    </div>
+  );
+  if (!data) return null;
+
+  const firstName = student.name.split(' ')[0];
+  const { days_away, last_session, next_concept, overdue_count,
+          streak_count, streak_at_risk, streak_broken, streak_today } = data;
+
+  function awayText() {
+    if (days_away === 0) return 'You were just here.';
+    if (days_away === 1) return 'Back after a day away.';
+    if (days_away <= 6) return `Back after ${days_away} days.`;
+    if (days_away <= 13) return `You've been away for ${days_away} days.`;
+    return `It's been ${days_away} days. Good to see you.`;
+  }
+
+  function ctaLabel() {
+    if (next_concept) return `Study ${next_concept.concept_name}`;
+    if (last_session) return `Continue ${last_session.subject_name}`;
+    return 'Start learning';
+  }
+
+  function handleGo() {
+    const targetSubjectId = next_concept?.subject_id || last_session?.subject_id;
+    if (targetSubjectId) {
+      const subj = SUBJECTS.find(s => s.id === targetSubjectId);
+      if (subj) { onGo(subj); return; }
+    }
+    onDismiss();
+  }
+
+  return (
+    <div className="reentry-shell">
+      <div className="reentry-card">
+
+        {/* Header */}
+        <div className="reentry-header">
+          <div className="reentry-greeting">Welcome back, {firstName}</div>
+          <div className="reentry-away">{awayText()}</div>
+        </div>
+
+        {/* Streak */}
+        {streak_count > 0 && (
+          <div className={`reentry-streak ${streak_broken ? 'broken' : streak_at_risk ? 'at-risk' : 'active'}`}>
+            <span className="reentry-streak-icon">
+              {streak_broken ? '💔' : streak_at_risk ? '⚠️' : '🔥'}
+            </span>
+            <div>
+              {streak_broken
+                ? <><strong>Your {streak_count}-day streak ended.</strong> Start a new one today.</>
+                : streak_at_risk
+                ? <><strong>Streak at risk!</strong> You have {streak_count} days. Don't break it now.</>
+                : <><strong>{streak_count}-day streak</strong>. Keep it going!</>
+              }
+            </div>
+          </div>
+        )}
+
+        {/* Last session recap */}
+        {last_session?.summary && (
+          <div className="reentry-recap">
+            <div className="reentry-recap-label">
+              <span className="reentry-recap-dot" style={{ background: last_session.subject_color }} />
+              Last session · {last_session.subject_name}
+            </div>
+            <div className="reentry-recap-text">{last_session.summary}</div>
+          </div>
+        )}
+
+        {/* Next action */}
+        {next_concept && (
+          <div className="reentry-next" style={{ borderColor: next_concept.subject_color + '44', background: next_concept.subject_color + '08' }}>
+            <div className="reentry-next-label">
+              {next_concept.is_overdue
+                ? <span className="reentry-overdue-chip">{overdue_count} overdue</span>
+                : <span className="reentry-today-chip">Up next</span>
+              }
+            </div>
+            <div className="reentry-next-concept" style={{ color: next_concept.subject_color }}>
+              {next_concept.concept_name}
+            </div>
+            <div className="reentry-next-subject">{next_concept.subject_name}</div>
+          </div>
+        )}
+
+        {/* CTA */}
+        <button
+          className="reentry-cta"
+          style={{ background: next_concept?.subject_color || last_session?.subject_color || '#00A896' }}
+          onClick={handleGo}
+        >
+          {ctaLabel()} →
+        </button>
+
+        <button className="reentry-skip" onClick={onDismiss}>
+          See everything
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Login ───────────────────────────────────────────────────────────────────
 
 function LoginView({ onLogin, onBack }) {
-  const [step, setStep]       = useState(1);
-  const [name, setName]       = useState('');
-  const [email, setEmail]     = useState('');
-  const [code, setCode]       = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState('');
+  const [step, setStep]             = useState(1);
+  const [name, setName]             = useState('');
+  const [email, setEmail]           = useState('');
+  const [code, setCode]             = useState('');
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState('');
+  const [showReport, setShowReport] = useState(false);
 
   async function handleRequestCode(e) {
     e.preventDefault();
@@ -1516,7 +2744,7 @@ function LoginView({ onLogin, onBack }) {
           <h2 className="login-headline">Learn biotech like you're already working in it.</h2>
           <p className="login-subline">Industry faculty from Broad Institute, Illumina, Genentech, and Novartis — teaching the exact curriculum your career requires.</p>
           <div className="login-features">
-            <div className="login-feature"><span className="login-feature-dot" />Career-mapped curriculum — only what you need to know</div>
+            <div className="login-feature"><span className="login-feature-dot" />Career-mapped curriculum, only what you need to know</div>
             <div className="login-feature"><span className="login-feature-dot" />AI industry experts that adapt to your pace and prior knowledge</div>
             <div className="login-feature"><span className="login-feature-dot" />Real-world capstone projects, marked by faculty</div>
           </div>
@@ -1525,8 +2753,12 @@ function LoginView({ onLogin, onBack }) {
               <span key={s} className="login-chip">{s}</span>
             ))}
           </div>
+          <button className="login-sample-report-btn" onClick={() => setShowReport(true)}>
+            📄 See a sample weekly progress report →
+          </button>
         </div>
       </div>
+      {showReport && <SampleReportModal onClose={() => setShowReport(false)} />}
       <div className="login-right">
         <div className="login-form-wrap">
           {step === 1 ? (
@@ -1552,7 +2784,7 @@ function LoginView({ onLogin, onBack }) {
                   {loading ? 'Sending code...' : 'Send verification code →'}
                 </button>
               </form>
-              <p className="login-note">Access is invite-only. Contact sai@bversity.io to request access.</p>
+              <p className="login-note">Access is invite-only. Contact sudharsan@bversity.io to request access.</p>
             </>
           ) : (
             <>
@@ -1595,6 +2827,7 @@ function LoginView({ onLogin, onBack }) {
 // ── Career Preview Modal ───────────────────────────────────────────────────
 
 function CareerPreviewModal({ career, currentCareerId, saving, onConfirm, onClose }) {
+  const imgs = useImgs();
   const color = CLUSTER_COLORS[career.cluster] || '#00A896';
   const relevantSubjects = SUBJECTS.filter(s => (career.relevant_subjects || []).includes(s.id));
   const totalHours = relevantSubjects.reduce((sum, s) => sum + (SUBJECT_HOURS[s.id] || 20), 0);
@@ -1609,12 +2842,12 @@ function CareerPreviewModal({ career, currentCareerId, saving, onConfirm, onClos
           </svg>
         </button>
 
-        <div className="cpv-header">
-          <div className="cpv-cluster-badge" style={{ color, background: color + '18', border: `1px solid ${color}44` }}>
+        <div
+          className="cpv-header"
+          style={{ backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.30) 100%), url(${imgs.career(career.id)})` }}
+        >
+          <div className="cpv-cluster-badge">
             {career.cluster}
-          </div>
-          <div className="cpv-icon-wrap" style={{ color }}>
-            {CAREER_ICONS[career.id]}
           </div>
           <h2 className="cpv-title">{career.title}</h2>
           <div className="cpv-salary-row">
@@ -1672,6 +2905,7 @@ function CareerPreviewModal({ career, currentCareerId, saving, onConfirm, onClos
 // ── Career Select ──────────────────────────────────────────────────────────
 
 function CareerSelectView({ student, currentCareerId, onSelect, onBack }) {
+  const imgs = useImgs();
   const [careers, setCareers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(null);
@@ -1713,7 +2947,7 @@ function CareerSelectView({ student, currentCareerId, onSelect, onBack }) {
       </div>
       <div className="career-select-hero">
         <h1>Choose your career destination</h1>
-        <p>Your AI industry experts will connect every concept they teach to how it's actually used in your target role — making your learning specific and purposeful.</p>
+        <p>Your AI industry experts will connect every concept they teach to how it's actually used in your target role, making your learning specific and purposeful.</p>
       </div>
       {clusters.map(cluster => {
         const clusterCareers = careers.filter(c => c.cluster === cluster);
@@ -1735,20 +2969,22 @@ function CareerSelectView({ student, currentCareerId, onSelect, onBack }) {
                   tabIndex={0}
                   onKeyDown={(e) => e.key === 'Enter' && setPreview(career)}
                 >
-                  <div className="career-card-top">
-                    <span className="career-card-icon">{CAREER_ICONS[career.id]}</span>
-                    <div className="career-card-meta">
-                      <div className="career-card-title">{career.title}</div>
-                      <div className="career-card-salary">
-                        <span className="career-card-salary-us">🇺🇸 {career.salary_range}</span>
-                        {career.salary_range_india && <span className="career-card-salary-in">🇮🇳 {career.salary_range_india}</span>}
-                      </div>
+                  <div
+                    className="career-card-image"
+                    style={{ backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.2) 100%), url(${imgs.career(career.id)})` }}
+                  >
+                    <div className="career-card-image-title">{career.title}</div>
+                    <div className="career-card-image-salary">
+                      <span>🇺🇸 {career.salary_range}</span>
+                      {career.salary_range_india && <span>🇮🇳 {career.salary_range_india}</span>}
                     </div>
-                    {currentCareerId === career.id && <span className="career-selected-check">✓</span>}
+                    {currentCareerId === career.id && <span className="career-card-image-check">✓ Current</span>}
                   </div>
-                  <p className="career-card-desc">{career.description}</p>
-                  <div className="career-card-cta">
-                    {currentCareerId === career.id ? 'Current path' : 'View path →'}
+                  <div className="career-card-body">
+                    <p className="career-card-desc">{career.description}</p>
+                    <div className="career-card-cta">
+                      {currentCareerId === career.id ? 'Current path' : 'View path →'}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -1772,11 +3008,21 @@ function CareerSelectView({ student, currentCareerId, onSelect, onBack }) {
 
 // ── Career Map ─────────────────────────────────────────────────────────────
 
+const CAREER_STAGES = [
+  { id: 'start',   label: 'Just started',   min: 0,  max: 15 },
+  { id: 'core',    label: 'Building core',  min: 15, max: 40 },
+  { id: 'getting', label: 'Getting there',  min: 40, max: 70 },
+  { id: 'ready',   label: 'Job-ready',      min: 70, max: 100 },
+];
+
 function CareerMapView({ student, careerProfile, onBack, onChangePath, onStudy }) {
+  const imgs = useImgs();
   const [dashData, setDashData] = useState(null);
+  const [paceData, setPaceData] = useState(null);
 
   useEffect(() => {
     fetch(`/api/dashboard/${student.id}`).then(r => r.json()).then(setDashData).catch(() => {});
+    fetch(`/api/career-pace/${student.id}`).then(r => r.json()).then(setPaceData).catch(() => {});
   }, [student.id]);
 
   const career = careerProfile?.career;
@@ -1800,6 +3046,23 @@ function CareerMapView({ student, careerProfile, onBack, onChangePath, onStudy }
   const coveredCount   = relevantProgress.reduce((sum, p) => sum + p.covered,  0);
   const readinessPct   = totalConcepts > 0 ? Math.round((masteredCount / totalConcepts) * 100) : 0;
 
+  // Stage
+  const currentStage = CAREER_STAGES.find(s => readinessPct < s.max) || CAREER_STAGES[CAREER_STAGES.length - 1];
+
+  // Time estimate
+  const weeklyPace = paceData?.weekly_pace ?? 0;
+  const remaining  = totalConcepts - masteredCount;
+  const weeksLeft  = weeklyPace > 0 ? Math.ceil(remaining / weeklyPace) : null;
+
+  // Next focus: subject with most remaining concepts that the student hasn't started or has lowest mastery ratio
+  const nextFocus = relevantProgress
+    .filter(p => p.mastered < p.total)
+    .sort((a, b) => {
+      const ratioA = a.total > 0 ? a.mastered / a.total : 0;
+      const ratioB = b.total > 0 ? b.mastered / b.total : 0;
+      return ratioA - ratioB;
+    })[0] ?? null;
+
   return (
     <div className="career-map-view">
       <div className="career-map-nav">
@@ -1812,30 +3075,107 @@ function CareerMapView({ student, careerProfile, onBack, onChangePath, onStudy }
         <button className="change-path-btn" onClick={onChangePath}>Change career path</button>
       </div>
 
-      <div className="career-map-hero" style={{ '--career-color': clusterColor }}>
-        <div className="career-map-cluster-badge" style={{ background: clusterColor + '22', color: clusterColor, border: `1px solid ${clusterColor}44` }}>
-          {career.cluster}
-        </div>
-        <div className="career-map-icon">{CAREER_ICONS[career.id]}</div>
-        <h1 className="career-map-title">{career.title}</h1>
-        <p className="career-map-desc">{career.description}</p>
-        <div className="career-hero-badges">
-          <div className="career-salary-badge" style={{ borderColor: clusterColor, color: clusterColor }}>
-            🇺🇸 {career.salary_range}
+      <div
+        className="career-map-hero"
+        style={{
+          '--career-color': clusterColor,
+          backgroundImage: `linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.38) 60%, rgba(0,0,0,0.18) 100%), url(${imgs.career(career.id)})`,
+        }}
+      >
+        <div className="career-hero-content">
+          <div className="career-map-cluster-badge">
+            {career.cluster}
           </div>
-          {career.salary_range_india && (
-            <div className="career-salary-badge" style={{ borderColor: clusterColor, color: clusterColor }}>
-              🇮🇳 {career.salary_range_india}
+          <h1 className="career-map-title">{career.title}</h1>
+          <p className="career-map-desc">{career.description}</p>
+          <div className="career-hero-badges">
+            <div className="career-salary-badge">
+              🇺🇸 {career.salary_range}
             </div>
-          )}
-          {career.min_qualification && (
-            <div className={`career-qual-badge ${career.min_qualification === 'BTech / BSc' ? 'qual-btech' : career.min_qualification === 'Any background' ? 'qual-any' : 'qual-msc'}`}>
-              {career.min_qualification === 'BTech / BSc' ? 'Starts with BTech / BSc' :
-               career.min_qualification === 'Any background' ? 'Open to all backgrounds' :
-               `Entry: ${career.min_qualification}`}
-            </div>
-          )}
+            {career.salary_range_india && (
+              <div className="career-salary-badge">
+                🇮🇳 {career.salary_range_india}
+              </div>
+            )}
+            {career.min_qualification && (
+              <div className="career-qual-badge">
+                {career.min_qualification === 'BTech / BSc' ? 'Starts with BTech / BSc' :
+                 career.min_qualification === 'Any background' ? 'Open to all backgrounds' :
+                 `Entry: ${career.min_qualification}`}
+              </div>
+            )}
+          </div>
         </div>
+      </div>
+
+      {/* ── Career Progress Narrative ── */}
+      <div className="career-narrative" style={{ '--cn-color': clusterColor }}>
+        {/* Stage journey */}
+        <div className="cn-stage-row">
+          {CAREER_STAGES.map((stage, i) => {
+            const isActive  = stage.id === currentStage.id;
+            const isPast    = CAREER_STAGES.indexOf(CAREER_STAGES.find(s => s.id === currentStage.id)) > i;
+            return (
+              <React.Fragment key={stage.id}>
+                <div className={`cn-stage-item ${isActive ? 'active' : ''} ${isPast ? 'past' : ''}`}>
+                  <div className="cn-stage-dot" style={isActive || isPast ? { background: clusterColor, borderColor: clusterColor } : {}} />
+                  <span className="cn-stage-label">{stage.label}</span>
+                </div>
+                {i < CAREER_STAGES.length - 1 && (
+                  <div className={`cn-stage-connector ${isPast || isActive ? 'filled' : ''}`}
+                       style={isPast || isActive ? { background: clusterColor } : {}} />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
+
+        {/* Narrative text */}
+        <div className="cn-narrative-text">
+          <span className="cn-stage-badge" style={{ background: clusterColor + '1a', color: clusterColor, border: `1px solid ${clusterColor}33` }}>
+            {currentStage.label}
+          </span>
+          <p className="cn-sentence">
+            {student.name.split(' ')[0]}, you've mastered <strong>{masteredCount}</strong> of <strong>{totalConcepts}</strong> concepts needed to become a <strong>{career.title}</strong>.
+            {weeksLeft !== null && weeksLeft > 0
+              ? <> At your current pace, you'll be job-ready in approximately <strong>{weeksLeft} week{weeksLeft > 1 ? 's' : ''}</strong>.</>
+              : masteredCount >= totalConcepts
+              ? <> You have the core knowledge to step into this role.</>
+              : <> Start studying consistently to get your readiness estimate.</>
+            }
+          </p>
+        </div>
+
+        {/* Readiness meter */}
+        <div className="cn-meter-row">
+          <div className="cn-meter-track">
+            <div className="cn-meter-fill covered" style={{ width: `${totalConcepts > 0 ? (coveredCount / totalConcepts) * 100 : 0}%`, background: clusterColor + '40' }} />
+            <div className="cn-meter-fill mastered" style={{ width: `${totalConcepts > 0 ? (masteredCount / totalConcepts) * 100 : 0}%`, background: clusterColor }} />
+          </div>
+          <span className="cn-meter-pct" style={{ color: clusterColor }}>{readinessPct}%</span>
+        </div>
+        <div className="cn-meter-legend">
+          <span style={{ color: clusterColor }}>{masteredCount} mastered</span>
+          <span style={{ color: clusterColor + '99' }}>{coveredCount} covered</span>
+          <span className="cn-remaining">{totalConcepts - masteredCount - coveredCount} remaining</span>
+        </div>
+
+        {/* Next focus */}
+        {nextFocus && (
+          <div className="cn-next-focus" onClick={() => onStudy(nextFocus.subject)} role="button" tabIndex={0}
+               onKeyDown={e => e.key === 'Enter' && onStudy(nextFocus.subject)}
+               style={{ borderColor: nextFocus.subject.color + '55' }}>
+            <div className="cn-next-label">Your next focus</div>
+            <div className="cn-next-content">
+              <span className="cn-next-icon" style={{ color: nextFocus.subject.color }}>{SUBJECT_ICONS[nextFocus.subject.id]}</span>
+              <div className="cn-next-info">
+                <div className="cn-next-name">{nextFocus.subject.name}</div>
+                <div className="cn-next-stat">{nextFocus.mastered} of {nextFocus.total} concepts mastered</div>
+              </div>
+              <div className="cn-next-cta" style={{ background: nextFocus.subject.color }}>Study now →</div>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="career-map-body">
@@ -2029,6 +3369,7 @@ function LearnerPopup({ learner, onClose }) {
 // ── Degree Programs ────────────────────────────────────────────────────────
 
 function DegreeProgramsView() {
+  const imgs = useImgs();
   const programs = [
     {
       id: 'msc',
@@ -2078,7 +3419,7 @@ function DegreeProgramsView() {
         {programs.map(p => (
           <div key={p.id} className="deg-card" style={{ '--deg-color': p.color }}>
             <div className="deg-card-banner">
-              <img src={p.image} alt={p.title} className="deg-card-banner-img" />
+              <img src={imgs.degree(p.id) || p.image} alt={p.title} className="deg-card-banner-img" />
               <div className="deg-card-banner-overlay" style={{ background: `linear-gradient(to top, ${p.color}ee 0%, ${p.color}88 40%, transparent 100%)` }} />
               <div className="deg-card-banner-content">
                 <div className="deg-card-tag">{p.tag}</div>
@@ -2133,6 +3474,8 @@ function CommunityMapView({ student, onAddLocation }) {
   const [learners, setLearners]   = useState([]);
   const [loading, setLoading]     = useState(true);
   const [selected, setSelected]   = useState(null);
+  const [hovered, setHovered]     = useState(null); // { learner, x, y }
+  const mapRef = useRef(null);
 
   useEffect(() => {
     fetch('/api/community/map')
@@ -2149,6 +3492,12 @@ function CommunityMapView({ student, onAddLocation }) {
   const markersWithCoords = learners.map((l, i) => ({ ...l, coords: getLearnerCoords(l, i), index: i }))
     .filter(l => l.coords !== null);
 
+  function handleMarkerEnter(e, learner) {
+    const rect = mapRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    setHovered({ learner, x: e.clientX - rect.left, y: e.clientY - rect.top });
+  }
+
   return (
     <div className="community-view">
       <div className="community-header">
@@ -2156,9 +3505,9 @@ function CommunityMapView({ student, onAddLocation }) {
           <h1 className="community-title">Bversity Community Map</h1>
           <p className="community-subtitle">
             {learners.length === 0
-              ? 'No learners on the map yet — be the very first! Add your city in your profile.'
+              ? 'No learners on the map yet. Be the very first! Add your city in your profile.'
               : learners.length === 1 && iAmOnMap
-              ? "You're the first learner on the map. Share Bversity — get more people on here!"
+              ? "You're the first learner on the map. Share Bversity and get more people on here!"
               : `${learners.length} learner${learners.length !== 1 ? 's' : ''} · ${totalStates} state${totalStates !== 1 ? 's' : ''} · growing every week`}
           </p>
         </div>
@@ -2170,11 +3519,7 @@ function CommunityMapView({ student, onAddLocation }) {
       </div>
 
       <div className="community-map-wrap">
-        <div className="community-map-glass">
-          {/* Glow orbs for depth */}
-          <div className="map-glow map-glow-1" />
-          <div className="map-glow map-glow-2" />
-
+        <div className="community-map-glass" ref={mapRef} onMouseLeave={() => setHovered(null)}>
           <ComposableMap
             projection="geoMercator"
             projectionConfig={{ center: [82.5, 22], scale: 1050 }}
@@ -2189,12 +3534,12 @@ function CommunityMapView({ student, onAddLocation }) {
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    fill={isIndia ? 'rgba(0,200,150,0.11)' : 'rgba(255,255,255,0.025)'}
-                    stroke={isIndia ? 'rgba(0,255,136,0.35)' : 'rgba(255,255,255,0.06)'}
-                    strokeWidth={isIndia ? 0.9 : 0.3}
+                    fill={isIndia ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)'}
+                    stroke={isIndia ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.05)'}
+                    strokeWidth={isIndia ? 0.7 : 0.3}
                     style={{
                       default: { outline: 'none' },
-                      hover:   { outline: 'none', fill: isIndia ? 'rgba(0,255,136,0.16)' : 'rgba(255,255,255,0.04)', cursor: 'default' },
+                      hover:   { outline: 'none', fill: isIndia ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)', cursor: 'default' },
                       pressed: { outline: 'none' },
                     }}
                   />
@@ -2203,39 +3548,87 @@ function CommunityMapView({ student, onAddLocation }) {
             </Geographies>
 
             {markersWithCoords.map((learner) => {
-              const isMe = learner.student_id === student.id;
+              const isMe      = learner.student_id === student.id;
+              const dotColor  = learner.avatar_color || '#16c1ad';
+              const isHovered = hovered?.learner?.student_id === learner.student_id;
               return (
                 <Marker
                   key={learner.student_id}
                   coordinates={learner.coords}
                   onClick={() => setSelected(learner)}
+                  onMouseEnter={e => handleMarkerEnter(e, learner)}
+                  onMouseLeave={() => setHovered(null)}
                 >
                   <circle
-                    r={isMe ? 7 : 5}
-                    fill={isMe ? '#16c1ad' : '#70cdc2'}
-                    stroke={isMe ? 'rgba(22,193,173,0.4)' : 'rgba(112,205,194,0.3)'}
-                    strokeWidth={isMe ? 3 : 2}
+                    r={isHovered ? (isMe ? 9 : 7) : (isMe ? 7 : 5)}
+                    fill={dotColor}
+                    stroke={isMe ? '#fff' : 'rgba(255,255,255,0.5)'}
+                    strokeWidth={isMe ? 1.5 : 1}
                     className={isMe ? 'map-dot-me' : 'map-dot'}
-                    style={{ cursor: 'pointer', filter: `drop-shadow(0 0 5px ${isMe ? '#16c1ad' : '#70cdc2'})` }}
+                    style={{ cursor: 'pointer', transition: 'r 0.15s' }}
                   />
+                  {isMe && (
+                    <circle
+                      r={11}
+                      fill="none"
+                      stroke={dotColor}
+                      strokeWidth={1}
+                      opacity={0.4}
+                      style={{ pointerEvents: 'none' }}
+                    />
+                  )}
                 </Marker>
               );
             })}
           </ComposableMap>
 
+          {/* Hover tooltip */}
+          {hovered && (
+            <div
+              className="map-hover-tip"
+              style={{
+                left: hovered.x + 14,
+                top:  hovered.y - 10,
+              }}
+              onMouseEnter={() => {}}
+            >
+              <div className="map-hover-avatar" style={{ background: hovered.learner.avatar_color || '#16c1ad' }}>
+                {hovered.learner.name.charAt(0).toUpperCase()}
+              </div>
+              <div className="map-hover-info">
+                <div className="map-hover-name">{hovered.learner.name}</div>
+                {hovered.learner.bio && (
+                  <div className="map-hover-bio">{hovered.learner.bio}</div>
+                )}
+                {hovered.learner.career_title && (
+                  <div className="map-hover-career">{hovered.learner.career_icon} {hovered.learner.career_title}</div>
+                )}
+                {(hovered.learner.city || hovered.learner.state) && (
+                  <div className="map-hover-loc">{[hovered.learner.city, hovered.learner.state].filter(Boolean).join(', ')}</div>
+                )}
+                {hovered.learner.linkedin_url && (
+                  <a className="map-hover-li" href={hovered.learner.linkedin_url} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()}>
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg>
+                    Connect on LinkedIn
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
+
           {learners.length === 0 && !loading && (
             <div className="map-empty-overlay">
               <div className="map-empty-badge"><IcoMap /></div>
               <p className="map-empty-title">You could be the first dot on this map</p>
-              <p className="map-empty-sub">Add your city in your profile — it takes 10 seconds.</p>
+              <p className="map-empty-sub">Add your city in your profile. It takes 10 seconds.</p>
             </div>
           )}
         </div>
 
         <div className="community-legend">
-          <span className="legend-item"><span className="legend-dot-green" /> Learner</span>
-          <span className="legend-item"><span className="legend-dot-amber" /> You</span>
-          <span className="legend-item legend-first">Click a dot to connect</span>
+          <span className="legend-item"><span className="legend-dot legend-dot-learner" /> Learner</span>
+          <span className="legend-item"><span className="legend-dot legend-dot-me" /> You</span>
+          <span className="legend-item legend-first">Hover to preview · click to connect</span>
         </div>
       </div>
 
@@ -2569,7 +3962,7 @@ function CapstoneView({ subject, student, onBack }) {
                     <div className="capstone-pending-icon"><IcoMail /></div>
                     <div className="capstone-pending-title">Submission received</div>
                     <div className="capstone-pending-file">{submission.filename}</div>
-                    <div className="capstone-pending-sub">AI grading in progress — preliminary feedback will appear shortly. Your instructor will confirm the final score.</div>
+                    <div className="capstone-pending-sub">AI grading in progress. Preliminary feedback will appear shortly. Your instructor will confirm the final score.</div>
                   </>
                 )}
                 <div className="capstone-resubmit-hint">
@@ -2663,7 +4056,7 @@ function FeedbackModal({ studentId, onClose }) {
         ) : (
           <form onSubmit={handleSubmit}>
             <h3 className="feedback-modal-title">Quick feedback</h3>
-            <p className="feedback-modal-sub">You've been learning for 30 minutes — takes less than a minute.</p>
+            <p className="feedback-modal-sub">You've been learning for 30 minutes. Takes less than a minute.</p>
 
             <div className="feedback-question">
               <p className="feedback-q-label">Why are you using this platform?</p>
@@ -2761,6 +4154,8 @@ function AdminView({ onBack }) {
   const [videoForm, setVideoForm]         = useState({ drive_url: '', title: '' });
   const [videoSaving, setVideoSaving]     = useState(false);
   const [videoError, setVideoError]       = useState('');
+  const [conceptNotesMap, setConceptNotesMap] = useState({});
+  const [conceptNotesSaving, setConceptNotesSaving] = useState(null);
   const [resSubject, setResSubject]       = useState('');
   const [resConcepts, setResConcepts]     = useState([]);
   const [resMap, setResMap]               = useState({});
@@ -2782,6 +4177,28 @@ function AdminView({ onBack }) {
   const [waitlistRequests, setWaitlistRequests]       = useState([]);
   const [waitlistLoading, setWaitlistLoading]         = useState(false);
   const [waitlistAction, setWaitlistAction]           = useState(null);
+  const [metrics, setMetrics]                         = useState(null);
+  const [metricsLoading, setMetricsLoading]           = useState(false);
+  const [weeklySending, setWeeklySending]             = useState(false);
+  const [weeklyResult, setWeeklyResult]               = useState(null);
+  const [peakHours, setPeakHours]                     = useState([]);
+  const [health, setHealth]                           = useState(null);
+  const [chatLogs, setChatLogs]                       = useState([]);
+  const [chatLogsLoading, setChatLogsLoading]         = useState(false);
+  const [chatThread, setChatThread]                   = useState(null);
+  const [chatThreadLoading, setChatThreadLoading]     = useState(false);
+  const [chatFilter, setChatFilter]                   = useState('');
+  const [studyPlans, setStudyPlans]                   = useState([]);
+  const [studyPlansLoading, setStudyPlansLoading]     = useState(false);
+  const [expandedPlan, setExpandedPlan]               = useState(null);
+  const [announceForm, setAnnounceForm]               = useState({ subject: '', message: '', target: 'all' });
+  const [announcePreview, setAnnouncePreview]         = useState(null);
+  const [announceSending, setAnnounceSending]         = useState(false);
+  const [announceSent, setAnnounceSent]               = useState('');
+  const [imageConfig, setImageConfig]                 = useState(null);
+  const [imageEdits, setImageEdits]                   = useState({});
+  const [imageSaving, setImageSaving]                 = useState({});
+  const [imageSaved, setImageSaved]                   = useState({});
 
   async function handleAuth(e) {
     e.preventDefault();
@@ -2802,6 +4219,8 @@ function AdminView({ onBack }) {
       if (overviewRes.ok)  setOverview(await overviewRes.json());
       if (studentsRes.ok)  setStudents(await studentsRes.json());
       if (emailsRes.ok)    setApprovedEmails(await emailsRes.json());
+      // load health bar immediately
+      fetch('/api/admin/health', { headers }).then(r => r.ok ? r.json().then(setHealth) : null).catch(() => {});
     } catch (err) { setError(err.message); }
     finally { setLoading(false); }
   }
@@ -2844,12 +4263,29 @@ function AdminView({ onBack }) {
     setVideoSubject(subjectId);
     setVideoEdit(null);
     setVideoError('');
-    if (!subjectId) { setVideoMap({}); setVideoConcepts([]); return; }
+    if (!subjectId) { setVideoMap({}); setVideoConcepts([]); setConceptNotesMap({}); return; }
     const [conceptsRes] = await Promise.all([
       fetch(`/api/curriculum/${subjectId}`),
       loadVideoMap(subjectId),
     ]);
     setVideoConcepts(await conceptsRes.json());
+    try {
+      const nr = await fetch(`/api/admin/concept-notes/${subjectId}`, { headers: { 'X-Admin-Key': adminKey } });
+      setConceptNotesMap(await nr.json());
+    } catch {}
+  }
+
+  async function saveConceptNote(conceptId, notes) {
+    setConceptNotesSaving(conceptId);
+    try {
+      await fetch(`/api/admin/concept-notes/${videoSubject}/${conceptId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+        body: JSON.stringify({ notes }),
+      });
+      setConceptNotesMap(prev => ({ ...prev, [conceptId]: notes }));
+    } catch {}
+    finally { setConceptNotesSaving(null); }
   }
 
   async function handleVideoSave(conceptId) {
@@ -2979,6 +4415,121 @@ function AdminView({ onBack }) {
     finally { setWaitlistLoading(false); }
   }
 
+  async function loadMetrics() {
+    setMetricsLoading(true);
+    try {
+      const [mRes, pRes, hRes] = await Promise.all([
+        fetch('/api/admin/metrics',    { headers: { 'X-Admin-Key': adminKey } }),
+        fetch('/api/admin/peak-hours', { headers: { 'X-Admin-Key': adminKey } }),
+        fetch('/api/admin/health',     { headers: { 'X-Admin-Key': adminKey } }),
+      ]);
+      if (mRes.ok) setMetrics(await mRes.json());
+      if (pRes.ok) setPeakHours(await pRes.json());
+      if (hRes.ok) setHealth(await hRes.json());
+    } catch {}
+    finally { setMetricsLoading(false); }
+  }
+
+  async function loadChatLogs() {
+    setChatLogsLoading(true);
+    try {
+      const r = await fetch('/api/admin/chat-logs', { headers: { 'X-Admin-Key': adminKey } });
+      if (r.ok) setChatLogs(await r.json());
+    } catch {}
+    finally { setChatLogsLoading(false); }
+  }
+
+  async function loadImages() {
+    try {
+      const r = await fetch('/api/admin/images', { headers: { 'X-Admin-Key': adminKey } });
+      if (r.ok) {
+        const data = await r.json();
+        setImageConfig(data);
+        const edits = {};
+        for (const [section, items] of Object.entries(data)) {
+          for (const [key, val] of Object.entries(items)) {
+            edits[`${section}__${key}`] = val.url;
+          }
+        }
+        setImageEdits(edits);
+      }
+    } catch {}
+  }
+
+  async function saveImage(section, key) {
+    const editKey = `${section}__${key}`;
+    const url = imageEdits[editKey] || '';
+    setImageSaving(s => ({ ...s, [editKey]: true }));
+    try {
+      const r = await fetch('/api/admin/images', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+        body: JSON.stringify({ section, key, url }),
+      });
+      if (r.ok) {
+        setImageSaved(s => ({ ...s, [editKey]: true }));
+        setTimeout(() => setImageSaved(s => ({ ...s, [editKey]: false })), 2000);
+      }
+    } catch {}
+    finally { setImageSaving(s => ({ ...s, [editKey]: false })); }
+  }
+
+  async function loadChatThread(studentId, subjectId) {
+    setChatThread(null); setChatThreadLoading(true);
+    try {
+      const r = await fetch(`/api/admin/chat-logs/${studentId}/${subjectId}`, { headers: { 'X-Admin-Key': adminKey } });
+      if (r.ok) setChatThread({ studentId, subjectId, messages: await r.json() });
+    } catch {}
+    finally { setChatThreadLoading(false); }
+  }
+
+  async function loadStudyPlans() {
+    setStudyPlansLoading(true);
+    try {
+      const r = await fetch('/api/admin/study-plans', { headers: { 'X-Admin-Key': adminKey } });
+      if (r.ok) setStudyPlans(await r.json());
+    } catch {}
+    finally { setStudyPlansLoading(false); }
+  }
+
+  async function loadAnnouncePreview(target) {
+    try {
+      const r = await fetch(`/api/admin/announce/preview?target=${encodeURIComponent(target)}`, { headers: { 'X-Admin-Key': adminKey } });
+      if (r.ok) setAnnouncePreview(await r.json());
+    } catch {}
+  }
+
+  async function sendAnnouncement(e) {
+    e.preventDefault();
+    if (!announceForm.subject.trim() || !announceForm.message.trim()) return;
+    setAnnounceSending(true); setAnnounceSent('');
+    try {
+      const r = await fetch('/api/admin/announce', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+        body: JSON.stringify(announceForm),
+      });
+      if (r.ok) {
+        const d = await r.json();
+        setAnnounceSent(`Sent to ${d.queued} student${d.queued !== 1 ? 's' : ''} ✓`);
+        setAnnounceForm(f => ({ ...f, subject: '', message: '' }));
+      }
+    } catch {}
+    finally { setAnnounceSending(false); }
+  }
+
+  function downloadCSV(endpoint, filename) {
+    const url = `/api/admin/${endpoint}`;
+    fetch(url, { headers: { 'X-Admin-Key': adminKey } })
+      .then(r => r.blob())
+      .then(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+      });
+  }
+
   async function handleWaitlistApprove(id) {
     setWaitlistAction(id + '_approve');
     try {
@@ -3095,44 +4646,243 @@ function AdminView({ onBack }) {
   }
 
   return (
-    <div className="admin-view">
-      <div className="admin-nav">
-        <button className="chat-back-btn" onClick={onBack}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5M12 19l-7-7 7-7" />
-          </svg>
-          Back
-        </button>
-        <h2 className="admin-title">Faculty Admin Portal</h2>
-        <div className="admin-tabs">
-          <button className={`admin-tab ${tab === 'overview' ? 'active' : ''}`} onClick={() => setTab('overview')}>Overview</button>
-          <button className={`admin-tab ${tab === 'students' ? 'active' : ''}`} onClick={() => setTab('students')}>Students</button>
-          <button className={`admin-tab ${tab === 'submissions' ? 'active' : ''}`} onClick={() => setTab('submissions')}>Capstones</button>
-          <button className={`admin-tab ${tab === 'videos' ? 'active' : ''}`} onClick={() => setTab('videos')}>Videos</button>
-          <button className={`admin-tab ${tab === 'resources' ? 'active' : ''}`} onClick={() => setTab('resources')}>Resources</button>
-          <button className={`admin-tab ${tab === 'analytics' ? 'active' : ''}`} onClick={() => { setTab('analytics'); loadAnalytics(); }}>Analytics</button>
-          <button className={`admin-tab ${tab === 'cohort' ? 'active' : ''}`} onClick={() => { setTab('cohort'); loadCohort(); }}>Cohort</button>
-          <button className={`admin-tab ${tab === 'emails' ? 'active' : ''}`} onClick={() => { setTab('emails'); loadEmailPreview(); }}>Emails</button>
-          <button className={`admin-tab ${tab === 'access' ? 'active' : ''}`} onClick={() => setTab('access')}>Access</button>
-          <button className={`admin-tab ${tab === 'feedback' ? 'active' : ''}`} onClick={() => { setTab('feedback'); loadFeedback(); }}>Feedback</button>
-          <button className={`admin-tab ${tab === 'waitlist' ? 'active' : ''}`} onClick={() => { setTab('waitlist'); loadWaitlist(); }}>
-            Waitlist
-            {waitlistRequests.filter(w => w.status === 'pending').length > 0 && (
-              <span className="admin-tab-badge">{waitlistRequests.filter(w => w.status === 'pending').length}</span>
-            )}
-          </button>
+    <div className="admin-shell">
+      <div className="admin-sidebar">
+        <div className="admin-sb-brand">
+          <img src="/logo-1.png" alt="Bversity" className="admin-sb-logo" />
+          <div className="admin-sb-subtitle">Faculty Portal</div>
         </div>
+        <nav className="admin-sb-nav">
+          {[
+            { id: 'overview',    label: 'Overview',   icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> },
+            { id: 'metrics',     label: 'Metrics',    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg> },
+            { id: 'students',    label: 'Students',   icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg> },
+            { id: 'submissions', label: 'Capstones',  icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg> },
+            { id: 'videos',      label: 'Videos',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg> },
+            { id: 'resources',   label: 'Resources',  icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg> },
+            { id: 'analytics',   label: 'Analytics',  icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg> },
+            { id: 'cohort',      label: 'Cohort',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg> },
+            { id: 'emails',      label: 'Emails',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> },
+            { id: 'access',      label: 'Access',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> },
+            { id: 'feedback',    label: 'Feedback',   icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg> },
+            { id: 'waitlist',    label: 'Waitlist',   icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+              badge: waitlistRequests.filter(w => w.status === 'pending').length },
+            { id: 'chatlogs',    label: 'Chat Logs',  icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/><line x1="9" y1="10" x2="15" y2="10"/><line x1="9" y1="14" x2="13" y2="14"/></svg> },
+            { id: 'studyplans',  label: 'Study Plans', icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg> },
+            { id: 'export',      label: 'Export',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> },
+            { id: 'announce',    label: 'Announce',   icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 17H2a3 3 0 000 6h20a3 3 0 000-6z"/><path d="M6 17V7a2 2 0 012-2h1"/><path d="M18 17V7a2 2 0 00-2-2h-1"/><line x1="12" y1="5" x2="12" y2="2"/></svg> },
+            { id: 'images',      label: 'Images',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> },
+          ].map(item => (
+            <button
+              key={item.id}
+              className={`admin-sb-item ${tab === item.id ? 'active' : ''}`}
+              onClick={() => {
+                setTab(item.id);
+                if (item.id === 'analytics') loadAnalytics();
+                if (item.id === 'cohort') loadCohort();
+                if (item.id === 'emails') loadEmailPreview();
+                if (item.id === 'feedback') loadFeedback();
+                if (item.id === 'waitlist') loadWaitlist();
+                if (item.id === 'metrics') loadMetrics();
+                if (item.id === 'chatlogs') loadChatLogs();
+                if (item.id === 'studyplans') loadStudyPlans();
+                if (item.id === 'announce') { loadAnnouncePreview('all'); };
+                if (item.id === 'images') loadImages();
+              }}
+            >
+              <span className="admin-sb-icon">{item.icon}</span>
+              {item.label}
+              {item.badge > 0 && <span className="admin-sb-badge">{item.badge}</span>}
+            </button>
+          ))}
+        </nav>
+        <button className="admin-sb-back" onClick={() => { setAdminKey(''); setKeyInput(''); }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          Logout
+        </button>
       </div>
+      <div className="admin-main">
+
+      {/* Health bar — always visible */}
+      {health && (
+        <div className="admin-health-bar">
+          <div className={`admin-health-dot ${health.status === 'ok' ? 'green' : 'red'}`} />
+          <span className="admin-health-item"><strong>Status:</strong> {health.status === 'ok' ? 'All systems operational' : 'Degraded'}</span>
+          <span className="admin-health-sep" />
+          <span className="admin-health-item"><strong>Uptime:</strong> {health.uptime}</span>
+          <span className="admin-health-sep" />
+          <span className="admin-health-item"><strong>DB:</strong> {health.db_size_mb} MB</span>
+          <span className="admin-health-sep" />
+          <span className="admin-health-item"><strong>Students:</strong> {health.total_students}</span>
+          <span className="admin-health-sep" />
+          <span className="admin-health-item"><strong>Messages:</strong> {health.total_messages}</span>
+        </div>
+      )}
+
+      {tab === 'metrics' && (
+        <div className="admin-content">
+          {metricsLoading && <div className="admin-empty">Loading metrics…</div>}
+          {!metricsLoading && metrics && (() => {
+            // sparkline SVG helper
+            const sparkMax = Math.max(...metrics.sparkline.map(d => d.dau), 1);
+            const W = 340, H = 52, pts = metrics.sparkline;
+            const x = i => Math.round((i / (pts.length - 1)) * W);
+            const y = v => Math.round(H - 4 - ((v / sparkMax) * (H - 8)));
+            const polyline = pts.map((d, i) => `${x(i)},${y(d.dau)}`).join(' ');
+            const area = `${x(0)},${H} ` + pts.map((d, i) => `${x(i)},${y(d.dau)}`).join(' ') + ` ${x(pts.length - 1)},${H}`;
+
+            // peak hours grid
+            const peakMax = Math.max(...peakHours.map(p => p.count), 1);
+            const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
+            return (
+              <>
+                {/* Pulse stats */}
+                <div className="metrics-section-label">Platform Pulse</div>
+                <div className="metrics-pulse-row">
+                  {[
+                    { label: 'DAU', value: metrics.dau, sub: 'active today' },
+                    { label: 'WAU', value: metrics.wau, sub: 'active this week' },
+                    { label: 'MAU', value: metrics.mau, sub: 'active this month' },
+                    { label: 'Stickiness', value: `${metrics.dau_mau_ratio}%`, sub: 'DAU / MAU ratio' },
+                    { label: 'New Today', value: metrics.new_today, sub: 'signups today' },
+                    { label: 'New This Week', value: metrics.new_this_week, sub: 'signups this week' },
+                  ].map(c => (
+                    <div key={c.label} className="metrics-pulse-card">
+                      <div className="metrics-pulse-value">{c.value}</div>
+                      <div className="metrics-pulse-label">{c.label}</div>
+                      <div className="metrics-pulse-sub">{c.sub}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 30-day sparkline */}
+                <div className="metrics-section-label" style={{ marginTop: 28 }}>30-Day Activity</div>
+                <div className="metrics-spark-card">
+                  <svg width="100%" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="metrics-spark-svg">
+                    <defs>
+                      <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#16c1ad" stopOpacity="0.25" />
+                        <stop offset="100%" stopColor="#16c1ad" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <polygon points={area} fill="url(#sparkGrad)" />
+                    <polyline points={polyline} fill="none" stroke="#16c1ad" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+                  </svg>
+                  <div className="metrics-spark-labels">
+                    <span>{pts[0]?.date}</span>
+                    <span>{pts[Math.floor(pts.length / 2)]?.date}</span>
+                    <span>{pts[pts.length - 1]?.date}</span>
+                  </div>
+                  <div className="metrics-spark-peak">Peak DAU: <strong>{sparkMax}</strong></div>
+                </div>
+
+                {/* Retention */}
+                <div className="metrics-section-label" style={{ marginTop: 28 }}>Retention</div>
+                <div className="metrics-retention-row">
+                  {[
+                    { label: 'Day 1', value: metrics.retention.d1, desc: 'came back next day' },
+                    { label: 'Day 7', value: metrics.retention.d7, desc: 'active in first week' },
+                    { label: 'Day 30', value: metrics.retention.d30, desc: 'still active at 30 days' },
+                  ].map(r => (
+                    <div key={r.label} className="metrics-retention-card">
+                      <div className="metrics-ret-label">{r.label}</div>
+                      <div className="metrics-ret-value">{r.value}%</div>
+                      <div className="metrics-ret-track">
+                        <div className="metrics-ret-fill" style={{ width: `${r.value}%`, background: r.value >= 40 ? '#16c1ad' : r.value >= 20 ? '#f59e0b' : '#ef4444' }} />
+                      </div>
+                      <div className="metrics-ret-desc">{r.desc}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Engagement quality */}
+                <div className="metrics-section-label" style={{ marginTop: 28 }}>Learning Quality</div>
+                <div className="metrics-quality-row">
+                  {[
+                    { label: 'Avg Msgs / Session', value: metrics.avg_session_msgs, sub: 'messages per active day' },
+                    { label: 'Depth Score', value: `${metrics.depth_score}%`, sub: 'mastered / covered ratio' },
+                    { label: 'Avg Streak', value: metrics.avg_streak, sub: 'days (active students)' },
+                    { label: 'Max Streak', value: metrics.max_streak, sub: 'longest streak achieved' },
+                    { label: 'Students w/ Streak', value: metrics.students_with_streak, sub: 'have active streak' },
+                  ].map(c => (
+                    <div key={c.label} className="metrics-quality-card">
+                      <div className="metrics-quality-value">{c.value}</div>
+                      <div className="metrics-quality-label">{c.label}</div>
+                      <div className="metrics-quality-sub">{c.sub}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Top concepts */}
+                <div className="metrics-section-label" style={{ marginTop: 28 }}>Most-Reached Concepts</div>
+                <div className="metrics-concepts-list">
+                  {metrics.top_concepts.map((c, i) => {
+                    const subj = SUBJECTS.find(s => s.id === c.subject_id);
+                    const masteryPct = c.student_count > 0 ? Math.round((c.mastered_count / c.student_count) * 100) : 0;
+                    return (
+                      <div key={i} className="metrics-concept-row">
+                        <div className="metrics-concept-dot" style={{ background: subj?.color || '#ccc' }} />
+                        <div className="metrics-concept-name">{c.concept_id.replace(/_/g, ' ')}</div>
+                        <div className="metrics-concept-subj" style={{ color: subj?.color }}>{subj?.name}</div>
+                        <div className="metrics-concept-bar-track">
+                          <div className="metrics-concept-bar-fill" style={{ width: `${masteryPct}%`, background: subj?.color || '#16c1ad' }} />
+                        </div>
+                        <div className="metrics-concept-mastery">{masteryPct}% mastered</div>
+                        <div className="metrics-concept-count">{c.student_count} students</div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Peak hours heatmap */}
+                {peakHours.length > 0 && (
+                  <>
+                    <div className="metrics-section-label" style={{ marginTop: 28 }}>Peak Activity Heatmap</div>
+                    <div className="metrics-heatmap-wrap">
+                      <div className="metrics-heatmap-hour-labels">
+                        {Array.from({ length: 24 }, (_, h) => (
+                          <div key={h} className="metrics-heatmap-h-label">{h === 0 ? '12a' : h < 12 ? `${h}a` : h === 12 ? '12p' : `${h - 12}p`}</div>
+                        ))}
+                      </div>
+                      {days.map((day, dow) => {
+                        const rowMax = Math.max(...peakHours.filter(p => p.dow === dow).map(p => p.count), 1);
+                        return (
+                          <div key={day} className="metrics-heatmap-row">
+                            <div className="metrics-heatmap-day-label">{day}</div>
+                            {Array.from({ length: 24 }, (_, h) => {
+                              const cell = peakHours.find(p => p.dow === dow && p.hour === h);
+                              const intensity = cell ? cell.count / peakMax : 0;
+                              return (
+                                <div
+                                  key={h}
+                                  className="metrics-heatmap-cell"
+                                  title={`${day} ${h}:00, ${cell?.count ?? 0} messages`}
+                                  style={{ background: intensity > 0 ? `rgba(22,193,173,${0.08 + intensity * 0.82})` : undefined }}
+                                />
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </>
+            );
+          })()}
+        </div>
+      )}
 
       {tab === 'overview' && (
         <div className="admin-content">
           <div className="admin-overview-grid">
             {[
-              { label: 'Total Learners',      value: overview?.total_students    ?? '—', sub: 'registered accounts' },
-              { label: 'Active This Week',    value: overview?.active_week       ?? '—', sub: 'sent a message in 7 days' },
-              { label: 'Concepts Covered',    value: overview?.total_concepts    ?? '—', sub: 'across all students' },
-              { label: 'Messages Sent',       value: overview?.total_messages    ?? '—', sub: 'student messages total' },
-              { label: 'Pending Capstones',   value: overview?.pending_capstones ?? '—', sub: 'awaiting your review', alert: (overview?.pending_capstones > 0) },
+              { label: 'Total Learners',      value: overview?.total_students    ?? '-', sub: 'registered accounts' },
+              { label: 'Active This Week',    value: overview?.active_week       ?? '-', sub: 'sent a message in 7 days' },
+              { label: 'Concepts Covered',    value: overview?.total_concepts    ?? '-', sub: 'across all students' },
+              { label: 'Messages Sent',       value: overview?.total_messages    ?? '-', sub: 'student messages total' },
+              { label: 'Pending Capstones',   value: overview?.pending_capstones ?? '-', sub: 'awaiting your review', alert: (overview?.pending_capstones > 0) },
             ].map(card => (
               <div key={card.label} className={`admin-ov-card ${card.alert ? 'alert' : ''}`}>
                 <div className="admin-ov-value">{card.value}</div>
@@ -3265,7 +5015,7 @@ function AdminView({ onBack }) {
                         <button className="admin-download-btn" style={{ color: '#a08eff' }}
                           onClick={async () => {
                             await fetch(`/api/admin/submissions/${sub.id}/ai-grade`, { method: 'POST', headers: { 'X-Admin-Key': adminKey } });
-                            alert('AI grading queued — refresh in ~30 seconds.');
+                            alert('AI grading queued. Refresh in 30 seconds.');
                           }}>
                           AI Grade
                         </button>
@@ -3292,7 +5042,7 @@ function AdminView({ onBack }) {
                                   parsed.overall_feedback,
                                   parsed.strengths ? `Strengths: ${parsed.strengths}` : '',
                                   parsed.areas_for_improvement ? `Areas for improvement: ${parsed.areas_for_improvement}` : '',
-                                  ...(parsed.criterion_scores || []).map(c => `${c.criterion}: ${c.marks_awarded}/${c.max_marks} — ${c.comments}`),
+                                  ...(parsed.criterion_scores || []).map(c => `${c.criterion}: ${c.marks_awarded}/${c.max_marks}. ${c.comments}`),
                                 ].filter(Boolean).join('\n\n');
                                 setMarking(sub.id);
                                 setMarkForm({ score: String(sub.ai_score), feedback: feedbackText });
@@ -3374,7 +5124,7 @@ function AdminView({ onBack }) {
                 value={videoSubject}
                 onChange={e => handleVideoSubjectChange(e.target.value)}
               >
-                <option value="">— Select a subject —</option>
+                <option value="">Select a subject</option>
                 {SUBJECTS.map(s => (
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
@@ -3426,6 +5176,13 @@ function AdminView({ onBack }) {
                               </div>
                             </div>
                           )}
+                          <ConceptNoteRow
+                            conceptId={concept.id}
+                            notes={conceptNotesMap[concept.id] || ''}
+                            saving={conceptNotesSaving === concept.id}
+                            onSave={saveConceptNote}
+                            color={subjectObj?.color}
+                          />
                         </div>
                       );
                   })}
@@ -3443,7 +5200,7 @@ function AdminView({ onBack }) {
             <p className="access-subtitle">Add papers, articles, and links per concept. Students see them when that concept is covered.</p>
             <div className="videos-subject-row">
               <select className="videos-subject-select" value={resSubject} onChange={e => handleResSubjectChange(e.target.value)}>
-                <option value="">— Select a subject —</option>
+                <option value="">Select a subject</option>
                 {SUBJECTS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
@@ -3545,7 +5302,7 @@ function AdminView({ onBack }) {
                   <div className="email-camp-icon" style={{ background: 'rgba(0,168,150,0.15)', color: '#00A896' }}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg></div>
                   <div>
                     <div className="email-camp-title">Weekly Progress Digest</div>
-                    <div className="email-camp-desc">Sent to all students who have started learning — shows their week's progress.</div>
+                    <div className="email-camp-desc">Sent to all students who have started learning. Shows their week's progress.</div>
                   </div>
                 </div>
                 <div className="email-camp-meta">
@@ -3580,6 +5337,42 @@ function AdminView({ onBack }) {
                   <span className="email-auto-badge">Auto</span>
                 </div>
               ))}
+
+              {/* ── Weekly Report ── */}
+              <div className="email-auto-row weekly-report-row">
+                <span className="email-auto-icon"><IcoClock /></span>
+                <div style={{ flex: 1 }}>
+                  <div className="email-auto-title">Weekly progress report</div>
+                  <div className="email-auto-desc">
+                    Sends a personalised AI-written report to every active student —
+                    sessions, concepts covered, coaching note, and what to focus on next week.
+                  </div>
+                  {weeklyResult && (
+                    <div className="weekly-report-result">
+                      ✓ Queued for {weeklyResult.queued} student{weeklyResult.queued !== 1 ? 's' : ''}
+                    </div>
+                  )}
+                </div>
+                <button
+                  className="weekly-report-btn"
+                  disabled={weeklySending}
+                  onClick={async () => {
+                    setWeeklySending(true);
+                    setWeeklyResult(null);
+                    try {
+                      const r = await fetch('/api/admin/send-weekly-digest', {
+                        method: 'POST',
+                        headers: { 'X-Admin-Key': adminKey },
+                      });
+                      if (r.ok) setWeeklyResult(await r.json());
+                    } finally {
+                      setWeeklySending(false);
+                    }
+                  }}
+                >
+                  {weeklySending ? 'Sending…' : 'Send now'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -3625,7 +5418,7 @@ function AdminView({ onBack }) {
               value={analyticsHeatSubject}
               onChange={e => loadHeatmap(e.target.value)}
             >
-              <option value="">— Select a subject —</option>
+              <option value="">Select a subject</option>
               {SUBJECTS.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
             {analyticsHeatmap.length > 0 && (() => {
@@ -3897,11 +5690,1402 @@ function AdminView({ onBack }) {
           </div>
         </div>
       )}
+
+      {tab === 'chatlogs' && (
+        <div className="admin-content">
+          <div className="cl-header">
+            <h3 className="access-title">Chat Logs</h3>
+            <input
+              className="cl-search"
+              placeholder="Filter by student or subject…"
+              value={chatFilter}
+              onChange={e => setChatFilter(e.target.value)}
+            />
+          </div>
+          {chatLogsLoading && <div className="admin-empty">Loading…</div>}
+          {!chatLogsLoading && (
+            <div className="cl-list">
+              {chatLogs
+                .filter(l => !chatFilter || l.name.toLowerCase().includes(chatFilter.toLowerCase()) || l.subject_name.toLowerCase().includes(chatFilter.toLowerCase()))
+                .map((l, i) => {
+                  const isOpen = chatThread?.studentId === l.student_id && chatThread?.subjectId === l.subject_id;
+                  return (
+                    <div key={i} className="cl-row">
+                      <div className="cl-row-top" onClick={() => isOpen ? setChatThread(null) : loadChatThread(l.student_id, l.subject_id)}>
+                        <div className="cl-avatar">{l.name.charAt(0).toUpperCase()}</div>
+                        <div className="cl-info">
+                          <div className="cl-name">{l.name}</div>
+                          <div className="cl-email">{l.email}</div>
+                        </div>
+                        <div className="cl-subject-pill" style={{ background: l.subject_color + '18', color: l.subject_color, border: `1px solid ${l.subject_color}44` }}>
+                          {l.subject_name}
+                        </div>
+                        <div className="cl-meta">
+                          <span>{l.message_count} msgs</span>
+                          <span className="cl-dot">·</span>
+                          <span>{new Date(l.last_message_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                        </div>
+                        <div className={`cl-chevron ${isOpen ? 'open' : ''}`}>›</div>
+                      </div>
+                      {isOpen && (
+                        <div className="cl-thread">
+                          {chatThreadLoading && <div className="admin-empty" style={{ padding: '12px 0' }}>Loading thread…</div>}
+                          {!chatThreadLoading && chatThread?.messages.map((msg, mi) => (
+                            <div key={mi} className={`cl-msg cl-msg--${msg.role}`}>
+                              <div className="cl-msg-role">{msg.role === 'user' ? l.name.split(' ')[0] : 'AI Tutor'}</div>
+                              <div className="cl-msg-content">{msg.content}</div>
+                              <div className="cl-msg-time">{new Date(msg.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              {chatLogs.length === 0 && !chatLogsLoading && <div className="admin-empty">No conversations yet.</div>}
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === 'studyplans' && (
+        <div className="admin-content">
+          <h3 className="access-title">Study Plans</h3>
+          <p className="access-subtitle">{studyPlans.length} student{studyPlans.length !== 1 ? 's' : ''} with active plans</p>
+          {studyPlansLoading && <div className="admin-empty">Loading…</div>}
+          {!studyPlansLoading && (
+            <div className="sp-admin-list">
+              {studyPlans.length === 0 && <div className="admin-empty">No study plans generated yet.</div>}
+              {studyPlans.map(st => {
+                const isOpen = expandedPlan === st.student_id;
+                const weeks = [];
+                for (let i = 0; i < st.plan.length; i += 7) weeks.push(st.plan.slice(i, i + 7));
+                return (
+                  <div key={st.student_id} className="sp-admin-row">
+                    <div className="sp-admin-top" onClick={() => setExpandedPlan(isOpen ? null : st.student_id)}>
+                      <div className="cl-avatar" style={{ background: st.avatar_color || '#00A896' }}>{st.name.charAt(0).toUpperCase()}</div>
+                      <div className="cl-info">
+                        <div className="cl-name">{st.name}</div>
+                        <div className="cl-email">{st.career_title || 'No career set'}</div>
+                      </div>
+                      <div className="sp-admin-stats">
+                        <span className="sp-admin-pct">{st.pct}%</span>
+                        <div className="sp-admin-bar-track">
+                          <div className="sp-admin-bar-fill" style={{ width: `${st.pct}%` }} />
+                        </div>
+                        <span className="sp-admin-detail">{st.covered_concepts}/{st.total_concepts} concepts</span>
+                        {st.overdue_concepts > 0 && <span className="sp-admin-overdue">{st.overdue_concepts} overdue</span>}
+                      </div>
+                      <div className={`cl-chevron ${isOpen ? 'open' : ''}`}>›</div>
+                    </div>
+                    {isOpen && (
+                      <div className="sp-admin-plan">
+                        {weeks.map((week, wi) => (
+                          <div key={wi} className="sp-admin-week">
+                            <div className="sp-admin-week-label">Week {wi + 1}</div>
+                            <div className="sp-admin-week-grid">
+                              {week.map(day => {
+                                const allDone = day.concepts.every(c => c.covered);
+                                const anyDone = day.concepts.some(c => c.covered);
+                                const isOverdue = new Date(day.target_date) < new Date() && !allDone;
+                                return (
+                                  <div key={day.day} className={`sp-admin-day ${allDone ? 'done' : isOverdue ? 'overdue' : anyDone ? 'partial' : ''}`}>
+                                    <div className="sp-admin-day-num">Day {day.day}</div>
+                                    <div className="sp-admin-day-date">{new Date(day.target_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</div>
+                                    {day.concepts.map((c, ci) => {
+                                      const subj = SUBJECTS.find(s => s.id === c.subject_id);
+                                      return (
+                                        <div key={ci} className={`sp-admin-concept ${c.covered ? 'covered' : ''}`}>
+                                          <span className="sp-admin-dot" style={{ background: c.covered ? '#16c1ad' : (subj?.color || '#ccc') }} />
+                                          <span>{c.concept_id.replace(/_/g, ' ')}</span>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === 'export' && (
+        <div className="admin-content">
+          <h3 className="access-title">Export Data</h3>
+          <p className="access-subtitle">Download platform data as CSV for external analysis or reporting.</p>
+          <div className="export-cards">
+            <div className="export-card">
+              <div className="export-card-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+              </div>
+              <div className="export-card-body">
+                <div className="export-card-title">Student Roster</div>
+                <div className="export-card-desc">Name, email, career, college, city, streak, concepts covered &amp; mastered, last active date for every learner.</div>
+                <div className="export-card-cols">Columns: Name · Email · Joined · Career · College · Year · City · State · Streak · Last Active · Covered · Mastered · Messages · Subjects</div>
+              </div>
+              <button className="export-btn" onClick={() => downloadCSV('export/students', 'bversity_students.csv')}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download CSV
+              </button>
+            </div>
+
+            <div className="export-card">
+              <div className="export-card-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+              </div>
+              <div className="export-card-body">
+                <div className="export-card-title">Concept Progress</div>
+                <div className="export-card-desc">Every concept covered by every student, with first covered date and mastered date. Use this for deep learning analytics.</div>
+                <div className="export-card-cols">Columns: Student · Email · Subject · Concept · First Covered · Mastered At</div>
+              </div>
+              <button className="export-btn" onClick={() => downloadCSV('export/progress', 'bversity_progress.csv')}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download CSV
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {tab === 'announce' && (
+        <div className="admin-content">
+          <h3 className="access-title">Broadcast Announcement</h3>
+          <p className="access-subtitle">Send an email announcement to your learners. Delivered via Resend using your configured sender.</p>
+          {announceSent && <div className="announce-success">{announceSent}</div>}
+          <form className="announce-form" onSubmit={sendAnnouncement}>
+            <div className="announce-target-row">
+              <label className="announce-label">Send to</label>
+              <div className="announce-target-pills">
+                {[
+                  { value: 'all', label: 'All students' },
+                  { value: 'active_week', label: 'Active this week' },
+                  { value: 'bioinformatics_scientist', label: 'Bioinformatics' },
+                  { value: 'genomics_data_analyst', label: 'Genomics' },
+                  { value: 'drug_discovery_scientist', label: 'Drug Discovery' },
+                  { value: 'clinical_data_manager', label: 'Clinical Trials' },
+                  { value: 'ml_biotech_engineer', label: 'GenAI / ML' },
+                  { value: 'biotech_business_analyst', label: 'Biotech Business' },
+                ].map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    className={`announce-pill ${announceForm.target === opt.value ? 'active' : ''}`}
+                    onClick={() => { setAnnounceForm(f => ({ ...f, target: opt.value })); loadAnnouncePreview(opt.value); }}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {announcePreview && (
+                <div className="announce-preview-count">
+                  <strong>{announcePreview.count}</strong> student{announcePreview.count !== 1 ? 's' : ''} will receive this
+                  {announcePreview.sample_names.length > 0 && (
+                    <span className="announce-preview-names"> · {announcePreview.sample_names.join(', ')}{announcePreview.count > 5 ? '…' : ''}</span>
+                  )}
+                </div>
+              )}
+            </div>
+            <div className="announce-field">
+              <label className="announce-label">Subject line</label>
+              <input
+                className="announce-input"
+                placeholder="e.g. New content available: CRISPR module updated"
+                value={announceForm.subject}
+                onChange={e => setAnnounceForm(f => ({ ...f, subject: e.target.value }))}
+                required
+              />
+            </div>
+            <div className="announce-field">
+              <label className="announce-label">Message</label>
+              <textarea
+                className="announce-textarea"
+                placeholder="Write your announcement here. Keep it clear and actionable."
+                rows={6}
+                value={announceForm.message}
+                onChange={e => setAnnounceForm(f => ({ ...f, message: e.target.value }))}
+                required
+              />
+            </div>
+            <button type="submit" className="announce-send-btn" disabled={announceSending || !announceForm.subject.trim() || !announceForm.message.trim()}>
+              {announceSending ? 'Sending…' : `Send to ${announcePreview?.count ?? '…'} student${announcePreview?.count !== 1 ? 's' : ''}`}
+            </button>
+          </form>
+        </div>
+      )}
+
+      {tab === 'images' && (
+        <div className="admin-content">
+          <h3 className="access-title">Image Library</h3>
+          <p className="access-subtitle">Manage every image used across the platform. Paste any public image URL (Unsplash, your CDN, Google Drive public link) and hit Save — updates take effect immediately on next page load.</p>
+          {!imageConfig ? (
+            <div className="img-lib-loading">Loading image config…</div>
+          ) : (
+            <>
+              {[
+                { section: 'careers',  title: 'Career Path Images', subtitle: 'Shown on career selection cards, the career detail modal, and the career hero page' },
+                { section: 'clusters', title: 'Cluster Fallback Images', subtitle: 'Used as a fallback when no career-specific image is set' },
+                { section: 'degrees',  title: 'Degree Program Images', subtitle: 'Banner image on the M.Sc and B.Sc degree cards' },
+              ].map(({ section, title, subtitle }) => (
+                <div key={section} className="img-lib-section">
+                  <div className="img-lib-section-header">
+                    <div className="img-lib-section-title">{title}</div>
+                    <div className="img-lib-section-sub">{subtitle}</div>
+                  </div>
+                  <div className="img-lib-grid">
+                    {Object.entries(imageConfig[section] || {}).map(([key, val]) => {
+                      const editKey = `${section}__${key}`;
+                      const currentUrl = imageEdits[editKey] ?? val.url;
+                      const saved = imageSaved[editKey];
+                      const saving = imageSaving[editKey];
+                      return (
+                        <div key={key} className="img-lib-item">
+                          <div
+                            className="img-lib-thumb"
+                            style={{ backgroundImage: `url(${currentUrl})` }}
+                          />
+                          <div className="img-lib-label">{val.label}</div>
+                          <div className="img-lib-key">{key}</div>
+                          <div className="img-lib-row">
+                            <input
+                              className="img-lib-input"
+                              value={currentUrl}
+                              onChange={e => setImageEdits(ed => ({ ...ed, [editKey]: e.target.value }))}
+                              placeholder="https://..."
+                            />
+                            <button
+                              className={`img-lib-save ${saved ? 'saved' : ''}`}
+                              onClick={() => saveImage(section, key)}
+                              disabled={saving}
+                            >
+                              {saving ? '…' : saved ? '✓' : 'Save'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+
+      </div>
     </div>
   );
 }
 
 // ── Dashboard ──────────────────────────────────────────────────────────────
+
+function StudyPlanSection({ planDays, spWeeks, spDoneDays, spTotalConcepts, spCoveredConcepts, spPct, spOverdueDays, lagDays, lagConcepts, today, onStudy }) {
+  const [expandedWeeks, setExpandedWeeks] = React.useState(() => {
+    // Auto-expand only the current week
+    const todayStr = today.toDateString();
+    const currentWeekIdx = spWeeks.findIndex(week =>
+      week.some(d => new Date(d.target_date).toDateString() === todayStr) ||
+      week.some(d => new Date(d.target_date) >= today)
+    );
+    return new Set([currentWeekIdx === -1 ? 0 : currentWeekIdx]);
+  });
+
+  function toggleWeek(wi) {
+    setExpandedWeeks(prev => {
+      const next = new Set(prev);
+      next.has(wi) ? next.delete(wi) : next.add(wi);
+      return next;
+    });
+  }
+
+  // Today's day entry
+  const todayEntry = planDays.find(d => new Date(d.target_date).toDateString() === today.toDateString());
+  // Next uncovered upcoming day
+  const nextEntry = !todayEntry && planDays.find(d => new Date(d.target_date) > today && !d.concepts.every(c => c.covered));
+
+  return (
+    <div className="sp-section">
+
+      {/* ── Header ── */}
+      <div className="sp-progress-header">
+        <div className="sp-progress-top">
+          <h2 className="sp-title">Study Plan</h2>
+          <div className="sp-progress-stats">
+            <span><strong>{spCoveredConcepts}</strong> / {spTotalConcepts} concepts</span>
+            <span className="sp-stat-sep">·</span>
+            <span><strong>{spDoneDays}</strong> / {planDays.length} days</span>
+            <span className="sp-stat-sep">·</span>
+            {lagDays >= 1
+              ? <span className="sp-behind-chip">{lagDays}d behind</span>
+              : <span className="sp-ontrack-chip">On track ✓</span>
+            }
+          </div>
+        </div>
+        <div className="sp-progress-track">
+          <div className="sp-progress-fill" style={{ width: `${spPct}%` }} />
+        </div>
+        <div className="sp-progress-pct">{spPct}% complete</div>
+      </div>
+
+      {/* ── Today focus card ── */}
+      {(todayEntry || (lagDays >= 1 && spOverdueDays.length > 0)) && (
+        <div className="sp-focus-area">
+          {lagDays >= 1 && spOverdueDays.length > 0 && (
+            <div className="sp-catchup-strip">
+              <span className="sp-catchup-strip-icon">⚡</span>
+              <span><strong>{lagConcepts} concept{lagConcepts !== 1 ? 's' : ''} overdue.</strong> Catch up by studying these first.</span>
+              <div className="sp-catchup-pills">
+                {spOverdueDays.slice(0, 3).flatMap(d => d.concepts.filter(c => !c.covered)).slice(0, 4).map(c => {
+                  const subj = SUBJECTS.find(s => s.id === c.subject_id);
+                  return (
+                    <button key={c.concept_id} className="sp-catchup-pill"
+                      style={{ '--pill-color': subj?.color || '#888' }}
+                      onClick={() => subj && onStudy(subj)}>
+                      {c.concept_name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {todayEntry && (
+            <div className="sp-today-card">
+              <div className="sp-today-left">
+                <div className="sp-today-label">Today</div>
+                <div className="sp-today-date">{today.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</div>
+                <div className="sp-today-concepts">
+                  {todayEntry.concepts.map(c => {
+                    const subj = SUBJECTS.find(s => s.id === c.subject_id);
+                    return (
+                      <div key={c.concept_id} className={`sp-today-concept ${c.covered ? 'done' : ''}`}>
+                        <span className="sp-today-check">{c.covered ? '✓' : '○'}</span>
+                        <span className="sp-today-concept-name">{c.concept_name}</span>
+                        {subj && <span className="sp-today-subject-pill" style={{ background: subj.color + '22', color: subj.color }}>{subj.name.split(' ').slice(0, 2).join(' ')}</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <button className="sp-today-cta" onClick={() => {
+                const firstUncovered = todayEntry.concepts.find(c => !c.covered);
+                const subj = SUBJECTS.find(s => s.id === (firstUncovered || todayEntry.concepts[0])?.subject_id);
+                if (subj) onStudy(subj);
+              }}>
+                {todayEntry.concepts.every(c => c.covered) ? 'Review today →' : 'Study now →'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Weeks ── */}
+      <div className="sp-weeks-list">
+        {spWeeks.map((week, wi) => {
+          const weekCovered = week.reduce((s, d) => s + d.concepts.filter(c => c.covered).length, 0);
+          const weekTotal   = week.reduce((s, d) => s + d.concepts.length, 0);
+          const weekDone    = week.every(d => d.concepts.every(c => c.covered));
+          const isExpanded  = expandedWeeks.has(wi);
+          const hasToday    = week.some(d => new Date(d.target_date).toDateString() === today.toDateString());
+          const hasOverdue  = week.some(d => {
+            const dd = new Date(d.target_date);
+            return dd < new Date(today.toDateString()) && !d.concepts.every(c => c.covered);
+          });
+          const weekStart = new Date(week[0].target_date);
+          const weekEnd   = new Date(week[week.length - 1].target_date);
+          const weekRange = `${weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} – ${weekEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`;
+
+          // Get unique subjects in this week
+          const weekSubjects = [...new Set(week.flatMap(d => d.concepts.map(c => c.subject_id)))]
+            .map(sid => SUBJECTS.find(s => s.id === sid)).filter(Boolean);
+
+          return (
+            <div key={wi} className={`sp-week-row ${isExpanded ? 'expanded' : ''} ${hasToday ? 'current' : ''}`}>
+              <button className="sp-week-header" onClick={() => toggleWeek(wi)}>
+                <div className="sp-week-header-left">
+                  <span className="sp-week-num">Week {wi + 1}</span>
+                  <span className="sp-week-range">{weekRange}</span>
+                  <div className="sp-week-subject-dots">
+                    {weekSubjects.slice(0, 4).map(s => (
+                      <span key={s.id} className="sp-week-dot" style={{ background: s.color }} title={s.name} />
+                    ))}
+                  </div>
+                </div>
+                <div className="sp-week-header-right">
+                  {weekDone
+                    ? <span className="sp-week-chip done">Complete ✓</span>
+                    : hasOverdue
+                      ? <span className="sp-week-chip overdue">Has overdue</span>
+                      : hasToday
+                        ? <span className="sp-week-chip today">This week</span>
+                        : <span className="sp-week-chip upcoming">{weekCovered}/{weekTotal} concepts</span>
+                  }
+                  <span className="sp-week-chevron">{isExpanded ? '▲' : '▼'}</span>
+                </div>
+              </button>
+
+              {isExpanded && (
+                <div className="sp-week-days">
+                  {week.map(day => {
+                    const dayDate   = new Date(day.target_date);
+                    const isPast    = dayDate < new Date(today.toDateString());
+                    const isToday   = dayDate.toDateString() === today.toDateString();
+                    const allCovered = day.concepts.every(c => c.covered);
+                    const isOverdue  = isPast && !allCovered;
+                    const status     = allCovered ? 'done' : isToday ? 'today' : isOverdue ? 'overdue' : 'upcoming';
+                    const firstSubj  = SUBJECTS.find(s => s.id === day.concepts[0]?.subject_id);
+
+                    return (
+                      <div key={day.day} className={`sp-day-row sp-day-row--${status}`} style={{ '--day-color': firstSubj?.color || '#888' }}>
+                        <div className="sp-day-row-left">
+                          <div className="sp-day-row-date">
+                            <span className="sp-day-row-dow">{isToday ? 'Today' : dayDate.toLocaleDateString('en-US', { weekday: 'short' })}</span>
+                            <span className="sp-day-row-dm">{dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                          </div>
+                          <div className="sp-day-row-concepts">
+                            {day.concepts.map(c => {
+                              const subj = SUBJECTS.find(s => s.id === c.subject_id);
+                              return (
+                                <div key={c.concept_id}
+                                  className={`sp-day-concept-item ${c.covered ? 'done' : ''} ${subj ? 'clickable' : ''}`}
+                                  onClick={() => subj && onStudy(subj)}>
+                                  <span className="sp-day-concept-check">{c.covered ? '✓' : '·'}</span>
+                                  <span className="sp-day-concept-name">{c.concept_name}</span>
+                                  {subj && <span className="sp-day-concept-subj" style={{ color: subj.color }}>{subj.name.split(':')[0].trim()}</span>}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        <div className="sp-day-row-right">
+                          {status === 'done' && <span className="sp-day-status-badge done">✓</span>}
+                          {status === 'overdue' && <span className="sp-day-status-badge overdue">Late</span>}
+                          {status === 'today' && (
+                            <button className="sp-day-study-btn" onClick={() => {
+                              const firstUncovered = day.concepts.find(c => !c.covered);
+                              const subj = SUBJECTS.find(s => s.id === (firstUncovered || day.concepts[0])?.subject_id);
+                              if (subj) onStudy(subj);
+                            }}>Study →</button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ── Concept Library ────────────────────────────────────────────────────────
+
+function ConceptLibraryView({ student }) {
+  const [cards, setCards]       = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [search, setSearch]     = useState('');
+  const [filterSubject, setFilterSubject] = useState('all');
+
+  useEffect(() => {
+    fetch(`/api/saved-concepts/${student.id}`)
+      .then(r => r.json())
+      .then(data => { setCards(data); setLoading(false); })
+      .catch(() => setLoading(false));
+  }, [student.id]);
+
+  async function handleUnsave(id) {
+    await fetch(`/api/saved-concepts/${student.id}/${id}`, { method: 'DELETE' });
+    setCards(prev => prev.filter(c => c.id !== id));
+  }
+
+  const subjectIds = [...new Set(cards.map(c => c.subject_id))];
+
+  const filtered = cards.filter(c => {
+    const matchesSubject = filterSubject === 'all' || c.subject_id === filterSubject;
+    const matchesSearch  = !search || c.title.toLowerCase().includes(search.toLowerCase())
+      || (c.card_data?.what || '').toLowerCase().includes(search.toLowerCase());
+    return matchesSubject && matchesSearch;
+  });
+
+  const grouped = subjectIds
+    .filter(sid => filterSubject === 'all' || sid === filterSubject)
+    .map(sid => ({
+      sid,
+      subject: SUBJECTS[sid],
+      items: filtered.filter(c => c.subject_id === sid),
+    }))
+    .filter(g => g.items.length > 0);
+
+  return (
+    <div className="lib-view">
+      <div className="lib-header">
+        <div>
+          <h1 className="lib-title">Concept Library</h1>
+          <p className="lib-sub">{cards.length} concept{cards.length !== 1 ? 's' : ''} saved across {subjectIds.length} subject{subjectIds.length !== 1 ? 's' : ''}</p>
+        </div>
+        <div className="lib-controls">
+          <div className="lib-search-wrap">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input
+              className="lib-search"
+              placeholder="Search concepts…"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
+          <select className="lib-filter" value={filterSubject} onChange={e => setFilterSubject(e.target.value)}>
+            <option value="all">All subjects</option>
+            {subjectIds.map(sid => (
+              <option key={sid} value={sid}>{SUBJECTS[sid]?.name || sid}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="lib-empty">Loading your library…</div>
+      ) : cards.length === 0 ? (
+        <div className="lib-empty">
+          <div className="lib-empty-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+            </svg>
+          </div>
+          <div className="lib-empty-title">No saved concepts yet</div>
+          <div className="lib-empty-sub">When your expert introduces a concept during a session, tap the bookmark icon on the card to save it here.</div>
+        </div>
+      ) : grouped.length === 0 ? (
+        <div className="lib-empty">No concepts match your search.</div>
+      ) : (
+        <div className="lib-groups">
+          {grouped.map(({ sid, subject, items }) => (
+            <div key={sid} className="lib-group">
+              <div className="lib-group-header">
+                <span className="lib-group-dot" style={{ background: subject?.color || 'var(--teal)' }} />
+                <span className="lib-group-name">{subject?.name || sid}</span>
+                <span className="lib-group-count">{items.length}</span>
+              </div>
+              <div className="lib-cards">
+                {items.map(item => (
+                  <LibConceptCard
+                    key={item.id}
+                    item={item}
+                    color={subject?.color}
+                    onUnsave={() => handleUnsave(item.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LibConceptCard({ item, color, onUnsave }) {
+  const c = color || '#16c1ad';
+  const [collapsed, setCollapsed] = useState(true);
+  const data = item.card_data;
+
+  return (
+    <div className={`concept-card lib-concept-card${collapsed ? ' concept-card--collapsed' : ''}`} style={{ '--cc-color': c }}>
+      <div className="concept-card-header" onClick={() => setCollapsed(v => !v)} style={{ cursor: 'pointer' }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+        <span className="concept-card-label-top" style={{ color: c }}>Concept</span>
+        <span className="concept-card-title">{data.title}</span>
+        <div className="concept-card-header-actions" onClick={e => e.stopPropagation()}>
+          <button className="cc-save-btn saved" onClick={onUnsave} title="Remove from library">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill={c} stroke={c} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+            </svg>
+          </button>
+          <button className="cc-collapse-btn" onClick={() => setCollapsed(v => !v)}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              {collapsed ? <polyline points="6 9 12 15 18 9"/> : <polyline points="18 15 12 9 6 15"/>}
+            </svg>
+          </button>
+        </div>
+      </div>
+      {!collapsed && (
+        <div className="concept-card-body">
+          {data.what && <div className="concept-card-row"><span className="concept-card-row-label">What it is</span><span className="concept-card-row-text">{data.what}</span></div>}
+          {data.why && <div className="concept-card-row"><span className="concept-card-row-label">Why it matters</span><span className="concept-card-row-text">{data.why}</span></div>}
+          {data.how && data.how.length > 0 && (
+            <div className="concept-card-row">
+              <span className="concept-card-row-label">How it works</span>
+              <ul className="concept-card-how">{data.how.map((pt, i) => <li key={i}>{formatInline(pt)}</li>)}</ul>
+            </div>
+          )}
+          {data.example && <div className="concept-card-row"><span className="concept-card-row-label">Real example</span><span className="concept-card-row-text concept-card-example">{data.example}</span></div>}
+          {data.remember && (
+            <div className="concept-card-remember" style={{ borderColor: c + '40', background: c + '0d' }}>
+              <span className="concept-card-remember-star" style={{ color: c }}>★</span>
+              <span>{data.remember}</span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Founder Contact Modal ──────────────────────────────────────────────────
+
+const CONTACT_REASONS = [
+  'I have a question about the curriculum',
+  'I\'m stuck and need help',
+  'I have feedback or a suggestion',
+  'Something isn\'t working',
+];
+
+function FounderContactModal({ student, onClose }) {
+  const [reason, setReason]     = useState('');
+  const [message, setMessage]   = useState('');
+  const [sending, setSending]   = useState(false);
+  const [sent, setSent]         = useState(false);
+
+  async function handleSubmit() {
+    if (!reason || !message.trim()) return;
+    setSending(true);
+    try {
+      await fetch('/api/contact-founder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_name:  student.name,
+          student_email: student.email,
+          reason,
+          message: message.trim(),
+        }),
+      });
+      setSent(true);
+    } finally {
+      setSending(false);
+    }
+  }
+
+  return (
+    <div className="founder-modal-overlay" onClick={onClose}>
+      <div className="founder-modal" onClick={e => e.stopPropagation()}>
+        {sent ? (
+          <div className="founder-modal-sent">
+            <div className="founder-sent-icon">✓</div>
+            <h3>Sent to Sudharsan</h3>
+            <p>He'll reply to your email within 24 hours.</p>
+            <button className="founder-close-btn" onClick={onClose}>Close</button>
+          </div>
+        ) : (
+          <>
+            <div className="founder-modal-header">
+              <div>
+                <p className="founder-modal-eyebrow">Direct message</p>
+                <h3 className="founder-modal-title">Talk to Sudharsan</h3>
+                <p className="founder-modal-sub">Co-founder of Bversity · replies within 24h</p>
+              </div>
+              <button className="founder-modal-x" onClick={onClose}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+
+            <div className="founder-modal-body">
+              <p className="founder-field-label">What's this about?</p>
+              <div className="founder-reasons">
+                {CONTACT_REASONS.map(r => (
+                  <button
+                    key={r}
+                    className={`founder-reason-btn${reason === r ? ' selected' : ''}`}
+                    onClick={() => setReason(r)}
+                  >
+                    {r}
+                  </button>
+                ))}
+              </div>
+
+              <p className="founder-field-label">Your message</p>
+              <textarea
+                className="founder-textarea"
+                placeholder="Write anything — there's no wrong way to say it."
+                value={message}
+                onChange={e => setMessage(e.target.value)}
+                rows={4}
+              />
+
+              <button
+                className="founder-submit-btn"
+                onClick={handleSubmit}
+                disabled={!reason || !message.trim() || sending}
+              >
+                {sending ? 'Sending…' : 'Send message →'}
+              </button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function IndustryLabsView({ student, onOpenProject }) {
+  const [labProgress, setLabProgress] = useState({});
+
+  useEffect(() => {
+    fetch(`/api/labs/${student.id}`)
+      .then(r => r.json())
+      .then(data => setLabProgress(data || {}))
+      .catch(() => {});
+  }, [student.id]);
+
+  return (
+    <div className="labs-view">
+      <div className="labs-header">
+        <div>
+          <h1 className="labs-title">Industry Innovation Labs</h1>
+          <p className="labs-sub">Real-world challenges built from actual research, clinical data, and industry tools</p>
+        </div>
+      </div>
+      <div className="labs-grid">
+        {INDUSTRY_LABS.map(subjectLabs => {
+          const subject = SUBJECTS.find(s => s.id === subjectLabs.subject_id);
+          if (!subject) return null;
+          return (
+            <div key={subjectLabs.subject_id} className="labs-subject-block">
+              <div className="labs-subject-header">
+                <span className="labs-subject-dot" style={{ background: subject.color }} />
+                <span className="labs-subject-name">{subject.name}</span>
+              </div>
+              <div className="labs-project-cards">
+                {subjectLabs.projects.map(proj => {
+                  const progress = labProgress[proj.id];
+                  const isCompleted = progress?.status === 'completed';
+                  const isStarted = !!progress && !isCompleted;
+                  const stepsDone = progress?.steps_done?.length || 0;
+                  return (
+                    <div
+                      key={proj.id}
+                      className={`labs-project-card${isCompleted ? ' labs-project-card--done' : ''}`}
+                      style={{ '--lab-color': subject.color }}
+                      onClick={() => onOpenProject(proj, subject)}
+                    >
+                      <div className="labs-project-top">
+                        <span className={`labs-status-badge${isCompleted ? ' done' : isStarted ? ' active' : ''}`}>
+                          {isCompleted ? 'Completed' : isStarted ? `${stepsDone}/${proj.steps.length} steps` : 'Not started'}
+                        </span>
+                        <div className="labs-project-meta">
+                          <span>{proj.time}</span>
+                          <span className="labs-meta-dot">·</span>
+                          <span>{proj.difficulty}</span>
+                        </div>
+                      </div>
+                      <h3 className="labs-project-title">{proj.title}</h3>
+                      <div className="labs-realworld-tag">
+                        <span className="labs-realworld-dot" />
+                        Real-world evidence
+                      </div>
+                      <p className="labs-project-scenario">{proj.scenario.slice(0, 120)}…</p>
+                      <div className="labs-project-tools">
+                        {proj.tools.slice(0, 3).map(t => (
+                          <span key={t.name} className="labs-tool-chip">{t.name}</span>
+                        ))}
+                        {proj.tools.length > 3 && <span className="labs-tool-chip labs-tool-more">+{proj.tools.length - 3}</span>}
+                      </div>
+                      <div className="labs-project-cta">
+                        {isCompleted ? 'Review →' : isStarted ? 'Continue →' : 'Begin project →'}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function LabProjectView({ student, project, subject, onBack }) {
+  const [labProgress, setLabProgress] = useState(null);
+  const [hintOpen, setHintOpen]       = useState({});
+  const [submitting, setSubmitting]   = useState(false);
+  const [feedback, setFeedback]       = useState(null);
+  const [showWhatsNext, setShowWhatsNext] = useState(false);
+
+  // file upload
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const fileInputRef = useRef(null);
+
+  // AI assistant sidebar
+  const [assistOpen, setAssistOpen]       = useState(false);
+  const [assistMessages, setAssistMessages] = useState([]);
+  const [assistInput, setAssistInput]     = useState('');
+  const [assistLoading, setAssistLoading] = useState(false);
+  const assistEndRef = useRef(null);
+  const assistInputRef = useRef(null);
+
+  // scroll-to-top ref
+  const viewRef = useRef(null);
+
+  useEffect(() => {
+    if (viewRef.current) viewRef.current.scrollTop = 0;
+  }, [project.id]);
+
+  useEffect(() => {
+    fetch(`/api/labs/${student.id}`)
+      .then(r => r.json())
+      .then(data => {
+        const prog = data[project.id] || null;
+        setLabProgress(prog);
+        if (prog?.ai_feedback) { setFeedback(prog.ai_feedback); setShowWhatsNext(true); }
+      })
+      .catch(() => {});
+  }, [student.id, project.id]);
+
+  useEffect(() => {
+    assistEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [assistMessages]);
+
+  const stepsDone  = new Set(labProgress?.steps_done || []);
+  const isCompleted = labProgress?.status === 'completed';
+  const allStepsDone = project.steps.every(s => stepsDone.has(s.id));
+  const tutorFirstName = subject.tutor.split(' ')[1] || subject.tutor;
+
+  async function toggleStep(stepId) {
+    if (isCompleted) return;
+    if (stepsDone.has(stepId)) {
+      await fetch(`/api/labs/${student.id}/${project.id}/steps/${stepId}`, { method: 'DELETE' });
+      setLabProgress(prev => ({
+        ...(prev || {}),
+        steps_done: (prev?.steps_done || []).filter(s => s !== stepId),
+      }));
+    } else {
+      await fetch(`/api/labs/${student.id}/${project.id}/steps`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subject_id: subject.id, step_id: stepId }),
+      });
+      setLabProgress(prev => ({
+        ...(prev || {}),
+        steps_done: [...(prev?.steps_done || []), stepId],
+        status: 'in_progress',
+      }));
+    }
+  }
+
+  async function handleSubmitFile() {
+    if (!uploadedFile || submitting) return;
+    setSubmitting(true);
+    const form = new FormData();
+    form.append('file', uploadedFile);
+    form.append('subject_id', subject.id);
+    form.append('rubric', JSON.stringify(project.rubric));
+    try {
+      const res  = await fetch(`/api/labs/${student.id}/${project.id}/submit-file`, { method: 'POST', body: form });
+      const data = await res.json();
+      if (data.error) { alert(data.error); return; }
+      setFeedback(data.feedback);
+      setLabProgress(prev => ({ ...(prev || {}), status: 'completed', ai_feedback: data.feedback }));
+      setShowWhatsNext(true);
+    } catch { /* no-op */ } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function openAssistant() {
+    setAssistOpen(true);
+    if (assistMessages.length === 0) {
+      setAssistLoading(true);
+      try {
+        const res  = await fetch(`/api/labs/${student.id}/assist`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            subject_id: subject.id,
+            tutor_name: subject.tutor,
+            tutor_role: subject.role,
+            project_title: project.title,
+            project_scenario: project.scenario,
+            project_problem: project.problem,
+            messages: [{ role: 'user', content: "Hi, I just opened this project. Can you introduce yourself and give me a quick overview of what I'm about to do?" }],
+          }),
+        });
+        const data = await res.json();
+        setAssistMessages([{ role: 'assistant', content: data.response }]);
+      } catch { /* no-op */ } finally {
+        setAssistLoading(false);
+      }
+    }
+  }
+
+  async function sendAssistMessage(e) {
+    e && e.preventDefault();
+    if (!assistInput.trim() || assistLoading) return;
+    const userMsg = { role: 'user', content: assistInput };
+    const updated = [...assistMessages, userMsg];
+    setAssistMessages(updated);
+    setAssistInput('');
+    setAssistLoading(true);
+    try {
+      const res  = await fetch(`/api/labs/${student.id}/assist`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject_id: subject.id,
+          tutor_name: subject.tutor,
+          tutor_role: subject.role,
+          project_title: project.title,
+          project_scenario: project.scenario,
+          project_problem: project.problem,
+          messages: updated,
+        }),
+      });
+      const data = await res.json();
+      setAssistMessages(prev => [...prev, { role: 'assistant', content: data.response }]);
+    } catch { /* no-op */ } finally {
+      setAssistLoading(false);
+    }
+  }
+
+  return (
+    <div className={`lab-project-wrapper${assistOpen ? ' lab-with-sidebar' : ''}`}>
+
+      {/* ── main content ── */}
+      <div className="lab-project-view" ref={viewRef}>
+        <div className="lab-project-topbar">
+          <button className="lab-back-btn" onClick={onBack}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6"/>
+            </svg>
+            Industry Innovation Labs
+          </button>
+          <button
+            className={`lab-expert-toggle${assistOpen ? ' active' : ''}`}
+            style={{ borderColor: subject.color + '60', color: assistOpen ? '#fff' : subject.color, background: assistOpen ? subject.color : 'transparent' }}
+            onClick={() => assistOpen ? setAssistOpen(false) : openAssistant()}
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+            </svg>
+            Ask {tutorFirstName}
+          </button>
+        </div>
+
+        <div className="lab-project-hero" style={{ borderColor: subject.color + '40', background: subject.color + '08' }}>
+          <div className="lab-project-hero-top">
+            <div>
+              <span className="lab-subject-tag" style={{ color: subject.color, background: subject.color + '18' }}>{subject.name}</span>
+              <h1 className="lab-project-hero-title">{project.title}</h1>
+            </div>
+            <div className="lab-project-hero-meta">
+              <span className="lab-meta-item">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                {project.time}
+              </span>
+              <span className="lab-meta-item">{project.difficulty}</span>
+            </div>
+          </div>
+          <div className="lab-tools-row">
+            {project.tools.map(t => (
+              <a key={t.name} href={t.url} target="_blank" rel="noopener noreferrer" className="lab-tool-link" style={{ color: subject.color, borderColor: subject.color + '40' }}>
+                {t.name} ↗
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div className="lab-project-body">
+          <div className="lab-section">
+            <div className="lab-section-label">Scenario</div>
+            <p className="lab-section-text">{project.scenario}</p>
+          </div>
+          <div className="lab-section">
+            <div className="lab-section-label">Your challenge</div>
+            <p className="lab-section-text">{project.problem}</p>
+          </div>
+          <div className="lab-section lab-section-row">
+            <div className="lab-half">
+              <div className="lab-section-label">Why this matters</div>
+              <p className="lab-section-text">{project.why_it_matters}</p>
+            </div>
+            <div className="lab-half">
+              <div className="lab-section-label">What you'll deliver</div>
+              <p className="lab-section-text">{project.expected_output}</p>
+            </div>
+          </div>
+
+          <div className="lab-steps-section">
+            <div className="lab-section-label">Steps</div>
+            <div className="lab-steps">
+              {project.steps.map((step, i) => {
+                const done        = stepsDone.has(step.id);
+                const hintVisible = hintOpen[step.id];
+                return (
+                  <div key={step.id} className={`lab-step${done ? ' lab-step--done' : ''}`}>
+                    <div className="lab-step-row">
+                      <button
+                        className={`lab-step-check${done ? ' checked' : ''}`}
+                        style={done ? { background: subject.color, borderColor: subject.color } : { borderColor: subject.color + '60' }}
+                        onClick={() => toggleStep(step.id)}
+                        disabled={isCompleted}
+                      >
+                        {done && (
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        )}
+                      </button>
+                      <div className="lab-step-content">
+                        <span className="lab-step-num">Step {i + 1}</span>
+                        <p className="lab-step-text">{step.text}</p>
+                      </div>
+                      <button
+                        className={`lab-hint-btn${hintVisible ? ' open' : ''}`}
+                        onClick={() => setHintOpen(prev => ({ ...prev, [step.id]: !prev[step.id] }))}
+                      >
+                        I'm stuck
+                      </button>
+                    </div>
+                    {hintVisible && (
+                      <div className="lab-hint-box" style={{ borderColor: subject.color + '40', background: subject.color + '08' }}>
+                        <span className="lab-hint-icon" style={{ color: subject.color }}>💡</span>
+                        <p>{step.hint}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {!isCompleted && (
+            <div className="lab-submit-section">
+              <div className="lab-section-label">Submit your work</div>
+              <p className="lab-submit-hint">Upload your report, write-up, or analysis. We accept PDF, Word (.docx), or plain text files. Your work will be reviewed by AI against the rubric below.</p>
+              <div className="lab-rubric">
+                <div className="lab-rubric-label">Rubric</div>
+                <ul className="lab-rubric-list">
+                  {project.rubric.map((r, i) => <li key={i}>{r}</li>)}
+                </ul>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.docx,.txt,.doc"
+                style={{ display: 'none' }}
+                onChange={e => setUploadedFile(e.target.files[0] || null)}
+              />
+              <div className="lab-upload-area" onClick={() => fileInputRef.current?.click()}>
+                {uploadedFile ? (
+                  <div className="lab-upload-selected">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={subject.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    <span className="lab-upload-filename">{uploadedFile.name}</span>
+                    <button className="lab-upload-clear" onClick={e => { e.stopPropagation(); setUploadedFile(null); }}>×</button>
+                  </div>
+                ) : (
+                  <>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: 'var(--text-muted)' }}>
+                      <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+                    </svg>
+                    <span className="lab-upload-cta">Click to upload your work</span>
+                    <span className="lab-upload-formats">PDF, DOCX, or TXT</span>
+                  </>
+                )}
+              </div>
+              <button
+                className="lab-submit-btn"
+                style={{ background: uploadedFile ? subject.color : undefined }}
+                onClick={handleSubmitFile}
+                disabled={!uploadedFile || submitting}
+              >
+                {submitting ? 'Reviewing your work…' : 'Submit for AI review →'}
+              </button>
+              {!allStepsDone && (
+                <p className="lab-submit-note">You can submit before completing all steps, but checking off each one improves your feedback quality.</p>
+              )}
+            </div>
+          )}
+
+          {feedback && (
+            <div className="lab-feedback-section">
+              <div className="lab-feedback-header">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={subject.color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                </svg>
+                <span style={{ color: subject.color }}>AI Review Feedback</span>
+              </div>
+              <div className="lab-feedback-body" dangerouslySetInnerHTML={{ __html: feedback.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>') }} />
+            </div>
+          )}
+
+          {showWhatsNext && (
+            <div className="lab-whats-next" style={{ borderColor: subject.color + '30', background: subject.color + '06' }}>
+              <div className="lab-whats-next-title" style={{ color: subject.color }}>What's next</div>
+              <ul className="lab-whats-next-list">
+                {project.whats_next.map((item, i) => <li key={i}>{item}</li>)}
+              </ul>
+              <button className="lab-back-to-labs" onClick={onBack}>← Back to all labs</button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ── AI assistant sidebar ── */}
+      {assistOpen && (
+        <div className="lab-assistant-panel" style={{ '--assist-color': subject.color }}>
+          <div className="lab-assist-header">
+            <div className="lab-assist-tutor">
+              <div className="lab-assist-avatar" style={{ background: subject.color + '22', color: subject.color }}>
+                {tutorFirstName[0]}
+              </div>
+              <div>
+                <div className="lab-assist-name">{subject.tutor}</div>
+                <div className="lab-assist-role">{subject.role}</div>
+              </div>
+            </div>
+            <button className="lab-assist-close" onClick={() => setAssistOpen(false)}>×</button>
+          </div>
+
+          <div className="lab-assist-messages">
+            {assistMessages.length === 0 && assistLoading && (
+              <div className="lab-assist-typing">
+                <span /><span /><span />
+              </div>
+            )}
+            {assistMessages.map((m, i) => (
+              <div key={i} className={`lab-assist-msg${m.role === 'user' ? ' user' : ' bot'}`}>
+                <div
+                  className="lab-assist-bubble"
+                  dangerouslySetInnerHTML={{ __html: m.content.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>') }}
+                />
+              </div>
+            ))}
+            {assistMessages.length > 0 && assistLoading && (
+              <div className="lab-assist-msg bot">
+                <div className="lab-assist-bubble">
+                  <span className="lab-assist-typing"><span /><span /><span /></span>
+                </div>
+              </div>
+            )}
+            <div ref={assistEndRef} />
+          </div>
+
+          <form className="lab-assist-input-row" onSubmit={sendAssistMessage}>
+            <textarea
+              ref={assistInputRef}
+              className="lab-assist-input"
+              placeholder="Ask anything about this project…"
+              value={assistInput}
+              onChange={e => setAssistInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAssistMessage(); } }}
+              rows={2}
+            />
+            <button
+              type="submit"
+              className="lab-assist-send"
+              style={{ background: subject.color }}
+              disabled={!assistInput.trim() || assistLoading}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Weekly Report Sample Modal ────────────────────────────────────────────
+function WeeklyReportSampleModal({ onClose }) {
+  return (
+    <div className="sample-modal-overlay" onClick={onClose}>
+      <div className="sample-modal" onClick={e => e.stopPropagation()}>
+        <div className="sample-modal-header">
+          <div>
+            <p className="sample-modal-eyebrow">Sample</p>
+            <h3 className="sample-modal-title">Your Weekly Progress Report</h3>
+          </div>
+          <button className="founder-modal-x" onClick={onClose}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div className="sample-report-body">
+          <div className="sample-report-greeting">Week of 28 Apr – 4 May</div>
+          <div className="sample-report-coaching">
+            You're putting in real depth — your Tuesday evening sessions averaged 34 minutes, which is where the retention actually happens. You've mastered Sequence Alignment and BLAST this week, which puts you exactly on track for your Bioinformatics Scientist goal. Next week, push into Phylogenetics before moving to the next subject.
+          </div>
+          <div className="sample-report-stats">
+            <div className="sample-stat-box">
+              <span className="sample-stat-val">3</span>
+              <span className="sample-stat-label">Sessions</span>
+            </div>
+            <div className="sample-stat-box">
+              <span className="sample-stat-val">4</span>
+              <span className="sample-stat-label">Concepts covered</span>
+            </div>
+            <div className="sample-stat-box">
+              <span className="sample-stat-val">2</span>
+              <span className="sample-stat-label">Mastered</span>
+            </div>
+            <div className="sample-stat-box">
+              <span className="sample-stat-val">7</span>
+              <span className="sample-stat-label">Day streak</span>
+            </div>
+          </div>
+          <div className="sample-report-focus">
+            <p className="sample-focus-label">Focus next week</p>
+            <div className="sample-focus-pills">
+              <span className="sample-focus-pill">Phylogenetics</span>
+              <span className="sample-focus-pill">NGS Pipelines</span>
+              <span className="sample-focus-pill">Protein Structure</span>
+            </div>
+          </div>
+          <p className="sample-report-note">This report is generated by AI using your actual learning data — sessions, concepts, quiz scores, and career goal — and lands in your inbox every Monday.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Certificate Sample Modal ──────────────────────────────────────────────
+function CertificateSampleModal({ onClose }) {
+  return (
+    <div className="sample-modal-overlay" onClick={onClose}>
+      <div className="sample-modal sample-modal--cert" onClick={e => e.stopPropagation()}>
+        <div className="sample-modal-header">
+          <div>
+            <p className="sample-modal-eyebrow">Sample</p>
+            <h3 className="sample-modal-title">Your Certificate of Completion</h3>
+          </div>
+          <button className="founder-modal-x" onClick={onClose}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div className="sample-cert-wrap">
+          <div className="certificate-parchment" style={{ transform: 'scale(0.72)', transformOrigin: 'top center', marginBottom: '-80px' }}>
+            <div className="cert-inner-border">
+              <div className="cert-p-logo">
+                <img src="/logo-3.png" alt="Bversity" className="cert-p-logo-img" />
+                <div className="cert-p-logo-sub">School of Biosciences</div>
+              </div>
+              <div className="cert-p-heading">CERTIFICATE</div>
+              <div className="cert-p-subheading">of Completion</div>
+              <div className="cert-p-divider" />
+              <div className="cert-p-certify-text">This is to certify that</div>
+              <div className="cert-p-student-name">Your Name</div>
+              <div className="cert-p-name-underline" />
+              <div className="cert-p-awarded-text">has successfully completed all academic requirements and is hereby awarded the</div>
+              <div className="cert-p-course">Bioinformatics</div>
+              <div className="cert-p-recognition">in recognition of their perseverance, commitment, and scholarly achievement. We celebrate this milestone and encourage you to carry forward the knowledge, skills, and values acquired here.</div>
+              <div className="cert-p-sig-row">
+                <div className="cert-p-sig-person">
+                  <div className="cert-p-sig-line" />
+                  <div className="cert-p-sig-name">Raghul Jaganathan</div>
+                  <div className="cert-p-sig-title">Chief Academic Officer,<br />Bversity School of Bioscience</div>
+                </div>
+                <div className="cert-p-seal">
+                  <div className="cert-p-seal-icon"><IcoCertificate /></div>
+                  <div className="cert-p-seal-text">BVERSITY{'\n'}WITH HONORS</div>
+                </div>
+                <div className="cert-p-sig-person">
+                  <div className="cert-p-sig-line" />
+                  <div className="cert-p-sig-name">Sudharsan V</div>
+                  <div className="cert-p-sig-title">Chief Executive Officer,<br />Bversity School of Bioscience</div>
+                </div>
+              </div>
+              <div className="cert-p-cert-no">Graduation certificate no. BVG-SAMPLE</div>
+              <div className="cert-p-legal">Certificate by Bversity school of Bioscience (an entity by TABS Learning private limited. CIN : U80903TN2021PTC144439)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Journey Section ───────────────────────────────────────────────────────
+function JourneySection({ data }) {
+  const [showReport, setShowReport]   = useState(false);
+  const [showCert, setShowCert]       = useState(false);
+
+  const hasCapstone = Object.values(data.subjects).some(s => s.capstone_submission);
+  const hasCert     = Object.values(data.subjects).some(s => s.certificate_earned);
+
+  const steps = [
+    {
+      num: '01',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
+        </svg>
+      ),
+      title: 'Weekly Report',
+      desc: 'Every Monday, a personalised AI progress report lands in your inbox — sessions, concepts mastered, and what to focus on next.',
+      active: true,
+      cta: 'View sample report',
+      onCta: () => setShowReport(true),
+    },
+    {
+      num: '02',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+        </svg>
+      ),
+      title: 'Capstone Project',
+      desc: 'Complete a subject and unlock a real-world capstone project — a graded assignment reviewed and marked by faculty.',
+      active: hasCapstone,
+      cta: null,
+    },
+    {
+      num: '03',
+      icon: <IcoCertificate />,
+      title: 'Verified Certificate',
+      desc: 'Pass your capstone and earn a verified Bversity certificate — with your name, subject, credential ID, and faculty signatures.',
+      active: hasCert,
+      cta: 'View sample certificate',
+      onCta: () => setShowCert(true),
+    },
+  ];
+
+  return (
+    <div className="journey-section">
+      <p className="journey-eyebrow">Your Learning Journey</p>
+      <div className="journey-timeline">
+        {steps.map((step, i) => (
+          <React.Fragment key={step.num}>
+            <div className={`journey-node${step.active ? ' journey-node--active' : ''}`}>
+              <div className="journey-node-dot" />
+              <div className="journey-node-label">{step.title}</div>
+              {step.cta && (
+                <button className="journey-sample-btn" onClick={step.onCta}>{step.cta} →</button>
+              )}
+            </div>
+            {i < steps.length - 1 && <div className="journey-line" />}
+          </React.Fragment>
+        ))}
+      </div>
+      {showReport && <WeeklyReportSampleModal onClose={() => setShowReport(false)} />}
+      {showCert   && <CertificateSampleModal  onClose={() => setShowCert(false)}  />}
+    </div>
+  );
+}
 
 function DashboardView({ student, onStudy, onCapstone, onCertificate }) {
   const [data, setData]             = useState(null);
@@ -3930,74 +7114,79 @@ function DashboardView({ student, onStudy, onCapstone, onCertificate }) {
   const lagDays = studyPlan?.lag_days ?? 0;
   const lagConcepts = studyPlan?.lag_concepts ?? 0;
 
+  const planDays = studyPlan?.plan ?? [];
+  const spDoneDays = planDays.filter(d => d.concepts.every(c => c.covered)).length;
+  const spTotalConcepts = planDays.reduce((s, d) => s + d.concepts.length, 0);
+  const spCoveredConcepts = planDays.reduce((s, d) => s + d.concepts.filter(c => c.covered).length, 0);
+  const spPct = spTotalConcepts > 0 ? Math.round((spCoveredConcepts / spTotalConcepts) * 100) : 0;
+  const spWeeks = [];
+  for (let i = 0; i < planDays.length; i += 7) spWeeks.push(planDays.slice(i, i + 7));
+  const spOverdueDays = planDays.filter(d => {
+    const dd = new Date(d.target_date);
+    return dd < new Date(today.toDateString()) && !d.concepts.every(c => c.covered);
+  });
+
   return (
     <div className="dashboard">
       <div className="dashboard-hero">
-        <h1>{student.name.split(' ')[0]}'s Learning Map</h1>
-        <div className="dashboard-stats">
-          <div className="stat-card">
-            <span className="stat-value">{totalCovered}</span>
-            <span className="stat-label">Concepts Covered</span>
+        <h1>
+          <span className="dashboard-hero-name">{student.name.split(' ')[0]}'s</span>
+          <span className="dashboard-hero-sub"> Learning Map</span>
+        </h1>
+        <div className="hero-mastery">
+          <div className="hero-mastery-bar-track">
+            <div className="hero-mastery-bar-fill" style={{
+              width: `${studyPlan && spTotalConcepts > 0
+                ? spPct
+                : Math.round((totalCovered / Math.max(totalConcepts, 1)) * 100)}%`
+            }} />
           </div>
-          <div className="stat-card mastered">
-            <span className="stat-value">{totalMastered}</span>
-            <span className="stat-label">Concepts Mastered</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-value">{totalConcepts}</span>
-            <span className="stat-label">Total Curriculum</span>
+          <div className="hero-mastery-meta">
+            {studyPlan && spTotalConcepts > 0 ? (
+              <>
+                <span className="hero-mastery-stat"><strong>{spCoveredConcepts}</strong> / {spTotalConcepts} concepts</span>
+                <span className="hero-mastery-dot">·</span>
+                <span className="hero-mastery-stat"><strong>{spDoneDays}</strong> / {planDays.length} days</span>
+                <span className="hero-mastery-dot">·</span>
+                <span className="hero-mastery-stat">{spPct}% complete</span>
+                {lagDays >= 1 && (
+                  <>
+                    <span className="hero-mastery-dot">·</span>
+                    <span className="hero-mastery-behind">{lagDays}d behind</span>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <span className="hero-mastery-stat"><strong>{totalCovered}</strong> / {totalConcepts} concepts covered</span>
+                {totalMastered > 0 && (
+                  <>
+                    <span className="hero-mastery-dot">·</span>
+                    <span className="hero-mastery-stat"><strong>{totalMastered}</strong> mastered</span>
+                  </>
+                )}
+              </>
+            )}
           </div>
         </div>
-        {lagDays >= 2 && (
-          <div className="lag-banner">
-            <span className="lag-banner-icon"><IcoClock /></span>
-            <span>You're <strong>{lagDays} day{lagDays !== 1 ? 's' : ''} behind</strong> your study plan — {lagConcepts} concept{lagConcepts !== 1 ? 's' : ''} overdue. Try to cover {Math.min(lagConcepts, 4)} today to catch up.</span>
-          </div>
-        )}
       </div>
 
+      {data && <JourneySection data={data} />}
+
       {studyPlan && studyPlan.plan?.length > 0 && (
-        <div className="study-plan-section">
-          <div className="study-plan-header">
-            <h2 className="study-plan-title">Your 30-Day Study Plan</h2>
-            {lagDays >= 1 && <span className="study-plan-lag-chip">{lagDays}d behind</span>}
-          </div>
-          <div className="study-plan-scroll">
-            {studyPlan.plan.map(day => {
-              const dayDate = new Date(day.target_date);
-              const isPast  = dayDate < new Date(today.toDateString());
-              const isToday = dayDate.toDateString() === today.toDateString();
-              const allCovered  = day.concepts.every(c => c.covered);
-              const someCovered = day.concepts.some(c => c.covered);
-              const isOverdue   = isPast && !allCovered;
-              return (
-                <div key={day.day} className={`plan-day-card ${isToday ? 'today' : ''} ${isOverdue ? 'overdue' : ''} ${allCovered ? 'done' : ''}`}>
-                  <div className="plan-day-label">
-                    {isToday ? 'Today' : dayDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
-                  </div>
-                  <div className="plan-day-num">Day {day.day}</div>
-                  <div className="plan-day-concepts">
-                    {day.concepts.map(c => {
-                      const subj = SUBJECTS.find(s => s.id === c.subject_id);
-                      return (
-                        <div key={c.concept_id}
-                             className={`plan-concept-chip ${c.covered ? 'covered' : ''} ${subj ? 'clickable' : ''}`}
-                             style={c.covered ? { borderColor: subj?.color + '88', color: subj?.color } : {}}
-                             onClick={() => subj && onStudy(subj)}
-                             role={subj ? 'button' : undefined}
-                             tabIndex={subj ? 0 : undefined}
-                             onKeyDown={e => e.key === 'Enter' && subj && onStudy(subj)}
-                             title={subj ? `Go to ${subj.name}` : undefined}>
-                          {c.covered ? '✓ ' : ''}{c.concept_id.replace(/_[abc]$/, '').replace(/_/g, ' ')}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <StudyPlanSection
+          planDays={planDays}
+          spWeeks={spWeeks}
+          spDoneDays={spDoneDays}
+          spTotalConcepts={spTotalConcepts}
+          spCoveredConcepts={spCoveredConcepts}
+          spPct={spPct}
+          spOverdueDays={spOverdueDays}
+          lagDays={lagDays}
+          lagConcepts={lagConcepts}
+          today={today}
+          onStudy={onStudy}
+        />
       )}
 
       <div className="dashboard-subjects">
@@ -4009,7 +7198,7 @@ function DashboardView({ student, onStudy, onCapstone, onCertificate }) {
               <div className="dashboard-subject-header">
                 <div className="dashboard-subject-title">
                   <img
-                    src={TUTOR_PHOTOS[subject.tutor]}
+                    src={TUTOR_AVATARS[subject.tutor]}
                     className="tutor-photo-md"
                     alt={subject.tutor}
                     onError={e => { e.target.style.display = 'none'; }}
@@ -4174,7 +7363,7 @@ function CertificateView({ student, subject, onBack, onStudy }) {
     const date = cert.completion_date ? new Date(cert.completion_date) : new Date();
     const params = new URLSearchParams({
       startTask: 'CERTIFICATION_NAME',
-      name: `${cert.subject_name} — Bversity`,
+      name: `${cert.subject_name} | Bversity`,
       organizationName: 'Bversity',
       issueYear: String(date.getFullYear()),
       issueMonth: String(date.getMonth() + 1),
@@ -4559,23 +7748,46 @@ function ExpertIntroScreen({ subject, student, onReady, onBack }) {
     localStorage.setItem(`bv_met_${subject.id}_${student.id}`, '1');
     onReady();
   }
+  const tutorPhoto = TUTOR_AVATARS[subject.tutor];
   return (
-    <div className="entry-screen">
-      <button className="entry-back-btn" onClick={onBack}>← Back to courses</button>
-      <div className="entry-card">
-        <div className="entry-expert-badge" style={{ background: subject.color + '18', color: subject.color }}>
-          {subject.name}
+    <div className="entry-screen entry-screen--intro">
+      <button className="entry-back-btn entry-back-btn--light" onClick={onBack}>← Back to courses</button>
+      <div className="intro-hero-card">
+        {/* Photo header */}
+        <div
+          className="intro-hero-photo"
+          style={{
+            backgroundImage: tutorPhoto
+              ? `linear-gradient(to top, ${subject.color}ee 0%, ${subject.color}55 40%, transparent 100%), url(${tutorPhoto})`
+              : `linear-gradient(135deg, ${subject.color}cc 0%, ${subject.color}88 100%)`,
+          }}
+        >
+          {!tutorPhoto && (
+            <div className="intro-hero-initials">
+              {subject.tutor.split(' ').filter(w => w.length > 2).slice(-2).map(w => w[0]).join('')}
+            </div>
+          )}
+          <div className="intro-hero-overlay-text">
+            <div className="intro-hero-subject-badge">{subject.name}</div>
+            <div className="intro-hero-name">{subject.tutor}</div>
+            <div className="intro-hero-role">{subject.role}</div>
+            <div className="intro-hero-org">{subject.org}</div>
+          </div>
         </div>
-        <div className="entry-avatar" style={{ background: subject.color }}>
-          {subject.tutor.split(' ').filter(w => w.startsWith('Dr') || w.length > 2).slice(-2).map(w => w[0]).join('')}
+
+        {/* Body */}
+        <div className="intro-hero-body">
+          <blockquote className="intro-hero-quote" style={{ borderColor: subject.color }}>
+            "{subject.intro}"
+          </blockquote>
+          <button
+            className="intro-hero-cta"
+            style={{ background: subject.color }}
+            onClick={handleReady}
+          >
+            Start learning with {subject.tutor.split(' ')[subject.tutor.startsWith('Dr') ? 2 : 0] || subject.tutor.split(' ')[0]} →
+          </button>
         </div>
-        <div className="entry-expert-name">{subject.tutor}</div>
-        <div className="entry-expert-role">{subject.role} · {subject.org}</div>
-        <blockquote className="entry-intro-text">"{subject.intro}"</blockquote>
-        <p className="entry-ready-prompt">Ready to begin?</p>
-        <button className="entry-cta-btn" style={{ background: subject.color }} onClick={handleReady}>
-          Yes, let's go →
-        </button>
       </div>
     </div>
   );
@@ -4586,21 +7798,19 @@ function ExpertIntroScreen({ subject, student, onReady, onBack }) {
 function SessionStartScreen({ subject, student, onBegin, onBack }) {
   const [concepts, setConcepts] = useState([]);
   const [loading, setLoading]   = useState(true);
-  const [newsItem, setNewsItem] = useState(null);
+  const [isFirstVisit, setIsFirstVisit] = useState(false);
   const MINS_PER_CONCEPT = 7;
 
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/progress/${student.id}/${subject.id}`).then(r => r.json()),
-      fetch(`/api/subject-news/${subject.id}`).then(r => r.json()).catch(() => []),
-    ]).then(([progressData, newsData]) => {
+    fetch(`/api/progress/${student.id}/${subject.id}`).then(r => r.json()).then(progressData => {
       const uncovered = (progressData.concepts || []).filter(c => !c.covered).slice(0, 3);
+      const covered   = (progressData.concepts || []).filter(c => c.covered);
+      setIsFirstVisit(covered.length === 0);
       if (uncovered.length > 0) {
         setConcepts(uncovered);
       } else {
         setConcepts((progressData.concepts || []).slice(0, 3).map(c => ({ ...c, review: true })));
       }
-      if (newsData.length > 0) setNewsItem(newsData[0]);
     }).catch(() => {}).finally(() => setLoading(false));
   }, [student.id, subject.id]);
 
@@ -4608,44 +7818,33 @@ function SessionStartScreen({ subject, student, onBegin, onBack }) {
   const isReview  = concepts[0]?.review;
 
   function handleBegin() {
-    onBegin(newsItem?.title || null);
+    onBegin(isFirstVisit);
   }
 
+  const tutorPhoto = TUTOR_AVATARS[subject.tutor];
   return (
-    <div className="entry-screen">
-      <button className="entry-back-btn" onClick={onBack}>← Back</button>
-      <div className="entry-card entry-card--session">
-        <div className="entry-session-header">
-          <div className="entry-avatar entry-avatar--sm" style={{ background: subject.color }}>
-            {subject.tutor.split(' ').filter(w => w.startsWith('Dr') || w.length > 2).slice(-2).map(w => w[0]).join('')}
-          </div>
-          <div>
-            <div className="entry-expert-name entry-expert-name--sm">{subject.tutor}</div>
-            <div className="entry-expert-role">{subject.name}</div>
+    <div className="entry-screen entry-screen--session">
+      <button className="entry-back-btn entry-back-btn--light" onClick={onBack}>← Back</button>
+      <div className="session-hero-card">
+        {/* Tutor photo header */}
+        <div
+          className="session-hero-photo"
+          style={{
+            backgroundImage: tutorPhoto
+              ? `linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 60%, transparent 100%), url(${tutorPhoto})`
+              : `linear-gradient(135deg, ${subject.color}cc, ${subject.color}66)`,
+          }}
+        >
+          <div className="session-hero-overlay">
+            <div className="session-hero-subject" style={{ color: subject.color === '#fff' ? '#eee' : subject.color }}>
+              {subject.name}
+            </div>
+            <div className="session-hero-tutor">{subject.tutor}</div>
+            <div className="session-hero-role">{subject.role} · {subject.org}</div>
           </div>
         </div>
 
-        {newsItem && (
-          <div className="entry-news-card" style={{ borderColor: subject.color + '40' }}>
-            <div className="entry-news-eyebrow">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
-                <path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/>
-                <path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/>
-              </svg>
-              Before we begin
-            </div>
-            <div className="entry-news-headline">{newsItem.title}</div>
-            {(newsItem.source || newsItem.pub_date) && (
-              <div className="entry-news-meta">
-                {newsItem.source && <span>{newsItem.source}</span>}
-                {newsItem.source && newsItem.pub_date && <span>·</span>}
-                {newsItem.pub_date && <span>{newsItem.pub_date}</span>}
-              </div>
-            )}
-            <div className="entry-news-note" style={{ color: subject.color }}>Your expert will connect this to today's session</div>
-          </div>
-        )}
-
+        <div className="session-hero-body">
         <div className="entry-session-label">
           {isReview ? "Today's review session" : "Today's session"}
         </div>
@@ -4672,6 +7871,7 @@ function SessionStartScreen({ subject, student, onBegin, onBack }) {
         <button className="entry-cta-btn" style={{ background: subject.color }} onClick={handleBegin} disabled={loading}>
           Begin session →
         </button>
+        </div>
       </div>
     </div>
   );
@@ -4918,7 +8118,7 @@ function CareerReadinessScore({ careerProfile, progress, onViewPath, onShare }) 
   const tagline = remaining === 0
     ? `You've covered your full learning path for ${career.title}`
     : nextSubject
-      ? `Next up: ${nextSubject.name} — ${remaining} subject${remaining !== 1 ? 's' : ''} left to be interview-ready`
+      ? `Next up: ${nextSubject.name}, ${remaining} subject${remaining !== 1 ? 's' : ''} left to be interview-ready`
       : `${remaining} subject${remaining !== 1 ? 's' : ''} left on your path to ${career.title}`;
 
   return (
@@ -4963,6 +8163,7 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
   const [statuses, setStatuses]   = useState({});
   const [unlocking, setUnlocking] = useState(null); // { subject, mode: 'unlock'|'resume'|'at_cap' }
   const [showShare, setShowShare] = useState(false);
+  const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
   function refreshStatuses() {
     fetch(`/api/subjects/status/${student.id}`).then(r => r.json()).then(setStatuses).catch(() => {});
@@ -4975,6 +8176,8 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
 
   const career         = careerProfile?.career;
   const recommendedIds = new Set(career?.relevant_subjects || []);
+  const totalCoveredConcepts = Object.values(progress).reduce((sum, p) => sum + (p.covered_count ?? 0), 0);
+  const showCareerNudge = !career && totalCoveredConcepts >= 5 && careerProfile?.motivation === 'stay_ahead' && !nudgeDismissed;
   const activeCount    = Object.values(statuses).filter(s => s.status === 'active').length;
   const careerSubjects = career
     ? (career.relevant_subjects || []).map(id => SUBJECTS.find(s => s.id === id)).filter(Boolean)
@@ -5021,7 +8224,7 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
         ) : (
           <>
             <div className="home-hero-top">
-              <h1>Welcome back, <span>{student.name.split(' ')[0]}</span></h1>
+              <h1><span className="home-hero-greeting">Welcome back,</span> <span>{student.name.split(' ')[0]}</span></h1>
               {careerProfile?.streak_count > 0 && (
                 <div className={`streak-badge${careerProfile.streak_at_risk ? ' streak-badge--risk' : careerProfile.streak_today ? ' streak-badge--done' : ''}`}>
                   <span className="streak-flame">{careerProfile.streak_at_risk ? '⚠️' : '🔥'}</span>
@@ -5041,20 +8244,35 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
               <div className="cpb-sub">Your career destination · view path →</div>
             </div>
           </div>
+        ) : showCareerNudge ? (
+          <div className="career-path-smart-nudge">
+            <div className="cpsn-body">
+              <span className="cpsn-icon"><IcoTarget /></span>
+              <div className="cpsn-text">
+                <div className="cpsn-title">You've covered {totalCoveredConcepts} concepts. Ready to pick a destination?</div>
+                <div className="cpsn-sub">Adding a career goal lets your experts personalise every lesson from here on.</div>
+              </div>
+            </div>
+            <div className="cpsn-actions">
+              <button className="cpsn-btn-primary" onClick={onViewPath}>Pick a career path</button>
+              <button className="cpsn-btn-dismiss" onClick={() => setNudgeDismissed(true)}>Maybe later</button>
+            </div>
+          </div>
         ) : (
           <div className="career-path-nudge" onClick={onViewPath} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && onViewPath()}>
-            <span className="career-path-nudge-icon"><IcoTarget /></span> Set your career destination — your experts will personalise your learning path
+            <span className="career-path-nudge-icon"><IcoTarget /></span> Set your career destination. Your experts will personalise your learning path
           </div>
         )}
         {activeCount > 0 && (
           <div className="home-active-hint">
             {activeCount === 2
-              ? 'You have 2 active subjects — pause one to start another.'
+              ? 'You have 2 active subjects. Pause one to start another.'
               : `You have ${activeCount} active subject. You can run up to 2 at once.`}
           </div>
         )}
       </div>
 
+      <div className="home-body">
       <CareerReadinessScore careerProfile={careerProfile} progress={progress} onViewPath={onViewPath} onShare={() => setShowShare(true)} />
 
       {career ? (
@@ -5075,7 +8293,7 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
             <div className="subjects-section subjects-section--explore">
               <div className="subjects-section-header">
                 <h2 className="subjects-section-title">Explore Other Subjects</h2>
-                <p className="subjects-section-sub">Not part of your core curriculum — but great for broadening your knowledge in adjacent areas.</p>
+                <p className="subjects-section-sub">Not part of your core curriculum, but great for broadening your knowledge in adjacent areas.</p>
               </div>
               <div className="subjects-grid">
                 {exploreSubjects.map(s => (
@@ -5140,6 +8358,7 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
           onClose={() => setShowShare(false)}
         />
       )}
+      </div>
     </div>
   );
 }
@@ -5194,7 +8413,7 @@ function SubjectCard({ subject, progress, status, isRecommended, activeCount, on
         </div>
         <div className="subject-banner-tutor">
           <img
-            src={TUTOR_PHOTOS[subject.tutor]}
+            src={TUTOR_AVATARS[subject.tutor]}
             className="tutor-photo-sm"
             alt={subject.tutor}
             onError={e => { e.target.style.display = 'none'; }}
@@ -5290,20 +8509,27 @@ function SubjectUnlockModal({ subject, mode, statuses, progress, student, isReco
           </svg>
         </button>
 
-        <div className="unlock-modal-banner" style={{ background: `linear-gradient(135deg, ${subject.color}22, ${subject.color}0a)`, borderBottom: `1px solid ${subject.color}20` }}>
-          <span style={{ color: subject.color, width: 28, height: 28, flexShrink: 0 }}>{SUBJECT_ICONS[subject.id]}</span>
-          <div>
+        <div
+          className="unlock-modal-banner unlock-modal-banner--photo"
+          style={{
+            backgroundImage: TUTOR_AVATARS[subject.tutor]
+              ? `linear-gradient(to top, ${subject.color}f0 0%, ${subject.color}88 50%, transparent 100%), url(${TUTOR_AVATARS[subject.tutor]})`
+              : `linear-gradient(135deg, ${subject.color}cc, ${subject.color}88)`,
+          }}
+        >
+          {isRecommended && <span className="subject-badge subject-badge--rec unlock-modal-rec-badge">Recommended</span>}
+          <div className="unlock-modal-banner-text">
             <div className="unlock-modal-subject-name">{subject.name}</div>
-            <div className="unlock-modal-tutor">with {subject.tutor} · {subject.org}</div>
+            <div className="unlock-modal-tutor">{subject.tutor}</div>
+            <div className="unlock-modal-tutor-role">{subject.role} · {subject.org}</div>
           </div>
-          {isRecommended && <span className="subject-badge subject-badge--rec" style={{ marginLeft: 'auto', flexShrink: 0 }}>Recommended</span>}
         </div>
 
         {effectiveMode === 'resume' && (
           <>
             <div className="unlock-modal-body">
               <h3>Resume {subject.name}?</h3>
-              <p>You paused this subject earlier. Pick up right where you left off — your expert remembers everything.</p>
+              <p>You paused this subject earlier. Pick up right where you left off. Your expert remembers everything.</p>
             </div>
             <div className="unlock-modal-actions">
               <button className="unlock-modal-cancel" onClick={onCancel}>Not now</button>
@@ -5635,7 +8861,7 @@ function QuizModal({ moduleId, moduleName, subjectId, studentId, subjectColor, o
 
 // ── Chat ───────────────────────────────────────────────────────────────────
 
-function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, onViewCapstone, onViewCertificate, onPauseSubject, revisionModule, onRevisionConsumed, autoStart, autoStartHeadline, onAutoStartConsumed }) {
+function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, onViewCapstone, onViewCertificate, onPauseSubject, revisionModule, onRevisionConsumed, autoStart, autoStartIsFirstVisit, onAutoStartConsumed, onOpenLabs }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -5653,10 +8879,36 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
   const [conceptResources, setConceptResources] = useState({});
   const [quizStatus, setQuizStatus]         = useState({});
   const [notesOpen, setNotesOpen]           = useState(false);
+  const [showTutorAbout, setShowTutorAbout] = useState(false);
   const [notes, setNotes]                 = useState([]);
   const [noteInput, setNoteInput]         = useState('');
+  const [conceptFeedback, setConceptFeedback] = useState({});
+  const [msgFeedback, setMsgFeedback]         = useState({});
+  const [sessionConceptCount, setSessionConceptCount] = useState(0);
+  const [showExitNudge, setShowExitNudge]     = useState(false);
+  const [sessionTimerFired, setSessionTimerFired] = useState(false);
+  const [showCertShare, setShowCertShare]     = useState(false);
+  const [recallActive, setRecallActive]       = useState(false);
+  const [recallInput, setRecallInput]         = useState('');
+  const [recallSubmitting, setRecallSubmitting] = useState(false);
+  const [labNudgeDismissed, setLabNudgeDismissed] = useState(false);
   const messagesEndRef = useRef(null);
+  const lastAiMsgRef = useRef(null);
   const inputRef = useRef(null);
+  const recallInputRef = useRef(null);
+  const historyLengthRef = useRef(0);
+  const prevMsgCountRef = useRef(0);
+
+  const [savedConceptIds, setSavedConceptIds] = useState({}); // title -> saved_concept id
+
+  async function loadSavedConcepts() {
+    try {
+      const data = await fetch(`/api/saved-concepts/${student.id}`).then(r => r.json());
+      const map = {};
+      data.forEach(sc => { map[sc.title] = sc.id; });
+      setSavedConceptIds(map);
+    } catch {}
+  }
 
   async function loadNotes() {
     try {
@@ -5683,6 +8935,70 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
     } catch {}
   }
 
+  async function sendConceptFeedback(conceptTitle, value) {
+    setConceptFeedback(prev => ({ ...prev, [conceptTitle]: value }));
+    try {
+      await fetch('/api/concept-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: student.id, subject_id: subject.id, concept_title: conceptTitle, value }),
+      });
+    } catch {}
+  }
+
+  async function sendMsgFeedback(msgIdx, value) {
+    setMsgFeedback(prev => ({ ...prev, [msgIdx]: value }));
+    try {
+      await fetch('/api/message-feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: student.id, subject_id: subject.id, message_idx: msgIdx, value }),
+      });
+    } catch {}
+  }
+
+  async function handleRecallSubmit() {
+    const text = recallInput.trim();
+    if (!text || recallSubmitting) return;
+    setRecallSubmitting(true);
+    setRecallActive(false);
+    setRecallInput('');
+    // Send as first message with recall_warmup flag so AI asks the recall question,
+    // then the student answer flows as the second message
+    try {
+      setMessages(prev => [...prev, { role: 'user', content: text }]);
+      setLoading(true);
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: student.id, subject_id: subject.id, message: text, recall_warmup: true }),
+      });
+      const data = await res.json();
+      setMessages(prev => [...prev, { role: 'bot', content: data.reply }]);
+    } catch {
+      setMessages(prev => [...prev, { role: 'bot', content: 'Something went wrong. Please try again.' }]);
+    } finally {
+      setLoading(false);
+      setRecallSubmitting(false);
+      setTimeout(() => inputRef.current?.focus(), 100);
+    }
+  }
+
+  function handleRecallSkip() {
+    setRecallActive(false);
+    setRecallInput('');
+    setTimeout(() => inputRef.current?.focus(), 100);
+  }
+
+  useEffect(() => {
+    if (recallActive) setTimeout(() => recallInputRef.current?.focus(), 100);
+  }, [recallActive]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setSessionTimerFired(true), 20 * 60 * 1000);
+    return () => clearTimeout(t);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     let timer;
@@ -5698,25 +9014,38 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         if (cancelled) return;
         const hist = await histRes.json();
         const prog = await progRes.json();
-        setMessages(hist.map((m) => ({ role: m.role === 'assistant' ? 'bot' : m.role, content: m.content })));
+        const mappedHist = hist.map((m) => ({ role: m.role === 'assistant' ? 'bot' : m.role, content: m.content }));
+        setMessages(mappedHist);
+        historyLengthRef.current = mappedHist.length;
         setConceptsCovered(prog.covered_count);
         setConceptsMastered(prog.mastered_count);
         setConceptsTotal(prog.total);
         setConceptVideos(await videosRes.json());
         setConceptResources(await resourcesRes.json());
         setQuizStatus(await quizRes.json());
+
+        // Check recall warmup — only if no other auto-trigger and not seen today
+        const recallKey = `bv_recall_${student.id}_${subject.id}`;
+        if (!revisionModule && !autoStart && !sessionStorage.getItem(recallKey)) {
+          try {
+            const rc = await fetch(`/api/recall-check/${student.id}/${subject.id}`);
+            const rcData = await rc.json();
+            if (rcData.needed) {
+              sessionStorage.setItem(recallKey, '1');
+              setRecallActive(true);
+            }
+          } catch {}
+        }
       } catch {}
       finally {
         if (cancelled) return;
         setHistoryLoading(false);
         if (revisionModule) {
-          const msg = `Please give me a focused revision of the "${revisionModule.name}" module — summarise the key points from each of its sub-topics in a structured way with bullet points.`;
+          const msg = `Please give me a focused revision of the "${revisionModule.name}" module. Summarise the key points from each of its sub-topics in a structured way with bullet points.`;
           setInput(msg);
           timer = setTimeout(() => { if (!cancelled) { sendMessageText(msg); if (onRevisionConsumed) onRevisionConsumed(); } }, 200);
         } else if (autoStart) {
-          const msg = autoStartHeadline
-            ? `Let's begin. Before we start, I saw this headline: "${autoStartHeadline}" — can you briefly connect this to what we're covering today, then go into the first concept?`
-            : "Let's begin.";
+          const msg = autoStartIsFirstVisit ? "I'm ready to start." : "I'm ready to continue.";
           timer = setTimeout(() => { if (!cancelled) { sendMessageText(msg); if (onAutoStartConsumed) onAutoStartConsumed(); } }, 300);
         } else {
           timer = setTimeout(() => inputRef.current?.focus(), 100);
@@ -5725,10 +9054,22 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
     }
     load();
     loadNotes();
+    loadSavedConcepts();
     return () => { cancelled = true; clearTimeout(timer); };
   }, [student.id, subject.id]);
 
-  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, loading]);
+  useEffect(() => {
+    const prev = prevMsgCountRef.current;
+    prevMsgCountRef.current = messages.length;
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg?.role === 'bot' && messages.length > prev) {
+      // New AI message: scroll to its top so the reader starts from the beginning
+      lastAiMsgRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      // User message or loading indicator: scroll to bottom as normal
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, loading]);
 
   useEffect(() => {
     if (!notification) return;
@@ -5754,7 +9095,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         body: JSON.stringify({ student_id: student.id, subject_id: subject.id, message: text, quiz_mode: isQuiz }),
       });
       if (res.status === 429) {
-        setMessages(prev => [...prev, { role: 'bot', content: "You've sent a lot of messages this hour — take a short break and come back soon. Your progress is saved." }]);
+        setMessages(prev => [...prev, { role: 'bot', content: "You've sent a lot of messages this hour. Take a short break and come back fresh. Your progress is saved." }]);
         setLoading(false); return;
       }
       const data = await res.json();
@@ -5767,7 +9108,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         });
       }
       if (data.modules_completed?.length > 0) data.modules_completed.forEach(mod => newMsgs.push({ role: 'module-quiz', moduleId: mod.id, moduleName: mod.name }));
-      if (data.subject_completed) newMsgs.push({ role: 'subject-complete', credentialId: data.subject_completed.credential_id });
+      if (data.subject_completed) { newMsgs.push({ role: 'subject-complete', credentialId: data.subject_completed.credential_id }); setTimeout(() => setShowCertShare(true), 1800); }
       setMessages((prev) => [...prev, ...newMsgs]);
       if (data.concepts_covered  !== undefined) setConceptsCovered(data.concepts_covered);
       if (data.concepts_mastered !== undefined) setConceptsMastered(data.concepts_mastered);
@@ -5776,6 +9117,13 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
       else if (data.newly_covered?.length > 0) setNotification({ type: 'covered', ids: data.newly_covered });
       if (data.career_detected) { onCareerDetected(data.career_detected); setCareerBanner(data.career_detected); }
       if (data.capstone_now_unlocked) setCapstoneUnlocked(true);
+      if (data.newly_covered?.length > 0) {
+        setSessionConceptCount(prev => {
+          const next = prev + data.newly_covered.length;
+          if (next >= 2) setShowExitNudge(true);
+          return next;
+        });
+      }
     } catch {
       setMessages((prev) => [...prev, { role: 'bot', content: 'Something went wrong. Please try again.' }]);
     } finally { setLoading(false); }
@@ -5794,7 +9142,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         body: JSON.stringify({ student_id: student.id, subject_id: subject.id, message: text, quiz_mode: isQuiz }),
       });
       if (res.status === 429) {
-        setMessages(prev => [...prev, { role: 'bot', content: "You've sent a lot of messages this hour — take a short break and come back soon. Your progress is saved." }]);
+        setMessages(prev => [...prev, { role: 'bot', content: "You've sent a lot of messages this hour. Take a short break and come back fresh. Your progress is saved." }]);
         setLoading(false); return;
       }
       const data = await res.json();
@@ -5813,7 +9161,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
           newMsgs.push({ role: 'module-quiz', moduleId: mod.id, moduleName: mod.name });
         });
       }
-      if (data.subject_completed) newMsgs.push({ role: 'subject-complete', credentialId: data.subject_completed.credential_id });
+      if (data.subject_completed) { newMsgs.push({ role: 'subject-complete', credentialId: data.subject_completed.credential_id }); setTimeout(() => setShowCertShare(true), 1800); }
       setMessages((prev) => [...prev, ...newMsgs]);
       if (data.concepts_covered  !== undefined) setConceptsCovered(data.concepts_covered);
       if (data.concepts_mastered !== undefined) setConceptsMastered(data.concepts_mastered);
@@ -5829,6 +9177,13 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
       }
       if (data.capstone_now_unlocked) {
         setCapstoneUnlocked(true);
+      }
+      if (data.newly_covered?.length > 0) {
+        setSessionConceptCount(prev => {
+          const next = prev + data.newly_covered.length;
+          if (next >= 2) setShowExitNudge(true);
+          return next;
+        });
       }
       if (isQuiz) setQuizMode(false);
     } catch {
@@ -5877,14 +9232,15 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         </div>
         <div className="chat-subject-info">
           <img
-            src={TUTOR_PHOTOS[subject.tutor]}
+            src={TUTOR_AVATARS[subject.tutor]}
             className="chat-tutor-photo"
             alt={subject.tutor}
             onError={e => { e.target.style.display = 'none'; }}
           />
-          <div className="chat-faculty-info">
+          <div className="chat-faculty-info" onClick={() => setShowTutorAbout(true)} style={{ cursor: 'pointer' }} title="About this expert">
             <span className="chat-faculty-name">{subject.tutor}</span>
             <span className="chat-faculty-meta">{subject.role} · {subject.org}</span>
+            <span className="chat-faculty-about-link">Read my bio →</span>
           </div>
           {career && (
             <span className="chat-career-chip" style={{ borderColor: subject.color + '66', color: subject.color }}>
@@ -5943,28 +9299,61 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         ) : (
           <>
             {isFirstVisit && (
-              <>
-                <div className="welcome-message">
-                  <div className="welcome-faculty">
-                    <span className="welcome-faculty-icon" style={{ color: subject.color }}>{SUBJECT_ICONS[subject.id]}</span>
-                    <div>
-                      <div className="welcome-faculty-name">{subject.tutor}</div>
-                      <div className="welcome-faculty-role">{subject.role} · {subject.org}</div>
-                    </div>
+              <div className="chat-ready-state">
+                <div className="chat-ready-faculty">
+                  <div className="chat-ready-avatar" style={{ background: subject.color + '22', borderColor: subject.color + '44' }}>
+                    <span style={{ color: subject.color }}>{SUBJECT_ICONS[subject.id]}</span>
                   </div>
-                  <p>
-                    Say hello to start. {subject.tutor.split(' ')[1]} will ask about your background before diving in — so your path through the <strong>{conceptsTotal}-concept curriculum</strong> is personalised from the start.
-                    {!career && ' Mention your career goals and they\'ll weave them into every lesson.'}
-                  </p>
+                  <div>
+                    <div className="chat-ready-name">{subject.tutor}</div>
+                    <div className="chat-ready-role">{subject.role} · {subject.org}</div>
+                  </div>
                 </div>
-                <div className="starter-chips">
-                  {['Hi, I\'m ready to start', 'What will I learn here?', 'Where should a beginner start?', 'How does this connect to my career?'].map(prompt => (
-                    <button key={prompt} className="starter-chip" onClick={() => sendMessageText(prompt)}>
-                      {prompt}
-                    </button>
-                  ))}
+                <p className="chat-ready-hint">
+                  {conceptsCovered > 0
+                    ? `${subject.tutor.split(' ')[1]} will recap where you left off and pick up from your next concept.`
+                    : `${subject.tutor.split(' ')[1]} will introduce themselves and walk you through what you'll cover today.`}
+                </p>
+                <button
+                  className="chat-ready-btn"
+                  style={{ background: subject.color }}
+                  onClick={() => sendMessageText(conceptsCovered > 0 ? "I'm ready to continue." : "I'm ready to start.")}
+                >
+                  {conceptsCovered > 0 ? 'Ready to continue →' : 'Ready to begin →'}
+                </button>
+              </div>
+            )}
+
+            {recallActive && (
+              <div className="recall-warmup-card" style={{ '--rw-color': subject.color }}>
+                <div className="rw-header">
+                  <span className="rw-icon" style={{ color: subject.color }}>↩</span>
+                  <span className="rw-title">Quick recall before we begin</span>
                 </div>
-              </>
+                <p className="rw-prompt">
+                  What do you remember from your last session on <strong>{subject.name}</strong>?
+                </p>
+                <textarea
+                  ref={recallInputRef}
+                  className="rw-input"
+                  placeholder="Jot down whatever comes to mind…"
+                  value={recallInput}
+                  onChange={e => setRecallInput(e.target.value)}
+                  onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleRecallSubmit(); } }}
+                  rows={3}
+                />
+                <div className="rw-actions">
+                  <button
+                    className="rw-submit"
+                    style={{ background: subject.color }}
+                    disabled={!recallInput.trim() || recallSubmitting}
+                    onClick={handleRecallSubmit}
+                  >
+                    {recallSubmitting ? 'Submitting…' : 'Submit recall →'}
+                  </button>
+                  <button className="rw-skip" onClick={handleRecallSkip}>Skip for now</button>
+                </div>
+              </div>
             )}
 
             {messages.map((msg, i) => {
@@ -6029,7 +9418,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
                       <div>
                         <div className="module-quiz-title">Module complete: <strong>{msg.moduleName}</strong></div>
                         <div className="module-quiz-sub">
-                          {passed ? 'Quiz passed — great work!' : attempted ? 'Not passed yet — try again.' : 'Test your understanding before moving on.'}
+                          {passed ? 'Quiz passed. Great work!' : attempted ? 'Not passed yet. Try again.' : 'Test your understanding before moving on.'}
                         </div>
                       </div>
                     </div>
@@ -6042,19 +9431,53 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
                   </div>
                 );
               }
+              const cardMatch = msg.role === 'bot' ? msg.content.match(/<<<CARD:(\{[\s\S]*?\})>>>/) : null;
+              let cardTitle = null;
+              if (cardMatch) { try { cardTitle = JSON.parse(cardMatch[1]).title; } catch {} }
+              const ccVote = cardTitle ? conceptFeedback[cardTitle] : null;
+              const msgVote = msgFeedback[i];
+              const isLastBot = msg.role === 'bot' && i === messages.length - 1;
               return (
-                <div key={i} className={`message-row ${msg.role}${msg.quiz ? ' quiz-message' : ''}`}>
+                <div key={i} ref={isLastBot ? lastAiMsgRef : null} className={`message-row ${msg.role}${msg.quiz ? ' quiz-message' : ''}`}>
                   <div className={`message-avatar ${msg.role}`}>
                     {msg.role === 'bot' ? subject.tutor.replace(/^Dr\.\s*/, '').charAt(0) : student.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="message-bubble">
                     {msg.quiz && msg.role === 'bot' && <div className="quiz-label">Assessment</div>}
-                    {renderMessageContent(msg.content, { color: subject.color })}
+                    {renderMessageContent(msg.content, { color: subject.color, studentId: student.id, subjectId: subject.id, savedIds: savedConceptIds })}
                     {msg.role === 'bot' && (
-                      <button className="msg-save-btn" title="Save to notes" onClick={() => { saveNote(msg.content); setNotesOpen(true); }}>
-                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
-                        Save
-                      </button>
+                      <div className="msg-actions-row">
+                        <button className="msg-save-btn" title="Save to notes" onClick={() => { saveNote(msg.content); setNotesOpen(true); }}>
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+                          Save
+                        </button>
+                        <button
+                          className={`msg-flag-btn${msgVote === 'down' ? ' flagged' : ''}`}
+                          title="Flag this response"
+                          onClick={() => !msgVote && sendMsgFeedback(i, 'down')}
+                        >
+                          <svg width="11" height="11" viewBox="0 0 24 24" fill={msgVote === 'down' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3z"/><path d="M17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg>
+                          {msgVote === 'down' ? 'Flagged' : 'Flag'}
+                        </button>
+                      </div>
+                    )}
+                    {cardTitle && msg.role === 'bot' && (
+                      <div className="cc-feedback">
+                        <span className="cc-feedback-label">Got this concept?</span>
+                        <button
+                          className={`cc-feedback-btn up${ccVote === 'up' ? ' active' : ''}`}
+                          disabled={!!ccVote}
+                          onClick={() => sendConceptFeedback(cardTitle, 'up')}
+                          title="I got it"
+                        >👍</button>
+                        <button
+                          className={`cc-feedback-btn down${ccVote === 'down' ? ' active' : ''}`}
+                          disabled={!!ccVote}
+                          onClick={() => sendConceptFeedback(cardTitle, 'down')}
+                          title="Still confused"
+                        >👎</button>
+                        {ccVote && <span className="cc-feedback-thanks">{ccVote === 'up' ? 'Great!' : 'Noted. Will revisit.'}</span>}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -6073,6 +9496,61 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         )}
         <div ref={messagesEndRef} />
       </div>
+
+      {sessionTimerFired && (
+        <div className="session-timer-toast">
+          <span>You've been studying for 20 minutes. Great session! Take a 5-min break and come back fresh.</span>
+          <button className="session-timer-dismiss" onClick={() => setSessionTimerFired(false)}>✕</button>
+        </div>
+      )}
+
+      {showExitNudge && !sessionTimerFired && (
+        <div className="exit-nudge">
+          <span className="exit-nudge-icon">✦</span>
+          <div className="exit-nudge-text">
+            <strong>Strong session!</strong> You've covered {sessionConceptCount} new concept{sessionConceptCount > 1 ? 's' : ''} today.
+          </div>
+          <button className="exit-nudge-dismiss" onClick={() => setShowExitNudge(false)}>✕</button>
+        </div>
+      )}
+
+      {showCertShare && (
+        <div className="cert-share-overlay" onClick={() => setShowCertShare(false)}>
+          <div className="cert-share-nudge" onClick={e => e.stopPropagation()}>
+            <button className="cert-share-close" onClick={() => setShowCertShare(false)}>✕</button>
+            <div className="cert-share-emoji">🎓</div>
+            <div className="cert-share-title">You've completed {subject.name}!</div>
+            <div className="cert-share-sub">Share your certificate on LinkedIn. It takes 30 seconds and lets your network know you're building real expertise.</div>
+            <div className="cert-share-actions">
+              <button className="cert-share-li-btn" onClick={() => { setShowCertShare(false); onViewCertificate && onViewCertificate(subject); }}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                View & share certificate
+              </button>
+              <button className="cert-share-skip" onClick={() => setShowCertShare(false)}>Maybe later</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {(() => {
+        const subjectHasLabs = INDUSTRY_LABS.some(s => s.subject_id === subject.id);
+        const showLabNudge = subjectHasLabs && conceptsCovered >= 3 && !labNudgeDismissed && messages.length >= 6;
+        return showLabNudge ? (
+          <div className="lab-chat-nudge" style={{ borderColor: subject.color + '40', background: subject.color + '08' }}>
+            <div className="lab-chat-nudge-content">
+              <span className="lab-chat-nudge-icon" style={{ color: subject.color }}>🧪</span>
+              <div>
+                <span className="lab-chat-nudge-title">Ready for a real-world challenge?</span>
+                <span className="lab-chat-nudge-sub">We have a hands-on Industry Innovation Lab project for {subject.name}.</span>
+              </div>
+            </div>
+            <div className="lab-chat-nudge-actions">
+              <button className="lab-chat-nudge-btn" style={{ background: subject.color }} onClick={() => onOpenLabs && onOpenLabs()}>Try the lab →</button>
+              <button className="lab-chat-nudge-dismiss" onClick={() => setLabNudgeDismissed(true)}>Dismiss</button>
+            </div>
+          </div>
+        ) : null;
+      })()}
 
       <div className="chat-input-area">
         <div className="chat-input-row">
@@ -6103,7 +9581,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
       {notesOpen && (
         <div className="notes-panel">
           <div className="notes-panel-header">
-            <span className="notes-panel-title">Notes — {subject.name}</span>
+            <span className="notes-panel-title">Notes: {subject.name}</span>
             <button className="notes-panel-close" onClick={() => setNotesOpen(false)}>×</button>
           </div>
           <div className="notes-freeform">
@@ -6149,6 +9627,33 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
           }}
         />
       )}
+
+      {showTutorAbout && (
+        <div className="modal-overlay" onClick={() => setShowTutorAbout(false)}>
+          <div className="tutor-about-modal" onClick={e => e.stopPropagation()}>
+            <button className="tutor-about-close" onClick={() => setShowTutorAbout(false)}>×</button>
+            <div
+              className="tutor-about-photo"
+              style={{
+                backgroundImage: TUTOR_AVATARS[subject.tutor]
+                  ? `linear-gradient(to top, ${subject.color}ee 0%, ${subject.color}44 50%, transparent 100%), url(${TUTOR_AVATARS[subject.tutor]})`
+                  : `linear-gradient(135deg, ${subject.color}cc, ${subject.color}66)`,
+              }}
+            >
+              <div className="tutor-about-overlay">
+                <div className="tutor-about-name">{subject.tutor}</div>
+                <div className="tutor-about-role">{subject.role}</div>
+                <div className="tutor-about-org">{subject.org}</div>
+              </div>
+            </div>
+            <div className="tutor-about-body">
+              <blockquote className="tutor-about-quote" style={{ borderColor: subject.color }}>
+                "{subject.intro}"
+              </blockquote>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -6170,11 +9675,21 @@ export default function App() {
   const [certificateSubject, setCertificateSubject] = useState(null);
   const [pauseSubject, setPauseSubject] = useState(null);
   const [view, setView] = useState('home');
+  const [activeLabProject, setActiveLabProject] = useState(null);
+  const [activeLabSubject, setActiveLabSubject] = useState(null);
   const [isReturning, setIsReturning] = useState(!!getStoredStudent());
   const [careerProfile, setCareerProfile] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
-
+  const [showReEntry, setShowReEntry] = useState(false);
+  const [showSearch, setShowSearch]     = useState(false);
+  const [showLinkedIn, setShowLinkedIn] = useState(false);
+  const [showContact, setShowContact]   = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [imgConfig, setImgConfig] = useState(null);
+
+  useEffect(() => {
+    fetch('/api/images').then(r => r.json()).then(setImgConfig).catch(() => {});
+  }, []);
 
   async function fetchCareerProfile(studentId) {
     try {
@@ -6182,6 +9697,9 @@ export default function App() {
       const data = await res.json();
       setCareerProfile(data);
       if (!data.onboarded) setShowOnboarding(true);
+      else if (!data.linkedin_url) {
+        setShowLinkedIn(true);
+      }
     } catch {}
   }
 
@@ -6206,12 +9724,40 @@ export default function App() {
     return () => clearInterval(interval);
   }, [student]);
 
+  useEffect(() => {
+    function onKeyDown(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        if (student) setShowSearch(v => !v);
+      }
+      if (e.key === 'Escape') setShowSearch(false);
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [student]);
+
+  function handleSearchStudy(item) {
+    // item is either a concept {subject_id, ...} or a note {subject_id, ...}
+    const subj = SUBJECTS.find(s => s.id === item.subject_id);
+    if (!subj) return;
+    setSelectedSubject(subj);
+    setSubjectEntryPhase(null);
+    setAutoStartChat(false);
+    setView('chat');
+  }
+
   function handleLogin(data) {
     const s = { id: data.student_id || data.id, name: data.name };
     storeStudent(s);
     setStudent(s);
     setIsReturning(data.returning);
     fetchCareerProfile(s.id);
+    // show re-entry screen only for returning users, once per browser session
+    const reentryKey = `bv_reentry_${s.id}`;
+    if (data.returning && !sessionStorage.getItem(reentryKey)) {
+      sessionStorage.setItem(reentryKey, '1');
+      setShowReEntry(true);
+    }
     setView('home');
   }
 
@@ -6228,7 +9774,7 @@ export default function App() {
 
   const [subjectEntryPhase, setSubjectEntryPhase] = useState(null); // 'intro' | 'session' | null
   const [autoStartChat, setAutoStartChat]         = useState(false);
-  const [sessionNewsHeadline, setSessionNewsHeadline] = useState(null);
+  const [sessionIsFirstVisit, setSessionIsFirstVisit] = useState(false);
 
   function handleSelectSubject(subject) {
     setSelectedSubject(subject);
@@ -6311,7 +9857,21 @@ export default function App() {
     );
   }
 
+  if (showReEntry && student) {
+    return (
+      <ReEntryScreen
+        student={student}
+        onGo={(subject) => {
+          setShowReEntry(false);
+          handleSelectSubject(subject);
+        }}
+        onDismiss={() => setShowReEntry(false)}
+      />
+    );
+  }
+
   return (
+    <ImgCtx.Provider value={imgConfig}>
     <div className="app-shell">
       <Sidebar
         student={student}
@@ -6322,10 +9882,34 @@ export default function App() {
         onProfile={() => setView('profile')}
         onCommunity={() => setView('community')}
         onPrograms={() => setView('programs')}
+        onLibrary={() => setView('library')}
+        onLabs={() => setView('labs')}
         onLogout={handleLogout}
         hasCareer={!!careerProfile?.career_id}
         avatarColor={careerProfile?.avatar_color}
+        avatarNum={careerProfile?.avatar_num}
+        onSearch={() => setShowSearch(true)}
+        onContact={() => setShowContact(true)}
       />
+      {showSearch && (
+        <SearchModal
+          student={student}
+          onStudy={item => { handleSearchStudy(item); setShowSearch(false); }}
+          onClose={() => setShowSearch(false)}
+        />
+      )}
+      {showContact && student && (
+        <FounderContactModal student={student} onClose={() => setShowContact(false)} />
+      )}
+      {showLinkedIn && student && (
+        <LinkedInModal
+          student={student}
+          onSaved={(updates) => {
+            setCareerProfile(prev => ({ ...prev, ...updates }));
+            setShowLinkedIn(false);
+          }}
+        />
+      )}
       <main className="main-panel">
       {view === 'subject-pause' && pauseSubject ? (
         <SubjectPauseView
@@ -6346,7 +9930,7 @@ export default function App() {
           <SessionStartScreen
             subject={selectedSubject}
             student={student}
-            onBegin={(headline) => { setSessionNewsHeadline(headline); setAutoStartChat(true); setSubjectEntryPhase(null); setView('chat'); }}
+            onBegin={(firstVisit) => { setSessionIsFirstVisit(firstVisit); setAutoStartChat(true); setSubjectEntryPhase(null); setView('chat'); }}
             onBack={() => {
               const met = localStorage.getItem(`bv_met_${selectedSubject.id}_${student?.id}`);
               met ? handleBack() : setSubjectEntryPhase('intro');
@@ -6366,8 +9950,9 @@ export default function App() {
           revisionModule={revisionModule}
           onRevisionConsumed={() => setRevisionModule(null)}
           autoStart={autoStartChat}
-          autoStartHeadline={sessionNewsHeadline}
-          onAutoStartConsumed={() => { setAutoStartChat(false); setSessionNewsHeadline(null); }}
+          autoStartIsFirstVisit={sessionIsFirstVisit}
+          onAutoStartConsumed={() => { setAutoStartChat(false); setSessionIsFirstVisit(false); }}
+          onOpenLabs={() => setView('labs')}
         />
       ) : view === 'dashboard' ? (
         <DashboardView
@@ -6395,6 +9980,24 @@ export default function App() {
           profileData={careerProfile}
           onBack={() => setView('home')}
           onProfileUpdated={(updates) => setCareerProfile(prev => ({ ...prev, ...updates }))}
+        />
+      ) : view === 'library' ? (
+        <ConceptLibraryView student={student} />
+      ) : view === 'labs' ? (
+        <IndustryLabsView
+          student={student}
+          onOpenProject={(proj, subj) => {
+            setActiveLabProject(proj);
+            setActiveLabSubject(subj);
+            setView('lab-project');
+          }}
+        />
+      ) : view === 'lab-project' && activeLabProject ? (
+        <LabProjectView
+          student={student}
+          project={activeLabProject}
+          subject={activeLabSubject}
+          onBack={() => setView('labs')}
         />
       ) : view === 'community' ? (
         <CommunityMapView
@@ -6447,5 +10050,6 @@ export default function App() {
         />
       )}
     </div>
+    </ImgCtx.Provider>
   );
 }
