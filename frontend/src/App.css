@@ -11224,7 +11224,7 @@ body {
   gap: 1rem; text-align: center;
 }
 
-.region-logo { height: 32px; margin-bottom: 0.5rem; }
+.region-logo { height: 120px; margin-bottom: 0.5rem; }
 
 .region-eyebrow {
   font-size: 0.7rem; font-weight: 700; letter-spacing: 0.12em;
@@ -11318,3 +11318,88 @@ body {
   transition: all 0.15s; letter-spacing: 0.04em;
 }
 .region-switch-btn:hover { border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.8); }
+
+/* ── Admin Engagement section ───────────────────────────────────────────── */
+.admin-engage-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+.admin-engage-card {
+  border-radius: var(--radius-sm);
+  padding: 1.1rem 1.25rem;
+  border: 1px solid transparent;
+}
+.admin-engage-card--red   { background: #FFF1F0; border-color: #FFCCC7; }
+.admin-engage-card--green { background: #F0FFF4; border-color: #B7EDCE; }
+.admin-engage-card--amber { background: #FFFBE6; border-color: #FFE58F; }
+.admin-engage-value {
+  font-size: 2rem; font-weight: 800; line-height: 1;
+  margin-bottom: 0.25rem;
+}
+.admin-engage-card--red   .admin-engage-value { color: #CF1322; }
+.admin-engage-card--green .admin-engage-value { color: #137333; }
+.admin-engage-card--amber .admin-engage-value { color: #874D00; }
+.admin-engage-label {
+  font-size: 0.82rem; font-weight: 700; margin-bottom: 0.15rem;
+}
+.admin-engage-card--red   .admin-engage-label { color: #A8071A; }
+.admin-engage-card--green .admin-engage-label { color: #0A5C2C; }
+.admin-engage-card--amber .admin-engage-label { color: #5C3700; }
+.admin-engage-sub {
+  font-size: 0.72rem; opacity: 0.7; line-height: 1.4;
+}
+
+/* ── Engagement table ───────────────────────────────────────────────────── */
+.admin-engage-table {
+  background: var(--bg-white);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.admin-et-header {
+  display: grid;
+  grid-template-columns: 2fr 1.1fr 0.9fr 0.9fr 1.3fr;
+  padding: 0.55rem 1rem;
+  background: var(--bg-light);
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.admin-et-row {
+  display: grid;
+  grid-template-columns: 2fr 1.1fr 0.9fr 0.9fr 1.3fr;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.82rem;
+  transition: background 0.1s;
+}
+.admin-et-row:last-child { border-bottom: none; }
+.admin-et-row:hover { background: var(--bg-light); }
+
+.admin-et-name { display: flex; align-items: center; gap: 0.65rem; }
+.admin-et-fullname { font-weight: 600; font-size: 0.83rem; }
+.admin-et-email { font-size: 0.72rem; color: var(--text-muted); }
+.admin-et-days { font-weight: 600; color: var(--text-primary); }
+.admin-et-days-num { font-size: 1rem; font-weight: 800; }
+.admin-et-days-label { font-size: 0.75rem; color: var(--text-muted); }
+.admin-et-msgs { color: var(--text-secondary); font-weight: 500; }
+.admin-et-last { font-size: 0.78rem; color: var(--text-muted); }
+
+.admin-st-avatar--sm { width: 30px; height: 30px; font-size: 0.75rem; flex-shrink: 0; }
+
+/* Status badges */
+.admin-status-badge {
+  display: inline-block; padding: 2px 9px; border-radius: 12px;
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em;
+}
+.admin-status-badge--never  { background: #FFF1F0; color: #CF1322; border: 1px solid #FFCCC7; }
+.admin-status-badge--active { background: #F0FFF4; color: #137333; border: 1px solid #B7EDCE; }
+.admin-status-badge--quiet  { background: #FFFBE6; color: #874D00; border: 1px solid #FFE58F; }
+
+/* Days used in students tab */
+.admin-st-days-used {
+  font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; font-weight: 600;
+}

@@ -2673,10 +2673,22 @@ def admin_overview(x_admin_key: str = Header(None)):
     conn = get_db()
     week_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
     total_students    = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
-    active_week       = conn.execute("SELECT COUNT(DISTINCT student_id) FROM messages WHERE created_at > ?", (week_ago,)).fetchone()[0]
+    active_week       = conn.execute("SELECT COUNT(DISTINCT student_id) FROM messages WHERE role='user' AND created_at > ?", (week_ago,)).fetchone()[0]
     total_concepts    = conn.execute("SELECT COUNT(*) FROM concept_progress").fetchone()[0]
     pending_capstones = conn.execute("SELECT COUNT(*) FROM capstone_submissions WHERE score IS NULL").fetchone()[0]
     total_messages    = conn.execute("SELECT COUNT(*) FROM messages WHERE role = 'user'").fetchone()[0]
+    never_started     = conn.execute("""
+        SELECT COUNT(*) FROM students s
+        WHERE NOT EXISTS (SELECT 1 FROM messages m WHERE m.student_id = s.id AND m.role = 'user')
+    """).fetchone()[0]
+    active_ever       = conn.execute("SELECT COUNT(DISTINCT student_id) FROM messages WHERE role='user'").fetchone()[0]
+    gone_quiet        = conn.execute("""
+        SELECT COUNT(DISTINCT student_id) FROM messages
+        WHERE role='user'
+          AND student_id NOT IN (
+              SELECT DISTINCT student_id FROM messages WHERE role='user' AND created_at > ?
+          )
+    """, (week_ago,)).fetchone()[0]
     conn.close()
     return {
         "total_students":      total_students,
@@ -2684,6 +2696,9 @@ def admin_overview(x_admin_key: str = Header(None)):
         "total_concepts":      total_concepts,
         "pending_capstones":   pending_capstones,
         "total_messages":      total_messages,
+        "never_started":       never_started,
+        "active_ever":         active_ever,
+        "gone_quiet":          gone_quiet,
     }
 
 @app.get("/admin/system-health")
@@ -2754,7 +2769,8 @@ def admin_students(x_admin_key: str = Header(None)):
             (SELECT COUNT(DISTINCT subject_id) FROM concept_progress cp WHERE cp.student_id = s.id) AS subjects_touched,
             (SELECT COUNT(*) FROM concept_progress cp WHERE cp.student_id = s.id) AS concepts_covered,
             (SELECT COUNT(*) FROM concept_progress cp WHERE cp.student_id = s.id AND cp.mastered_at IS NOT NULL) AS concepts_mastered,
-            (SELECT MAX(created_at) FROM messages m WHERE m.student_id = s.id) AS last_active
+            (SELECT MAX(created_at) FROM messages m WHERE m.student_id = s.id) AS last_active,
+            (SELECT COUNT(DISTINCT DATE(created_at)) FROM messages m WHERE m.student_id = s.id AND m.role = 'user') AS days_active
         FROM students s
         LEFT JOIN student_profile sp ON sp.student_id = s.id
         ORDER BY last_active DESC
