@@ -5289,9 +5289,9 @@ function AdminView({ onBack }) {
               <span>Status</span>
               <span>Days Used</span>
               <span>Messages</span>
-              <span>Last Active</span>
+              <span>Joined</span>
             </div>
-            {students.map(s => {
+            {[...students].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).map(s => {
               const isNeverStarted = !s.last_active;
               const lastDate = s.last_active ? new Date(s.last_active) : null;
               const daysSince = lastDate ? Math.floor((Date.now() - lastDate.getTime()) / 86400000) : null;
@@ -5322,7 +5322,7 @@ function AdminView({ onBack }) {
                   </div>
                   <div className="admin-et-msgs">{s.message_count > 0 ? s.message_count : '—'}</div>
                   <div className="admin-et-last">
-                    {lastDate ? lastDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                    {s.created_at ? new Date(s.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
                   </div>
                 </div>
               );
@@ -5331,15 +5331,36 @@ function AdminView({ onBack }) {
         </div>
       )}
 
-      {tab === 'students' && (
+      {tab === 'students' && (() => {
+        const week_ago_ts = Date.now() - 7 * 86400000;
+        const [stFilter, setStFilter] = React.useState('all');
+        const [stSearch, setStSearch] = React.useState('');
+        const filtered = [...students]
+          .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+          .filter(s => {
+            if (stSearch && !s.name.toLowerCase().includes(stSearch.toLowerCase()) && !s.email.toLowerCase().includes(stSearch.toLowerCase())) return false;
+            if (stFilter === 'never') return !s.last_active;
+            if (stFilter === 'active') return s.last_active && (Date.now() - new Date(s.last_active).getTime()) <= 7 * 86400000;
+            if (stFilter === 'quiet') return s.last_active && (Date.now() - new Date(s.last_active).getTime()) > 7 * 86400000;
+            return true;
+          });
+        return (
         <div className="admin-content">
           <div className="admin-students-header">
-            <span className="admin-students-count">{students.length} learner{students.length !== 1 ? 's' : ''}</span>
+            <span className="admin-students-count">{filtered.length} of {students.length} learner{students.length !== 1 ? 's' : ''}</span>
+            <div className="admin-st-filters">
+              <input className="admin-st-search" placeholder="Search name or email…" value={stSearch} onChange={e => setStSearch(e.target.value)} />
+              <div className="admin-st-filter-btns">
+                {[['all','All'],['active','Active'],['quiet','Gone Quiet'],['never','Not Started']].map(([v,l]) => (
+                  <button key={v} className={`admin-st-filter-btn ${stFilter === v ? 'active' : ''}`} onClick={() => setStFilter(v)}>{l}</button>
+                ))}
+              </div>
+            </div>
           </div>
           <div className="admin-students-list admin-students-list--full">
-            {students.length === 0 ? (
-              <div className="admin-empty">No students yet.</div>
-            ) : students.map(s => (
+            {filtered.length === 0 ? (
+              <div className="admin-empty">No students match.</div>
+            ) : filtered.map(s => (
               <div key={s.id} className="admin-student-row">
                 <div className="admin-st-avatar" style={{ background: s.avatar_color || '#00A896' }}>
                   {s.name.charAt(0).toUpperCase()}
@@ -5379,7 +5400,8 @@ function AdminView({ onBack }) {
             ))}
           </div>
         </div>
-      )}
+        );
+      })()}
 
       {tab === 'submissions' ? (
         <div className="admin-content">
