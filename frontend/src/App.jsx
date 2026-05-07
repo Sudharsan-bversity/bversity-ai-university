@@ -84,6 +84,42 @@ const SUBJECT_ICONS = {
       <path d="M8.56 2.75c4.37 6.03 6.02 9.42 8 17.72m2.54-15.38c-1.39 4.26-3.68 7.04-7.1 9.66"/>
     </svg>
   ),
+  us_cra: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/>
+      <path d="M9 14l2 2 4-4"/>
+    </svg>
+  ),
+  us_regulatory: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <path d="M9 12l2 2 4-4"/>
+    </svg>
+  ),
+  us_pharmacovigilance: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+  ),
+  us_msl: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+      <path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+    </svg>
+  ),
+  us_bioinformatics: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="2 12 6 12 8 4 11 20 14 8 16 14 18 12 22 12"/>
+    </svg>
+  ),
+  us_cdm: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <ellipse cx="12" cy="5" rx="9" ry="3"/>
+      <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/>
+      <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/>
+    </svg>
+  ),
 };
 
 const CAREER_ICONS = {
@@ -270,20 +306,28 @@ const SUBJECT_IMAGES = {
 };
 
 const TUTOR_AVATARS = {
-  'Dr. Priya Nair':     'https://i.pravatar.cc/150?img=47',
-  'Dr. Marcus Webb':    'https://i.pravatar.cc/150?img=11',
-  'Dr. Kavya Reddy':    'https://i.pravatar.cc/150?img=45',
-  'Dr. Elena Vasquez':  'https://i.pravatar.cc/150?img=5',
-  'Dr. Aisha Okonkwo':  'https://i.pravatar.cc/150?img=48',
-  'Rohan Mehta':        'https://i.pravatar.cc/150?img=14',
-  'Dr. James Okonkwo':  'https://i.pravatar.cc/150?img=12',
-  'Dr. Sophie Laurent': 'https://i.pravatar.cc/150?img=25',
-  'Dr. Amira Hassan':   'https://i.pravatar.cc/150?img=44',
-  'Dr. Carlos Reyes':   'https://i.pravatar.cc/150?img=16',
-  'Dr. Yuki Tanaka':    'https://i.pravatar.cc/150?img=56',
+  'Dr. Priya Nair':       'https://i.pravatar.cc/150?img=47',
+  'Dr. Marcus Webb':      'https://i.pravatar.cc/150?img=11',
+  'Dr. Kavya Reddy':      'https://i.pravatar.cc/150?img=45',
+  'Dr. Elena Vasquez':    'https://i.pravatar.cc/150?img=5',
+  'Dr. Aisha Okonkwo':    'https://i.pravatar.cc/150?img=48',
+  'Rohan Mehta':          'https://i.pravatar.cc/150?img=14',
+  'Dr. James Okonkwo':    'https://i.pravatar.cc/150?img=12',
+  'Dr. Sophie Laurent':   'https://i.pravatar.cc/150?img=25',
+  'Dr. Amira Hassan':     'https://i.pravatar.cc/150?img=44',
+  'Dr. Carlos Reyes':     'https://i.pravatar.cc/150?img=16',
+  'Dr. Yuki Tanaka':      'https://i.pravatar.cc/150?img=56',
+  'Sarah Mitchell':       'https://i.pravatar.cc/150?img=35',
+  'Dr. Robert Chen':      'https://i.pravatar.cc/150?img=15',
+  'Dr. Anika Sharma':     'https://i.pravatar.cc/150?img=49',
+  'Dr. Lisa Park':        'https://i.pravatar.cc/150?img=52',
+  'Dr. Elena Rodriguez':  'https://i.pravatar.cc/150?img=43',
+  'David Kim':            'https://i.pravatar.cc/150?img=20',
 };
 
-const SUBJECTS = [
+const ACTIVE_REGION = localStorage.getItem('bversity_region') || null;
+
+const INDIA_SUBJECTS = [
   { id: 'bioinformatics',     name: 'Bioinformatics',                             tutor: 'Dr. Priya Nair',    role: 'Senior Bioinformatics Scientist',                  org: 'Broad Institute of MIT and Harvard', color: '#00A896', description: 'Sequence analysis, BLAST, phylogenetics, NGS pipelines, protein structure, and computational biology tools',
     intro: "I build computational pipelines to make sense of genomic data at scale, covering everything from cancer mutation signatures to population-level association studies. I've watched bioinformatics go from a niche specialty to the backbone of modern medicine, and I want to give you that foundation properly. By the end of this, you'll be fluent in the tools and concepts that the industry actually uses." },
   { id: 'genomics',           name: 'Genomics',                                    tutor: 'Dr. Marcus Webb',   role: 'Director of Genomics Research',                   org: 'Illumina',                           color: '#7B2D8B', description: 'Genome structure, sequencing technologies, variant analysis, GWAS, single-cell, and precision medicine',
@@ -308,18 +352,53 @@ const SUBJECTS = [
     intro: "I work at the Alphabet-funded company trying to understand why we age. Longevity science has a credibility problem: too much hype, too many supplements, too many claims not backed by human data. I'll be rigorous with you about what the data actually shows, what's mechanism and what's speculation, and where the genuinely exciting frontiers are." },
 ];
 
+const US_SUBJECTS = [
+  { id: 'us_cra',              name: 'Clinical Research Associate',           tutor: 'Sarah Mitchell',      role: 'Senior Clinical Research Associate',   org: 'IQVIA, Boston',                        color: '#0066CC',
+    description: 'GCP principles, site monitoring, informed consent, SAE reporting, TMF management, and CCRA/CCRP exam preparation',
+    intro: "I've been monitoring clinical trials across New England for 6 years — from site qual visits to close-outs. I know what a good site looks like and what a troubled one looks like before I even sit down. GCP isn't bureaucracy: every requirement exists because something went wrong for a patient once. I'll teach you the regulations the way I learned them — through the sites, the situations, and the hard calls you'll face.",
+    certification: 'ACRP CCRA / SOCRA CCRP' },
+  { id: 'us_regulatory',       name: 'Regulatory Affairs',                    tutor: 'Dr. Robert Chen',     role: 'Senior Director, Regulatory Affairs',  org: 'Bristol Myers Squibb',                 color: '#6B3FA0',
+    description: 'FDA regulatory framework, IND/NDA/BLA pathways, 510(k) and PMA for devices, special pathways, labeling, post-market compliance, and RAPS RAC exam preparation',
+    intro: "I spent 7 years as an FDA reviewer before moving to industry. I've seen the inside of both rooms — the agency and the sponsor. Most RA professionals know what to file. Very few understand why each requirement exists and how a reviewer thinks when they read your submission. That's what I'll teach you.",
+    certification: 'RAPS RAC-Drugs / RAC-Devices' },
+  { id: 'us_pharmacovigilance', name: 'Pharmacovigilance',                    tutor: 'Dr. Anika Sharma',    role: 'Global Pharmacovigilance Lead',         org: 'AstraZeneca, Wilmington DE',           color: '#E05C00',
+    description: 'Adverse event reporting, ICSR processing, MedDRA coding, signal detection, REMS, ICH E2 guidelines, periodic safety reports, and CPVC exam preparation',
+    intro: "Behind every case number in a safety database is a person who had a bad experience with a medicine. I spent 5 years at FDA reviewing those cases before joining industry. Pharmacovigilance done well protects the next million patients. I'll teach you the science and the judgment — how to assess a signal, when to escalate, how to write a PBRER that tells the real story.",
+    certification: 'CCRPS CPVC / DIA Drug Safety' },
+  { id: 'us_msl',              name: 'Medical Science Liaison',               tutor: 'Dr. Lisa Park',       role: 'Medical Science Liaison',              org: 'Genentech, San Francisco',             color: '#00A896',
+    description: 'KOL identification, scientific exchange, HEOR, real-world evidence, IIT support, medical affairs compliance, and BCMAS certification preparation',
+    intro: "I have a PhD from Stanford and a postdoc from UCSF. I walked away from a tenure-track path to become an MSL, and I haven't looked back. This role is one of the best-kept secrets in biopharma — you sit at the intersection of cutting-edge science and clinical practice, you're trusted by physicians who won't take a sales call, and you build relationships that matter. Let me show you what that actually looks like.",
+    certification: 'BCMAS (ACMA)' },
+  { id: 'us_bioinformatics',   name: 'Bioinformatics & Computational Biology', tutor: 'Dr. Elena Rodriguez', role: 'Computational Biologist',              org: 'Broad Institute, Cambridge MA',        color: '#047857',
+    description: 'NGS pipelines, variant calling, RNA-seq, drug target identification from genomics, machine learning for biology, cloud computing, and AWS ML Specialty preparation',
+    intro: "I build pipelines that turn terabytes of genomic data into drug targets. The mistake most people make is treating bioinformatics as pure coding — the biology is what separates a good pipeline from a great one. I use real public datasets: TCGA, GTEx, gnomAD. If you learn on toy data you build false confidence. We'll work on the real thing from day one.",
+    certification: 'AWS ML Specialty / ABPI' },
+  { id: 'us_cdm',              name: 'Clinical Data Management',               tutor: 'David Kim',           role: 'Senior Clinical Data Manager',         org: 'Medidata Solutions, New York',         color: '#B5451B',
+    description: 'EDC configuration, CDISC standards (CDASH/SDTM/ADaM), edit checks, data cleaning, 21 CFR Part 11, database lock procedures, and CCDM certification preparation',
+    intro: "I've built and locked databases for Phase III trials. I've been on the site end, the CRO end, and the vendor end. CDM is the backbone of clinical evidence — if the data is wrong, every downstream decision is wrong. I'll teach you the craft: how to design an edit check that catches real errors without burying sites in queries, how to build SDTM that passes FDA reviewer scrutiny, how to actually lock a database.",
+    certification: 'SCDM CCDM' },
+];
+
+const SUBJECTS = ACTIVE_REGION === 'us' ? US_SUBJECTS : INDIA_SUBJECTS;
+
 const SUBJECT_HOURS = {
-  bioinformatics:      25,
-  genomics:            22,
-  drug_discovery:      28,
-  clinical_trials:     20,
-  genai_ml:            24,
-  biotech_business:    18,
-  cell_gene_therapy:   22,
-  protein_engineering: 20,
-  rna_therapeutics:    20,
-  biomanufacturing:    18,
-  longevity_science:   16,
+  bioinformatics:        25,
+  genomics:              22,
+  drug_discovery:        28,
+  clinical_trials:       20,
+  genai_ml:              24,
+  biotech_business:      18,
+  cell_gene_therapy:     22,
+  protein_engineering:   20,
+  rna_therapeutics:      20,
+  biomanufacturing:      18,
+  longevity_science:     16,
+  us_cra:                20,
+  us_regulatory:         22,
+  us_pharmacovigilance:  18,
+  us_msl:                20,
+  us_bioinformatics:     22,
+  us_cdm:                18,
 };
 
 const CLUSTER_COLORS = {
@@ -1710,7 +1789,8 @@ function OnboardingView({ student, careerProfile, onComplete }) {
   const [saving, setSaving]               = useState(false);
 
   useEffect(() => {
-    fetch('/api/careers').then(r => r.json()).then(setCareers).catch(() => {});
+    const region = ACTIVE_REGION || 'india';
+    fetch(`/api/careers?region=${region}`).then(r => r.json()).then(setCareers).catch(() => {});
   }, []);
 
   async function handleFinish(skipLocation = false) {
@@ -2129,6 +2209,111 @@ function HowItWorksOverlay({ onClose, onGetStarted, onRequestAccess }) {
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Region Picker ────────────────────────────────────────────────────────────
+
+function RegionPicker() {
+  function select(region) {
+    localStorage.setItem('bversity_region', region);
+    window.location.reload();
+  }
+
+  return (
+    <div className="region-picker">
+      <div className="region-picker-bg" />
+      <div className="region-picker-content">
+        <img src="/logo-3.png" alt="Bversity" className="region-logo" />
+        <p className="region-eyebrow">AI-Native University · Biotech & Life Sciences</p>
+        <h1 className="region-headline">Where are you based?</h1>
+        <p className="region-sub">We'll tailor your experience — subjects, certifications, and career tracks — to your market.</p>
+        <div className="region-cards">
+          <button className="region-card" onClick={() => select('india')}>
+            <div className="region-flag">🇮🇳</div>
+            <div className="region-card-title">India</div>
+            <div className="region-card-desc">BSc / BTech / MSc students and early-career professionals entering Biotech & Life Sciences</div>
+            <div className="region-card-tracks">11 subjects · Genomics, Drug Discovery, AI & more</div>
+          </button>
+          <button className="region-card region-card-us" onClick={() => select('us')}>
+            <div className="region-flag">🇺🇸</div>
+            <div className="region-card-title">United States</div>
+            <div className="region-card-desc">Working professionals preparing for CCRA, RAC, CPVC, BCMAS, CCDM, and other US certifications</div>
+            <div className="region-card-tracks">6 certification tracks · Your AI co-pilot for exam prep</div>
+          </button>
+        </div>
+        <p className="region-footer">You can switch regions later from your profile settings.</p>
+      </div>
+    </div>
+  );
+}
+
+// ── US Welcome Screen ────────────────────────────────────────────────────────
+
+function USWelcomeScreen({ onGetStarted }) {
+  const [showWaitlist, setShowWaitlist] = useState(false);
+
+  if (showWaitlist) return <WaitlistForm onBack={() => setShowWaitlist(false)} onCountUpdate={() => {}} />;
+
+  return (
+    <div className="welcome-screen">
+      <video className="welcome-video-bg" autoPlay muted loop playsInline>
+        <source src="/hero-video.mp4" type="video/mp4" />
+      </video>
+      <div className="welcome-video-overlay" />
+
+      <header className="welcome-header">
+        <img src="/logo-3.png" alt="Bversity" className="welcome-logo-img" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button className="region-switch-btn" onClick={() => { localStorage.removeItem('bversity_region'); window.location.reload(); }}>🌐 Switch Region</button>
+          <button className="welcome-signin-btn" onClick={onGetStarted}>Sign In</button>
+        </div>
+      </header>
+
+      <div className="welcome-content-block">
+        <div className="welcome-hero">
+          <div className="welcome-tag">US Certification Prep · Biotech & Life Sciences</div>
+          <h1 className="welcome-headline">
+            Your AI co-pilot for<br />
+            <span className="welcome-headline-accent">biotech certification prep</span>
+          </h1>
+          <p className="welcome-subline">
+            Wherever you're already studying — ACRP materials, RAPS prep guides, CCRPS courses —
+            Bversity's AI tutors work alongside them. Personalized to your certification, your gaps, your timeline.
+          </p>
+          <div className="welcome-cta-row">
+            <button className="welcome-cta" onClick={onGetStarted}>
+              Start your prep
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </button>
+            <button className="welcome-cta-ghost" onClick={() => setShowWaitlist(true)}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              Request Access
+            </button>
+          </div>
+        </div>
+
+        <div className="us-cert-bar">
+          {US_SUBJECTS.map(s => (
+            <div key={s.id} className="us-cert-pill" style={{ borderColor: s.color + '44', background: s.color + '11' }}>
+              <span className="us-cert-pill-icon" style={{ color: s.color }}>{SUBJECT_ICONS[s.id]}</span>
+              <div>
+                <div className="us-cert-pill-name">{s.name}</div>
+                <div className="us-cert-pill-cert">{s.certification}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <footer className="welcome-footer">
+        Powered by Anthropic Claude · Built for US biotech professionals
+      </footer>
     </div>
   );
 }
@@ -9780,6 +9965,8 @@ export default function App() {
   const verifyMatch = window.location.pathname.match(/^\/verify\/(?:BVG-)?([A-Z0-9]+)$/i);
   if (verifyMatch) return <PublicCertificateView credentialId={verifyMatch[1].toUpperCase()} />;
 
+  if (!ACTIVE_REGION) return <RegionPicker />;
+
   const [student, setStudent] = useState(getStoredStudent);
   const [screen, setScreen] = useState('welcome');
   const [selectedSubject, setSelectedSubject] = useState(null);
@@ -9952,7 +10139,10 @@ export default function App() {
   }
 
   if (!student) {
-    if (screen === 'welcome') return <WelcomeScreen onGetStarted={() => setScreen('login')} />;
+    if (screen === 'welcome') {
+      if (ACTIVE_REGION === 'us') return <USWelcomeScreen onGetStarted={() => setScreen('login')} />;
+      return <WelcomeScreen onGetStarted={() => setScreen('login')} />;
+    }
     return <LoginView onLogin={handleLogin} onBack={() => setScreen('welcome')} />;
   }
 

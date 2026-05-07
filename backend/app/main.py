@@ -788,6 +788,104 @@ CURRICULUM = {
         {"id": "longevity_industry_b", "name": "VC Capital & the Hype Cycle",              "desc": "Longevity VC wave ($5B+ deployed), investor expectations vs clinical timelines, failure of Unity's first senolytic (UBX0101), managing the hype cycle"},
         {"id": "longevity_industry_c", "name": "Which Hallmarks Are Closest to Clinical Translation","desc": "Evidence quality by hallmark — senolytics, NAD+ augmentation, mTOR inhibition, epigenetic reprogramming — realistic translation timelines"},
     ],
+
+    # ── US Certification Tracks ──────────────────────────────────────────────────
+
+    "us_cra": [
+        {"id": "us_cra_gcp_a",    "name": "ICH E6(R2) GCP Principles",              "desc": "The 13 GCP principles, history from Nuremberg Code to Belmont Report to ICH E6 — the ethical and scientific foundation of clinical research"},
+        {"id": "us_cra_gcp_b",    "name": "Informed Consent Process",                "desc": "Elements of valid consent (21 CFR 50), re-consent triggers, consent for special populations, HIPAA authorisation and consent intersection"},
+        {"id": "us_cra_gcp_c",    "name": "IRB/IEC Requirements",                    "desc": "IRB composition and authority, FDA vs local IRB policies, continuing review, unanticipated problems and deviation reporting to IRB"},
+        {"id": "us_cra_site_a",   "name": "Site Qualification & Selection",           "desc": "SQV objectives, assessing PI qualifications and site capacity, FDA Form 1572, essential document setup, site feasibility criteria"},
+        {"id": "us_cra_site_b",   "name": "Site Initiation & Delegation",             "desc": "SIV agenda, protocol training documentation, delegation of authority log, EDC access and training, site file binder setup"},
+        {"id": "us_cra_site_c",   "name": "Protocol Deviations & Violations",         "desc": "Major vs minor deviation classification, protocol deviation report (PDR), CAPA development, reporting obligations to sponsor, IRB, and FDA"},
+        {"id": "us_cra_mon_a",    "name": "Source Data Verification (SDV) & SDR",     "desc": "SDV vs SDR distinction, risk-based monitoring (RBM) principles, central vs on-site monitoring, targeted SDV strategies and documentation"},
+        {"id": "us_cra_mon_b",    "name": "Monitoring Visit Reports",                 "desc": "IMV, co-monitoring, and close-out visit structure, writing actionable MVRs, follow-up letter requirements, overdue issue tracking"},
+        {"id": "us_cra_mon_c",    "name": "Trial Master File (TMF)",                  "desc": "ICH E6 essential document list, TMF reference model (DIA), sponsor vs site file responsibilities, inspection readiness and audit trails"},
+        {"id": "us_cra_safety_a", "name": "Adverse Event Reporting",                  "desc": "AE vs SAE definitions (21 CFR 312.32), expectedness and causality assessment, 7-day vs 15-day IND safety reporting timelines"},
+        {"id": "us_cra_safety_b", "name": "Patient Safety & Study Drug Accountability","desc": "Dose modification guidelines, study drug dispensing and returns, drug accountability logs, clinical hold risk recognition"},
+        {"id": "us_cra_safety_c", "name": "GCP Inspection Readiness",                 "desc": "FDA Bioresearch Monitoring Program (BIMO) inspection types, common 483 observations, inspector interview preparation, CAPA responses"},
+        {"id": "us_cra_reg_a",    "name": "FDA Regulatory Framework for IND Studies", "desc": "21 CFR Parts 50, 54, 56, 312 — sponsor vs investigator responsibilities, IND amendments, annual safety reports"},
+        {"id": "us_cra_reg_b",    "name": "Electronic Data Capture Systems",          "desc": "Medidata Rave and Veeva Vault EDC navigation, eCRF completion guidelines, audit trail requirements, 21 CFR Part 11 for electronic signatures"},
+        {"id": "us_cra_reg_c",    "name": "CCRA & CCRP Exam Strategy",                "desc": "ACRP CCRA and SOCRA CCRP exam structure, BOK domain weightings, eligibility requirements, study planning and question strategy"},
+    ],
+
+    "us_regulatory": [
+        {"id": "us_reg_fda_a",  "name": "FDA Organization & Statutory Authority",     "desc": "CDER, CDRH, CBER, CFSAN — center structure, 21 CFR framework, FD&C Act and PHS Act authority, PDUFA user fee programs and timelines"},
+        {"id": "us_reg_fda_b",  "name": "Drug Development Regulatory Milestones",     "desc": "Pre-IND meeting, IND filing, EOP2 meeting, Pre-NDA meeting, submission, advisory committee, approval — purpose and timing of each interaction"},
+        {"id": "us_reg_fda_c",  "name": "IND Application Structure",                  "desc": "21 CFR 312.23 IND components, cover letter, protocols, investigator info, pharmacology/toxicology data, CMC section, IND amendments and annual reports"},
+        {"id": "us_reg_nda_a",  "name": "NDA/BLA Pathways & eCTD Format",             "desc": "505(b)(1) vs 505(b)(2) vs ANDA pathways, BLA for biologics, eCTD Module 1–5 structure, ICH M4 guidelines, FDA review division assignment process"},
+        {"id": "us_reg_nda_b",  "name": "Special Regulatory Pathways",                "desc": "Fast Track, Breakthrough Therapy, Accelerated Approval (surrogate endpoints), Priority Review, orphan drug designation — eligibility, benefits, obligations"},
+        {"id": "us_reg_nda_c",  "name": "FDA Review Process & Action Letters",         "desc": "Standard vs priority review timelines, refuse-to-file criteria, complete response letter (CRL) content and response strategy, approval letter"},
+        {"id": "us_reg_dev_a",  "name": "Device Classification & Premarket Pathways", "desc": "Class I/II/III classification system, 510(k) substantial equivalence, PMA approval standards, De Novo petition for novel low-medium risk devices"},
+        {"id": "us_reg_dev_b",  "name": "510(k) Submission Content",                  "desc": "Predicate device selection strategy, substantial equivalence argument, performance testing (bench, biocompatibility, software validation), eSTAR format"},
+        {"id": "us_reg_dev_c",  "name": "Quality Systems & 21 CFR Part 820",          "desc": "FDA QSR vs ISO 13485, design controls (DHF), CAPA requirements, complaint handling, production controls, FDA device inspection readiness"},
+        {"id": "us_reg_post_a", "name": "Drug Labeling & Promotional Regulations",    "desc": "21 CFR 201 requirements, Prescribing Information structure, black box warnings, MedGuides, OPDP review of promotional materials, fair balance"},
+        {"id": "us_reg_post_b", "name": "Post-Market Safety & Pharmacovigilance",     "desc": "Expedited 15-day safety reports, PADERs, post-market study commitments (PMC/PMR), FAERS database, label update triggered by safety signals"},
+        {"id": "us_reg_post_c", "name": "Manufacturing & CMC Compliance",             "desc": "21 CFR 210/211 cGMP, pre-approval inspection (PAI), CMC filing requirements, scale-up and post-approval changes (SUPAC guidance)"},
+        {"id": "us_reg_rac_a",  "name": "Regulatory Strategy & Agency Meetings",      "desc": "Meeting request letter content, FDA meeting procedures (Type A/B/C), meeting minutes, FDA response timelines, PDUFA negotiation context"},
+        {"id": "us_reg_rac_b",  "name": "Global Regulatory Differences",              "desc": "FDA vs EMA vs Health Canada frameworks, ICH harmonisation, parallel submissions, right-of-reference agreements, US-EU filing strategy"},
+        {"id": "us_reg_rac_c",  "name": "RAPS RAC Exam Preparation",                  "desc": "RAC-Drugs and RAC-Devices exam structure, BOK domain weightings, eligibility (regulatory experience requirement), application and exam strategy"},
+    ],
+
+    "us_pharmacovigilance": [
+        {"id": "us_pv_fund_a",  "name": "Pharmacovigilance Purpose & Framework",      "desc": "Why PV exists (Thalidomide, Vioxx, Heparin incidents), FDA MedWatch program, 21 CFR 314.80/81 and 312.32, ICH E2E guidance on PV planning"},
+        {"id": "us_pv_fund_b",  "name": "Adverse Event Definitions & Classification", "desc": "AE vs ADR vs SAE vs SUSAR definitions, seriousness criteria (death, hospitalization, disability, life-threatening, congenital anomaly), expectedness"},
+        {"id": "us_pv_fund_c",  "name": "Causality Assessment Methods",               "desc": "WHO-UMC criteria, Naranjo algorithm, Bradford Hill causation criteria, clinical vs algorithmic assessment, imputability in ICSR context"},
+        {"id": "us_pv_icsr_a",  "name": "ICSR Processing Workflow",                   "desc": "ICSR minimum criteria (suspect drug, adverse event, reporter, patient), receipt to submission steps, duplicate detection, Argus/ARISg safety databases"},
+        {"id": "us_pv_icsr_b",  "name": "MedDRA Coding",                              "desc": "MedDRA hierarchy (SOC → HLGT → HLT → PT → LLT), lowest level term selection best practices, coding consistency, MSSO version update process"},
+        {"id": "us_pv_icsr_c",  "name": "Regulatory Reporting Timelines",             "desc": "7-day vs 15-day expedited reports, 90-day non-expedited ICSRs, EudraVigilance reporting, FDA E2B(R3) electronic format, clock start determination"},
+        {"id": "us_pv_sig_a",   "name": "Disproportionality Analysis",                "desc": "Reporting odds ratio (ROR), proportional reporting ratio (PRR), Bayesian BCPNN and EBGM — how each method detects safety signals in spontaneous reports"},
+        {"id": "us_pv_sig_b",   "name": "Signal Management Workflow",                 "desc": "Signal detection → validation → assessment → recommendation → action: PRAC signal review, FDA FAERS signal process, validated vs invalidated signals"},
+        {"id": "us_pv_sig_c",   "name": "Literature Monitoring",                      "desc": "Systematic literature search scope (EMBASE, MEDLINE), single case reports vs aggregate safety data, weekly processing frequency (ICH E2F requirement)"},
+        {"id": "us_pv_risk_a",  "name": "Risk Management Strategy & REMS",            "desc": "REMS components (medication guide, communication plan, ETASU elements to assure safe use), REMS development, FDA negotiation, REMS assessment"},
+        {"id": "us_pv_risk_b",  "name": "Periodic Safety Reports (PBRER/DSUR)",       "desc": "PBRER/PSUR structure (ICH E2C(R2)), DSUR for development compounds, reference safety information (RSI), PBRER data lock point and submission timelines"},
+        {"id": "us_pv_risk_c",  "name": "CCRPS CPVC Certification Preparation",       "desc": "CPVC exam domains, CCRPS eligibility requirements, recommended study resources, application timeline, exam question types and strategy"},
+    ],
+
+    "us_msl": [
+        {"id": "us_msl_role_a", "name": "Medical Affairs & MSL Role Overview",         "desc": "Medical Affairs function vs commercial and R&D, MSL charter and purpose, MSL vs sales representative boundary, medical affairs strategy alignment"},
+        {"id": "us_msl_role_b", "name": "KOL Identification & Mapping",                "desc": "Defining KOLs vs regional opinion leaders (ROLs), publication analysis using PubMed, clinical trial investigator lists, advisory board mapping, tier strategy"},
+        {"id": "us_msl_role_c", "name": "Territory Management & Metrics",              "desc": "Territory coverage planning, CRM documentation (Veeva CRM), MSL performance metrics (engagement quality, medical insights), territory business plan"},
+        {"id": "us_msl_sci_a",  "name": "Scientific Exchange & Off-Label Compliance",  "desc": "Non-promotional scientific discussions, reactive vs proactive information sharing, FDA regulations on off-label communication, documentation standards"},
+        {"id": "us_msl_sci_b",  "name": "KOL Engagement Conversations",                "desc": "Pre-call planning, establishing scientific credibility, handling difficult clinical questions, scientific objection handling, capturing medical insights"},
+        {"id": "us_msl_sci_c",  "name": "Medical Congresses & Publication Support",    "desc": "Congress coverage strategy, scientific symposia, poster/oral presentation support, publication planning, ICMJE authorship criteria, MSL congress role"},
+        {"id": "us_msl_heor_a", "name": "Health Economics & Outcomes Research",        "desc": "Cost-effectiveness analysis (ICER), budget impact models, real-world evidence vs RCT data, QALY concept, how payers use HEOR data for formulary decisions"},
+        {"id": "us_msl_heor_b", "name": "Real-World Evidence & Investigator-Initiated Studies", "desc": "RWE data sources (claims, EHR, registries), IIT grant process, sponsor vs investigator-initiated distinction, evidence generation strategy alignment"},
+        {"id": "us_msl_heor_c", "name": "Medical Information Requests",                "desc": "Medical Information function vs MSL role, standard vs custom responses, handling off-label requests compliantly, documentation and compliance tracking"},
+        {"id": "us_msl_comp_a", "name": "Pharma Compliance & Ethics",                  "desc": "OIG compliance guidance, PhRMA code provisions, Sunshine Act (Open Payments) reporting, anti-kickback statute — navigating compliance as an MSL"},
+        {"id": "us_msl_comp_b", "name": "Medical Affairs Strategy & Lifecycle",        "desc": "Integrated evidence plan, gap analysis, data generation strategy, product lifecycle management, label expansion medical support, advisory boards"},
+        {"id": "us_msl_comp_c", "name": "BCMAS (ACMA) Certification Preparation",      "desc": "BCMAS exam structure, ACMA eligibility (2 years field experience), application timeline, exam domains (scientific, strategic, operational, compliance)"},
+    ],
+
+    "us_bioinformatics": [
+        {"id": "us_bio_ngs_a",  "name": "NGS Technology & Sequencing Platforms",       "desc": "Illumina short-read, PacBio HiFi, Oxford Nanopore long-read — principles, library preparation, paired-end reads, depth and coverage considerations"},
+        {"id": "us_bio_ngs_b",  "name": "Quality Control & Preprocessing",             "desc": "FastQC metrics, per-base quality scores, adapter contamination detection, Trimmomatic/Cutadapt, MultiQC aggregation, clinical genomics QC thresholds"},
+        {"id": "us_bio_ngs_c",  "name": "Alignment & Variant Calling",                 "desc": "BWA-MEM alignment, SAM/BAM format, GATK HaplotypeCaller, VCF format, VQSR filtering, clinical validation standards for NGS pipelines"},
+        {"id": "us_bio_gen_a",  "name": "Variant Annotation & Interpretation",         "desc": "VEP, ANNOVAR, gnomAD population frequencies, ClinVar clinical significance, ACMG/AMP variant classification criteria, clinical genomics reporting"},
+        {"id": "us_bio_gen_b",  "name": "RNA-seq & Differential Expression",           "desc": "STAR alignment, Salmon quantification, DESeq2/edgeR differential expression, volcano plots, GSEA and GO pathway enrichment, clinical transcriptomics"},
+        {"id": "us_bio_gen_c",  "name": "Drug Target Identification from Genomics",    "desc": "OpenTargets database, Mendelian randomisation for target validation, GWAS for drug target identification, druggability assessment, multi-omics integration"},
+        {"id": "us_bio_ml_a",   "name": "Machine Learning for Bioinformatics",         "desc": "Feature engineering for biological data (fingerprints, k-mers, protein descriptors), cross-validation strategies, handling class imbalance in omics"},
+        {"id": "us_bio_ml_b",   "name": "Deep Learning for Biological Sequences",      "desc": "CNNs for motif discovery, protein language models (ESM-2, AlphaFold2), transformers for genomic sequences, AWS SageMaker for ML deployment"},
+        {"id": "us_bio_ml_c",   "name": "Cloud Computing for Genomics",                "desc": "AWS architecture for genomics (S3, EC2, Batch), Terra/AnVIL platforms, WDL/Nextflow workflow management, cost optimisation, HIPAA compliance on cloud"},
+        {"id": "us_bio_cert_a", "name": "CDISC Genomics Standards",                    "desc": "CDISC SHARE genomics standards, SEND for nonclinical genomics, SDTM for clinical NGS submission data, FDA expectations for genomic submissions"},
+        {"id": "us_bio_cert_b", "name": "Single-Cell & Multi-Omics Analysis",          "desc": "10x Chromium scRNA-seq, Seurat/Scanpy workflow, UMAP clustering, cell type annotation, multi-omics integration (Seurat v4, MOFA+), spatial transcriptomics"},
+        {"id": "us_bio_cert_c", "name": "AWS ML Specialty Exam Preparation",           "desc": "AWS ML Specialty exam domains (data engineering, EDA, modeling, ML implementation, operations), SageMaker services, eligibility and study strategy"},
+    ],
+
+    "us_cdm": [
+        {"id": "us_cdm_setup_a", "name": "Clinical Data Management Lifecycle",         "desc": "Study start-up to database lock: DMP creation, eCRF design, UAT, data collection, cleaning, database lock — CDM role and deliverables at each stage"},
+        {"id": "us_cdm_setup_b", "name": "EDC System Configuration",                   "desc": "Medidata Rave study build, Veeva Vault EDC configuration, CRF annotation, metadata, field validation rules, user access management"},
+        {"id": "us_cdm_setup_c", "name": "CRF & eCRF Design Principles",               "desc": "eCRF design for regulatory compliance and data quality, blank CRF annotation for NDA/BLA submission, field naming conventions, user acceptance testing"},
+        {"id": "us_cdm_val_a",   "name": "Edit Checks & Validation Specifications",    "desc": "Manual vs programmatic edit checks, validation specification document (VSD), intra-form vs inter-form checks, programming checks in Rave/Veeva"},
+        {"id": "us_cdm_val_b",   "name": "Query Management",                           "desc": "Automated vs manual query generation, query response workflow, overdue query escalation, site data entry quality metrics, query rate benchmarks"},
+        {"id": "us_cdm_val_c",   "name": "Data Review & Cleaning",                     "desc": "Targeted data review (TDR), medical data review with clinical team, laboratory data reconciliation, SAE-PV reconciliation, medical coding review"},
+        {"id": "us_cdm_cdisc_a", "name": "CDASH — Clinical Data Acquisition Standards","desc": "CDASH domains (DM, AE, CM, LB, VS, EX, DS), CDASH variable naming, relationship to SDTM, implementation guide, FDA CDASH submission requirements"},
+        {"id": "us_cdm_cdisc_b", "name": "SDTM — Study Data Tabulation Model",         "desc": "SDTM domain structure (interventions, events, findings, special-purpose), variable types, DEFINE-XML, reviewers guide, FDA submission package components"},
+        {"id": "us_cdm_cdisc_c", "name": "ADaM — Analysis Dataset Model",              "desc": "ADSL, ADAE, ADTTE ADaM datasets, derivation rules and traceability from SDTM, analysis-ready datasets for SAP execution, ADaM DEFINE-XML"},
+        {"id": "us_cdm_comp_a",  "name": "21 CFR Part 11 — Electronic Records",        "desc": "Part 11 requirements (audit trail integrity, access controls, electronic signatures), EDC system validation and compliance, FDA inspection expectations"},
+        {"id": "us_cdm_comp_b",  "name": "Database Lock & Study Close-Out",            "desc": "Pre-lock activities, data freeze vs hard lock procedures, post-lock change control, trial master file archiving (21 CFR 312.57), long-term retention"},
+        {"id": "us_cdm_comp_c",  "name": "SCDM CCDM Certification Preparation",        "desc": "CCDM exam domains (SCDM BOK), eligibility (2 years CDM experience), application process, exam format, recommended study resources and strategy"},
+    ],
 }
 
 # ── Subjects ──────────────────────────────────────────────────────────────────
@@ -913,6 +1011,92 @@ How you teach: manufacturing is where science meets reality. A molecule that can
 Your knowledge: the 12 hallmarks of aging (López-Otín 2023 framework), cellular senescence and senolytics/senomorphics, epigenetic aging clocks (Horvath, DunedinPACE) and partial reprogramming with Yamanaka factors, telomere biology, mitochondrial dysfunction and NAD+ metabolism, longevity signalling pathways (mTOR, AMPK, sirtuins, IGF-1), proteostasis and autophagy, inflammaging and the SASP, stem cell exhaustion and parabiosis experiments, longevity biomarkers and multi-omic aging clocks, clinical trial design in geroscience (TAME trial), and the longevity industry landscape.
 
 How you teach: you hold the tension between scientific rigor and extraordinary possibility. Aging research has had a credibility problem — too much hype, too many supplements, too many claims not backed by human data. You help students distinguish what is mechanism (solid), what is correlation (interesting but uncertain), and what is intervention (where the real gaps are). You ground everything in data. You also convey genuine excitement — partial reprogramming experiments where old mice show regenerated tissues are some of the most striking biology of the last decade, and your students should feel that.""",
+    },
+
+    # ── US Certification Tracks ──────────────────────────────────────────────────
+
+    "us_cra": {
+        "id": "us_cra", "name": "Clinical Research Associate / Coordinator",
+        "tutor_name": "Sarah Mitchell", "tutor_role": "Senior Clinical Research Associate", "tutor_org": "IQVIA, Boston",
+        "color": "#0066CC", "icon": "📋", "region": "us",
+        "description": "GCP principles, site monitoring, informed consent, SAE reporting, TMF management, and CCRA/CCRP exam preparation",
+        "system_prompt": """You are Sarah Mitchell, Senior Clinical Research Associate at IQVIA in Boston, Massachusetts, and a faculty mentor at Bversity US.
+
+Background: BS in Biology from Boston University. Started as a Clinical Research Coordinator at a Phase II oncology site, moved to IQVIA as a CRA II, and now a Senior CRA managing 8 clinical sites across 3 states on an oncology Phase III trial for a major pharma sponsor. Preparing for your CCRA certification this year.
+
+Your knowledge: ICH E6(R2) GCP principles in depth, informed consent process (21 CFR 50), IRB/IEC requirements, site qualification and initiation visits, source data verification (SDV) and risk-based monitoring (RBM), monitoring visit reports, protocol deviations and violations, SAE reporting timelines (21 CFR 312.32), study drug accountability, Trial Master File (TMF/eTMF), FDA Bioresearch Monitoring Program (BIMO) inspections, electronic data capture (Medidata Rave, Veeva Vault EDC), 21 CFR Part 11, sponsor vs investigator responsibilities, ACRP CCRA and SOCRA CCRP exam domains.
+
+How you teach: you teach everything from the monitoring visit perspective — every concept is grounded in what you would actually do at a site. You make GCP feel human, not bureaucratic: every regulation exists because something went wrong for a patient. You use real scenarios — a site that's not following the protocol, a patient who didn't properly consent, a PI who needs coaching. You ask students "what would you do here?" before explaining the right answer.""",
+    },
+
+    "us_regulatory": {
+        "id": "us_regulatory", "name": "Regulatory Affairs Specialist",
+        "tutor_name": "Dr. Robert Chen", "tutor_role": "Senior Director, Regulatory Affairs", "tutor_org": "Bristol Myers Squibb, NJ",
+        "color": "#6B3FA0", "icon": "📑", "region": "us",
+        "description": "FDA regulatory framework, IND/NDA/BLA pathways, 510(k) and PMA for devices, special pathways, post-market compliance, and RAPS RAC exam preparation",
+        "system_prompt": """You are Dr. Robert Chen, Senior Director of Regulatory Affairs at Bristol Myers Squibb in Princeton, New Jersey, and a faculty mentor at Bversity US.
+
+Background: BS in Pharmacy from Rutgers, PhD in Pharmaceutical Sciences from UNC Chapel Hill. Spent 7 years at FDA's Office of Pharmaceutical Quality as a Pharmaceutical Scientist reviewing INDs, NDAs, and manufacturing supplements before moving to industry. You have sat on both sides of the regulatory table. RAPS RAC-Drugs certified.
+
+Your knowledge: US Code of Federal Regulations (21 CFR) structure, FDA organization (CDER, CDRH, CBER, OPQ), IND submissions and amendments (21 CFR 312), NDA/ANDA/BLA pathways and eCTD format (ICH M4), special regulatory pathways (Breakthrough Therapy, Fast Track, Accelerated Approval, Priority Review, orphan drug), complete response letter (CRL) strategy, 510(k) substantial equivalence and PMA approval for medical devices, De Novo classification, drug labeling (21 CFR 201), post-market pharmacovigilance requirements, manufacturing and cGMP (21 CFR 210/211), agency meeting procedures, RAPS RAC-Drugs and RAC-Devices exam domains.
+
+How you teach: you teach regulatory strategy, not just compliance. You ask: "Why does this regulation exist — what happened before it did?" You help students inhabit the FDA reviewer's mindset. Thalidomide created modern drug regulation. The DES story shaped pediatric labeling. You use real NDA and device submission case studies to make abstract requirements concrete. Students leave knowing not just what to file, but why every requirement is there.""",
+    },
+
+    "us_pharmacovigilance": {
+        "id": "us_pharmacovigilance", "name": "Pharmacovigilance / Drug Safety",
+        "tutor_name": "Dr. Anika Sharma", "tutor_role": "Global Pharmacovigilance Lead", "tutor_org": "AstraZeneca, Wilmington DE",
+        "color": "#E05C00", "icon": "⚠️", "region": "us",
+        "description": "Adverse event reporting, MedDRA coding, signal detection, REMS, ICH E2 guidelines, periodic safety reports, and CPVC exam preparation",
+        "system_prompt": """You are Dr. Anika Sharma, Global Pharmacovigilance Lead at AstraZeneca in Wilmington, Delaware, and a faculty mentor at Bversity US.
+
+Background: PharmD from Temple University School of Pharmacy. Joined FDA's MedWatch program and spent 5 years at CDER as a safety reviewer, reviewing ICSRs and contributing to REMS development for multiple marketed products. Now leads global PV operations for three AstraZeneca marketed products across US and EU territories.
+
+Your knowledge: the full pharmacovigilance lifecycle — spontaneous AE collection (MedWatch, EudraVigilance), ICSR processing and minimum criteria, AE/SAE definitions and seriousness criteria, causality assessment (WHO-UMC, Naranjo), expectedness determination, MedDRA coding hierarchy (SOC → HLGT → HLT → PT → LLT), safety databases (Argus, ARISg), signal detection (ROR, PRR, BCPNN, EBGM), risk management strategies and REMS development, ICH E2A–E2F guidelines, periodic safety reports (PBRER/PSUR, DSUR), literature monitoring requirements, 21 CFR 314.80/81 and 312.32, CCRPS CPVC and DIA Drug Safety certification domains.
+
+How you teach: you make PV feel real by connecting it to patients. An ICSR is a person who had a bad experience with a medicine — behind every case number is a human story. Signal detection is how you protect the next million people who take that drug. You use the Vioxx story, the Heparin contamination crisis, and current FDA drug safety communications to anchor concepts. You help students think like safety scientists: how do you know a signal is real? When do you act?""",
+    },
+
+    "us_msl": {
+        "id": "us_msl", "name": "Medical Science Liaison",
+        "tutor_name": "Dr. Lisa Park", "tutor_role": "Medical Science Liaison", "tutor_org": "Genentech, San Francisco",
+        "color": "#00A896", "icon": "🤝", "region": "us",
+        "description": "KOL engagement, scientific exchange, HEOR, real-world evidence, medical affairs compliance, and BCMAS certification preparation",
+        "system_prompt": """You are Dr. Lisa Park, Medical Science Liaison at Genentech in San Francisco, California, and a faculty mentor at Bversity US.
+
+Background: PhD in Molecular Biology from Stanford University, postdoc at UCSF in oncology translational research. Joined Genentech's oncology MSL team 4 years ago, covering academic medical centers and community oncology practices across the Western US. ACMA Board Certified Medical Affairs Specialist (BCMAS).
+
+Your knowledge: the MSL role and charter within Medical Affairs, Medical Affairs vs commercial and R&D boundaries, KOL identification and tiering using publication databases, clinical trial investigator lists and advisory board networks, scientific exchange principles and FDA off-label communication rules, territory management and CRM systems (Veeva CRM), HEOR fundamentals and evidence communication to payers and clinicians, real-world evidence (RWE) data sources and interpretation, investigator-initiated trial (IIT) grant process, medical information request handling, congress coverage and scientific symposia, OIG compliance guidance and PhRMA code, Sunshine Act (Open Payments), ACMA BCMAS exam domains.
+
+How you teach: you teach the MSL role from the inside — what a great KOL conversation looks like versus a transactional one, how to navigate a question about off-label use compliantly, how to present real-world evidence to a skeptical oncologist. You help students understand that the MSL is a scientific partner to clinicians, not a sales role with a PhD. You use scenario-based teaching — a KOL challenges your drug's safety profile, or asks about an off-label use. How do you respond? You role-play those situations until students can handle them without thinking.""",
+    },
+
+    "us_bioinformatics": {
+        "id": "us_bioinformatics", "name": "Bioinformatics / Computational Biology",
+        "tutor_name": "Dr. Elena Rodriguez", "tutor_role": "Computational Biologist", "tutor_org": "Broad Institute, Cambridge MA",
+        "color": "#047857", "icon": "🧬", "region": "us",
+        "description": "NGS pipelines, variant calling, RNA-seq, drug target identification, ML for biology, cloud genomics, and AWS ML Specialty preparation",
+        "system_prompt": """You are Dr. Elena Rodriguez, Computational Biologist at the Broad Institute of MIT and Harvard in Cambridge, Massachusetts, and a faculty mentor at Bversity US.
+
+Background: BS in Computer Science from University of Texas at Austin, MSc in Bioinformatics from Johns Hopkins University. Now building multi-omics analysis pipelines for cancer genomics at the Broad, focusing on drug target identification from large-scale genomic datasets. Working toward AWS ML Specialty certification.
+
+Your knowledge: NGS analysis pipelines (GATK best practices, STAR, Salmon), whole genome and exome sequencing analysis, SAM/BAM and VCF formats, variant calling and ACMG/AMP annotation, RNA-seq differential expression (DESeq2, edgeR), single-cell genomics (Seurat, Scanpy), drug target identification using OpenTargets and Mendelian randomisation, machine learning for biological datasets (scikit-learn, PyTorch), cloud genomics (AWS S3/EC2/Batch, Terra/AnVIL platform), WDL and Nextflow workflow management, CDISC genomics standards, AWS ML Specialty exam domains.
+
+How you teach: you teach from the pipeline perspective — raw data goes in, biological insight comes out. You help students avoid the most common mistake: treating bioinformatics as purely computational and ignoring the biology. You use real public datasets (TCGA, GTEx, gnomAD) because learning on toy data builds false confidence. You explain the "why" behind every pipeline step: why we mark duplicates, why we use VQSR, why clinical validation of NGS pipelines matters differently than research pipelines.""",
+    },
+
+    "us_cdm": {
+        "id": "us_cdm", "name": "Clinical Data Manager / Biostatistician",
+        "tutor_name": "David Kim", "tutor_role": "Senior Clinical Data Manager", "tutor_org": "Medidata Solutions, New York",
+        "color": "#B5451B", "icon": "📊", "region": "us",
+        "description": "EDC systems, CDISC standards (CDASH/SDTM/ADaM), edit checks, data cleaning, 21 CFR Part 11, database lock, and CCDM certification preparation",
+        "system_prompt": """You are David Kim, Senior Clinical Data Manager at Medidata Solutions in New York City, and a faculty mentor at Bversity US.
+
+Background: BS in Statistics from NYU. Started as a clinical data coordinator at a small CRO, moved to Medidata to work on database design and client delivery for major pharmaceutical sponsors. Now manages data management delivery for three Phase III programs across oncology and rare disease. SCDM Certified Clinical Data Manager (CCDM).
+
+Your knowledge: the full clinical data management lifecycle from study start-up through database lock, EDC system design and configuration (Medidata Rave, Veeva Vault EDC, Oracle Clinical), eCRF design and annotation, edit check programming and validation specification documents, data review and cleaning workflows, laboratory data reconciliation, SAE-PV reconciliation, medical coding (MedDRA, WHO Drug Dictionary), CDISC standards (CDASH for data collection, SDTM for regulatory submission, ADaM for analysis), DEFINE-XML, 21 CFR Part 11 electronic records and signature compliance, database lock and post-lock change procedures, SCDM CCDM certification domains.
+
+How you teach: you teach CDM as a craft, not a checklist. Every edit check decision is a trade-off — too few and you miss real errors, too many and you bury sites in unnecessary queries. Every data point has a downstream regulatory consequence: if the data is wrong, the drug decision is wrong. You use real-world examples: what happens to a study when database lock is rushed, why CDISC compliance matters for FDA submission review, what FDA reviewers actually do with SDTM datasets.""",
     },
 }
 
@@ -1191,6 +1375,87 @@ CAREERS = {
         "key_concepts": ["pipeline_overview", "target_id", "biologics", "comp_drug_disc", "admet", "trial_basics", "regulatory_bodies", "submissions", "special_pathways", "genome_structure", "precision_medicine", "bio_programming", "biotech_biz_model", "biotech_financing", "ls_valuation", "building_biotech"],
         "relevant_subjects": ["biotech_business", "drug_discovery", "clinical_trials", "cell_gene_therapy", "rna_therapeutics", "genai_ml"],
         "min_qualification": "Any background",
+    },
+
+    # ── US Careers ────────────────────────────────────────────────────────────────
+
+    "us_cra": {
+        "id": "us_cra", "title": "Clinical Research Associate / Coordinator",
+        "cluster": "Clinical Operations", "icon": "📋", "region": "us",
+        "description": "Monitor clinical trial sites across the US, ensuring data quality, patient safety, and GCP compliance. The #1 entry point into US clinical research.",
+        "day_in_life": "Travel to clinical sites, audit source documents against the protocol, train site staff, resolve data queries, and file monitoring visit reports for the sponsor.",
+        "salary_range": "$52K–$95K",
+        "progression": ["Clinical Research Coordinator (CRC)", "Junior CRA", "CRA II", "Senior CRA", "Lead CRA / Clinical Trial Manager", "Director of Clinical Operations"],
+        "industries": ["CROs (IQVIA, Covance, PPD, Syneos Health)", "Pharma", "Biotech", "Medical devices"],
+        "key_concepts": ["us_cra_gcp_a", "us_cra_gcp_b", "us_cra_gcp_c", "us_cra_site_a", "us_cra_site_b", "us_cra_mon_a", "us_cra_mon_b", "us_cra_safety_a", "us_cra_reg_a", "us_cra_reg_b"],
+        "relevant_subjects": ["us_cra"],
+        "min_qualification": "BS in life sciences or health",
+        "target_certifications": ["ACRP CCRA", "SOCRA CCRP", "ACRP CCRC"],
+    },
+    "us_regulatory": {
+        "id": "us_regulatory", "title": "Regulatory Affairs Specialist",
+        "cluster": "Regulatory & Compliance", "icon": "📑", "region": "us",
+        "description": "Prepare and submit regulatory dossiers (IND, NDA, BLA, 510(k), PMA) to FDA, and advise cross-functional teams on regulatory strategy and compliance.",
+        "day_in_life": "Draft IND or NDA sections, review labeling for compliance, prepare agency meeting packages, track FDA correspondence, and advise clinical and CMC teams on regulatory requirements.",
+        "salary_range": "$75K–$130K",
+        "progression": ["Regulatory Affairs Associate", "RA Specialist", "Senior RA Specialist", "RA Manager", "Senior Director RA", "VP Regulatory Affairs"],
+        "industries": ["Pharma", "Biotech", "Medical devices", "CROs", "Regulatory consulting firms"],
+        "key_concepts": ["us_reg_fda_a", "us_reg_fda_b", "us_reg_fda_c", "us_reg_nda_a", "us_reg_nda_b", "us_reg_dev_a", "us_reg_dev_b", "us_reg_post_a", "us_reg_post_b", "us_reg_rac_a"],
+        "relevant_subjects": ["us_regulatory"],
+        "min_qualification": "BS/MS in life sciences, pharmacy, or engineering",
+        "target_certifications": ["RAPS RAC-Drugs", "RAPS RAC-Devices"],
+    },
+    "us_pharmacovigilance": {
+        "id": "us_pharmacovigilance", "title": "Pharmacovigilance / Drug Safety Associate",
+        "cluster": "Regulatory & Compliance", "icon": "⚠️", "region": "us",
+        "description": "Collect, process, and analyse adverse event reports to monitor the safety profile of marketed drugs and clinical candidates, protecting patients at population scale.",
+        "day_in_life": "Process incoming ICSRs in the safety database, apply MedDRA coding, assess seriousness and expectedness, prepare regulatory submissions, and participate in signal detection meetings.",
+        "salary_range": "$65K–$120K",
+        "progression": ["PV Associate", "Drug Safety Specialist", "Senior PV Specialist", "PV Manager", "Global PV Lead", "VP Drug Safety"],
+        "industries": ["Pharma", "Biotech", "CROs (ICON, Parexel, Covance)", "Medical devices", "FDA (government)"],
+        "key_concepts": ["us_pv_fund_a", "us_pv_fund_b", "us_pv_fund_c", "us_pv_icsr_a", "us_pv_icsr_b", "us_pv_icsr_c", "us_pv_sig_a", "us_pv_sig_b", "us_pv_risk_a", "us_pv_risk_b"],
+        "relevant_subjects": ["us_pharmacovigilance"],
+        "min_qualification": "BS/PharmD/MS in life sciences or pharmacy",
+        "target_certifications": ["CCRPS CPVC", "DIA Drug Safety"],
+    },
+    "us_msl": {
+        "id": "us_msl", "title": "Medical Science Liaison (MSL)",
+        "cluster": "Medical Affairs", "icon": "🤝", "region": "us",
+        "description": "Build peer-to-peer scientific relationships with KOLs and healthcare professionals, communicate clinical evidence, support investigator-initiated research, and generate medical insights.",
+        "day_in_life": "Meet with KOLs at academic medical centers, discuss clinical data, gather medical insights, present at scientific advisory boards, cover medical congresses, and document all interactions in Veeva CRM.",
+        "salary_range": "$130K–$200K",
+        "progression": ["Associate MSL", "MSL", "Senior MSL", "Principal MSL", "MSL Manager", "Director Medical Affairs", "VP Medical Affairs"],
+        "industries": ["Pharma", "Biotech", "Medical devices", "Diagnostic companies"],
+        "key_concepts": ["us_msl_role_a", "us_msl_role_b", "us_msl_role_c", "us_msl_sci_a", "us_msl_sci_b", "us_msl_heor_a", "us_msl_heor_b", "us_msl_comp_a", "us_msl_comp_b", "us_msl_comp_c"],
+        "relevant_subjects": ["us_msl"],
+        "min_qualification": "PhD, PharmD, or MD (typically)",
+        "target_certifications": ["BCMAS (ACMA)"],
+    },
+    "us_bioinformatics": {
+        "id": "us_bioinformatics", "title": "Bioinformatics / Computational Biology",
+        "cluster": "Science & Technical", "icon": "🧬", "region": "us",
+        "description": "Build NGS analysis pipelines, interpret genomic and multi-omics datasets, and apply machine learning to accelerate drug target identification and precision medicine.",
+        "day_in_life": "Run variant calling pipelines on AWS, annotate variants in clinical genomics context, run RNA-seq differential expression, present findings to biology teams, and deploy ML models for target prioritisation.",
+        "salary_range": "$90K–$150K",
+        "progression": ["Bioinformatics Analyst", "Computational Biologist", "Senior Bioinformatics Scientist", "Principal Scientist", "Director Computational Biology"],
+        "industries": ["Biotech", "Pharma", "Genomics companies", "Academic medical centers", "CROs (clinical genomics)"],
+        "key_concepts": ["us_bio_ngs_a", "us_bio_ngs_b", "us_bio_ngs_c", "us_bio_gen_a", "us_bio_gen_b", "us_bio_gen_c", "us_bio_ml_a", "us_bio_ml_b", "us_bio_cert_a", "us_bio_cert_b"],
+        "relevant_subjects": ["us_bioinformatics"],
+        "min_qualification": "BS/MS in bioinformatics, CS, or life sciences",
+        "target_certifications": ["AWS ML Specialty", "ABPI Bioinformatics"],
+    },
+    "us_cdm": {
+        "id": "us_cdm", "title": "Clinical Data Manager / Biostatistician",
+        "cluster": "Clinical Operations", "icon": "📊", "region": "us",
+        "description": "Design and manage clinical databases, ensure data quality through validation and cleaning, implement CDISC standards, and prepare regulatory-grade submission datasets.",
+        "day_in_life": "Build EDC studies in Medidata Rave, write edit check specifications, review data with the clinical team, reconcile SAEs with PV, prepare SDTM submission datasets, and run database lock procedures.",
+        "salary_range": "$80K–$130K",
+        "progression": ["Clinical Data Coordinator", "Data Manager", "Senior CDM", "Lead CDM", "CDM Manager", "Director Data Management"],
+        "industries": ["Pharma", "Biotech", "CROs", "EDC vendors (Medidata, Veeva)", "Clinical research sites"],
+        "key_concepts": ["us_cdm_setup_a", "us_cdm_setup_b", "us_cdm_setup_c", "us_cdm_val_a", "us_cdm_val_b", "us_cdm_cdisc_a", "us_cdm_cdisc_b", "us_cdm_cdisc_c", "us_cdm_comp_a", "us_cdm_comp_b"],
+        "relevant_subjects": ["us_cdm"],
+        "min_qualification": "BS in statistics, life sciences, health information, or IT",
+        "target_certifications": ["SCDM CCDM"],
     },
 }
 
@@ -2612,8 +2877,11 @@ def get_dashboard(student_id: str):
 # ── Career / Profile routes ───────────────────────────────────────────────────
 
 @app.get("/careers")
-def get_careers():
-    return list(CAREERS.values())
+def get_careers(region: str = None):
+    careers = list(CAREERS.values())
+    if region:
+        careers = [c for c in careers if c.get("region", "india") == region]
+    return careers
 
 @app.get("/profile/{student_id}")
 def get_profile(student_id: str, background_tasks: BackgroundTasks = None):
