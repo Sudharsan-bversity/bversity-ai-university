@@ -4374,6 +4374,8 @@ function AdminView({ onBack }) {
   const [imageSaved, setImageSaved]                   = useState({});
   const [systemHealth, setSystemHealth]               = useState(null);
   const [systemHealthLoading, setSystemHealthLoading] = useState(false);
+  const [stFilter, setStFilter]                       = useState('all');
+  const [stSearch, setStSearch]                       = useState('');
 
   async function handleAuth(e) {
     e.preventDefault();
@@ -5147,9 +5149,6 @@ function AdminView({ onBack }) {
       )}
 
       {tab === 'students' && (() => {
-        const week_ago_ts = Date.now() - 7 * 86400000;
-        const [stFilter, setStFilter] = React.useState('all');
-        const [stSearch, setStSearch] = React.useState('');
         const filtered = [...students]
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
           .filter(s => {
