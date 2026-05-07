@@ -283,6 +283,8 @@ const TUTOR_AVATARS = {
   'Dr. Yuki Tanaka':    'https://i.pravatar.cc/150?img=56',
 };
 
+const ACTIVE_REGION = 'india';
+
 const SUBJECTS = [
   { id: 'bioinformatics',     name: 'Bioinformatics',                             tutor: 'Dr. Priya Nair',    role: 'Senior Bioinformatics Scientist',                  org: 'Broad Institute of MIT and Harvard', color: '#00A896', description: 'Sequence analysis, BLAST, phylogenetics, NGS pipelines, protein structure, and computational biology tools',
     intro: "I build computational pipelines to make sense of genomic data at scale, covering everything from cancer mutation signatures to population-level association studies. I've watched bioinformatics go from a niche specialty to the backbone of modern medicine, and I want to give you that foundation properly. By the end of this, you'll be fluent in the tools and concepts that the industry actually uses." },
@@ -2308,10 +2310,7 @@ function WelcomeScreen({ onGetStarted }) {
 
       <header className="welcome-header">
         <img src="/logo-3.png" alt="Bversity" className="welcome-logo-img" />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <button className="region-switch-btn" onClick={() => { localStorage.removeItem('bversity_region'); window.location.reload(); }}>🌐 Switch Region</button>
-          <button className="welcome-signin-btn" onClick={onGetStarted}>Sign In</button>
-        </div>
+        <button className="welcome-signin-btn" onClick={onGetStarted}>Sign In</button>
       </header>
 
       <div className="welcome-content-block">
