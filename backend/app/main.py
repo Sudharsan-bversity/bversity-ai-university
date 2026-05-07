@@ -2407,20 +2407,23 @@ def admin_overview(x_admin_key: str = Header(None)):
     require_admin(x_admin_key)
     conn = get_db()
     week_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
-    total_students    = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
-    active_week       = conn.execute("SELECT COUNT(DISTINCT student_id) FROM messages WHERE role='user' AND created_at > ?", (week_ago,)).fetchone()[0]
-    total_concepts    = conn.execute("SELECT COUNT(*) FROM concept_progress").fetchone()[0]
+    total_students    = conn.execute("SELECT COUNT(*) FROM students WHERE email NOT LIKE '%@bversity.alumni'").fetchone()[0]
+    active_week       = conn.execute("SELECT COUNT(DISTINCT m.student_id) FROM messages m JOIN students s ON s.id=m.student_id WHERE m.role='user' AND m.created_at > ? AND s.email NOT LIKE '%@bversity.alumni'", (week_ago,)).fetchone()[0]
+    total_concepts    = conn.execute("SELECT COUNT(*) FROM concept_progress cp JOIN students s ON s.id=cp.student_id WHERE s.email NOT LIKE '%@bversity.alumni'").fetchone()[0]
     pending_capstones = conn.execute("SELECT COUNT(*) FROM capstone_submissions WHERE score IS NULL").fetchone()[0]
-    total_messages    = conn.execute("SELECT COUNT(*) FROM messages WHERE role = 'user'").fetchone()[0]
+    total_messages    = conn.execute("SELECT COUNT(*) FROM messages m JOIN students s ON s.id=m.student_id WHERE m.role='user' AND s.email NOT LIKE '%@bversity.alumni'").fetchone()[0]
     never_started     = conn.execute("""
         SELECT COUNT(*) FROM students s
-        WHERE NOT EXISTS (SELECT 1 FROM messages m WHERE m.student_id = s.id AND m.role = 'user')
+        WHERE s.email NOT LIKE '%@bversity.alumni'
+          AND NOT EXISTS (SELECT 1 FROM messages m WHERE m.student_id = s.id AND m.role = 'user')
     """).fetchone()[0]
-    active_ever       = conn.execute("SELECT COUNT(DISTINCT student_id) FROM messages WHERE role='user'").fetchone()[0]
+    active_ever       = conn.execute("SELECT COUNT(DISTINCT m.student_id) FROM messages m JOIN students s ON s.id=m.student_id WHERE m.role='user' AND s.email NOT LIKE '%@bversity.alumni'").fetchone()[0]
     gone_quiet        = conn.execute("""
-        SELECT COUNT(DISTINCT student_id) FROM messages
-        WHERE role='user'
-          AND student_id NOT IN (
+        SELECT COUNT(DISTINCT m.student_id) FROM messages m
+        JOIN students s ON s.id=m.student_id
+        WHERE m.role='user'
+          AND s.email NOT LIKE '%@bversity.alumni'
+          AND m.student_id NOT IN (
               SELECT DISTINCT student_id FROM messages WHERE role='user' AND created_at > ?
           )
     """, (week_ago,)).fetchone()[0]
@@ -2508,7 +2511,8 @@ def admin_students(x_admin_key: str = Header(None)):
             (SELECT COUNT(DISTINCT DATE(created_at)) FROM messages m WHERE m.student_id = s.id AND m.role = 'user') AS days_active
         FROM students s
         LEFT JOIN student_profile sp ON sp.student_id = s.id
-        ORDER BY last_active DESC
+        WHERE s.email NOT LIKE '%@bversity.alumni'
+        ORDER BY s.created_at DESC
     """).fetchall()
     conn.close()
     result = []
