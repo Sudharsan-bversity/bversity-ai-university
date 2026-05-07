@@ -2525,6 +2525,21 @@ def admin_students(x_admin_key: str = Header(None)):
         result.append(d)
     return result
 
+@app.delete("/admin/students/{student_id}")
+def delete_student(student_id: str, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    student = conn.execute("SELECT id, email FROM students WHERE id = ?", (student_id,)).fetchone()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    conn.execute("DELETE FROM messages WHERE student_id = ?", (student_id,))
+    conn.execute("DELETE FROM concept_progress WHERE student_id = ?", (student_id,))
+    conn.execute("DELETE FROM capstone_submissions WHERE student_id = ?", (student_id,))
+    conn.execute("DELETE FROM student_profile WHERE student_id = ?", (student_id,))
+    conn.execute("DELETE FROM students WHERE id = ?", (student_id,))
+    conn.commit(); conn.close()
+    return {"message": "Student deleted"}
+
 @app.get("/student/{student_id}")
 def get_student(student_id: str):
     conn = get_db()

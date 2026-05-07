@@ -5210,6 +5210,12 @@ function AdminView({ onBack }) {
                     <div className="admin-st-location">{[s.city, s.state].filter(Boolean).join(', ')}</div>
                   ) : null}
                 </div>
+                <button className="admin-st-delete-btn" title="Delete student" onClick={() => {
+                  if (window.confirm(`Permanently delete ${s.name}? This removes all their messages, progress, and data.`)) {
+                    fetch(`/api/admin/students/${s.id}`, { method: 'DELETE', headers: { 'X-Admin-Key': adminKey } })
+                      .then(r => r.ok ? setStudents(prev => prev.filter(x => x.id !== s.id)) : alert('Failed to delete'));
+                  }
+                }}>✕</button>
               </div>
             ))}
           </div>
