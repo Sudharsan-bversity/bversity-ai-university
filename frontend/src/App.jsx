@@ -1433,6 +1433,19 @@ const INDIAN_STATES = [
   'Delhi','Jammu & Kashmir','Ladakh','Lakshadweep','Puducherry',
 ];
 
+const US_STATES = [
+  'Alabama','Alaska','Arizona','Arkansas','California','Colorado','Connecticut',
+  'Delaware','Florida','Georgia','Hawaii','Idaho','Illinois','Indiana','Iowa',
+  'Kansas','Kentucky','Louisiana','Maine','Maryland','Massachusetts','Michigan',
+  'Minnesota','Mississippi','Missouri','Montana','Nebraska','Nevada','New Hampshire',
+  'New Jersey','New Mexico','New York','North Carolina','North Dakota','Ohio',
+  'Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota',
+  'Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia',
+  'Wisconsin','Wyoming','Washington DC',
+];
+
+const US_EXP_OPTIONS = ['< 1 year', '1–3 years', '3–5 years', '5–10 years', '10+ years'];
+
 function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
   const [college, setCollege]         = useState(profileData?.college || '');
   const [year, setYear]               = useState(profileData?.year_of_study || '');
@@ -1740,6 +1753,143 @@ function OnboardingView({ student, careerProfile, onComplete }) {
     }
   }
 
+  // ── US onboarding (3-step, working professional flow) ──────────────────────
+  if (ACTIVE_REGION === 'us') {
+    const canUsStep1 = college.trim() && year;
+    const canUsStep2 = !!selectedCareerId;
+    const ArrowIcon = () => (
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M5 12h14M12 5l7 7-7 7"/>
+      </svg>
+    );
+    return (
+      <div className="onboarding-screen">
+        <div className="onboarding-progress">
+          {[1,2,3].map(i => (
+            <div key={i} className={`onboarding-pip ${i <= step ? 'active' : ''}`} />
+          ))}
+        </div>
+        <div className={`onboarding-card ${step === 2 ? 'onboarding-card--wide' : ''}`}>
+          <div className="onboarding-step-label">Step {step} of 3</div>
+
+          {step === 1 && (
+            <>
+              <h2 className="onboarding-heading">Welcome to Bversity, {student.name.split(' ')[0]}!</h2>
+              <p className="onboarding-sub">Tell us a bit about your background so your AI tutor can teach to exactly where you are right now.</p>
+              <div className="onboarding-fields">
+                <div className="onboarding-field">
+                  <label>Where do you currently work?</label>
+                  <input type="text" className="onboarding-input"
+                    placeholder="e.g. IQVIA, Pfizer, PPD, a hospital, self-employed…"
+                    value={college} onChange={e => setCollege(e.target.value)} autoFocus
+                  />
+                </div>
+                <div className="onboarding-field">
+                  <label>Years of experience in life sciences</label>
+                  <div className="onboarding-chips">
+                    {US_EXP_OPTIONS.map(opt => (
+                      <button key={opt} type="button"
+                        className={`onboarding-chip ${year === opt ? 'selected' : ''}`}
+                        onClick={() => setYear(opt)}
+                      >{opt}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="onboarding-field">
+                  <label>Anything your tutor should know? <span className="onboarding-optional">(optional)</span></label>
+                  <textarea className="onboarding-textarea"
+                    placeholder="Certification timeline, prior study, specific gaps to focus on…"
+                    value={tutorNote} onChange={e => setTutorNote(e.target.value)} rows={2}
+                  />
+                </div>
+              </div>
+              <button className="onboarding-next" disabled={!canUsStep1} onClick={() => setStep(2)}>
+                Continue <ArrowIcon />
+              </button>
+            </>
+          )}
+
+          {step === 2 && (
+            <>
+              <h2 className="onboarding-heading">Which certification are you targeting?</h2>
+              <p className="onboarding-sub">Your entire learning roadmap — subjects, concepts, and practice — will be built around this. You can change it later.</p>
+              <div className="ob-career-grid ob-career-grid--full">
+                {careers.map(career => (
+                  <div key={career.id}
+                    className={`ob-career-card ${selectedCareerId === career.id ? 'selected' : ''}`}
+                    style={{ '--career-color': US_SUBJECTS.find(s => s.id === career.relevant_subjects?.[0])?.color || '#00A896' }}
+                    onClick={() => setSelectedCareerId(career.id)}
+                    role="button" tabIndex={0}
+                    onKeyDown={e => e.key === 'Enter' && setSelectedCareerId(career.id)}
+                  >
+                    <div className="ob-career-card-top">
+                      <span className="ob-career-icon" style={{ color: US_SUBJECTS.find(s => s.id === career.relevant_subjects?.[0])?.color }}>
+                        {SUBJECT_ICONS[career.relevant_subjects?.[0]]}
+                      </span>
+                      <div className="ob-career-meta">
+                        <div className="ob-career-title">{career.title}</div>
+                        <div className="ob-career-salary">{career.salary_range} · {career.target_certifications?.[0]}</div>
+                      </div>
+                      {selectedCareerId === career.id && <span className="ob-career-check">✓</span>}
+                    </div>
+                    <p className="ob-career-desc">{career.description}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="onboarding-nav" style={{ marginTop: '1.5rem' }}>
+                <button className="onboarding-back" onClick={() => setStep(1)}>← Back</button>
+                <button className="onboarding-next" disabled={!canUsStep2} onClick={() => setStep(3)}>
+                  Continue <ArrowIcon />
+                </button>
+              </div>
+              <div className="ob-explore-skip">
+                <button className="ob-explore-btn" onClick={() => { setSelectedCareerId(''); setStep(3); }}>
+                  Not sure yet — explore for now →
+                </button>
+              </div>
+            </>
+          )}
+
+          {step === 3 && (
+            <>
+              <h2 className="onboarding-heading">Put yourself on the map</h2>
+              <p className="onboarding-sub">Connect with Bversity professionals across the US. Optional — skip if you prefer.</p>
+              <div className="onboarding-fields">
+                <div className="onboarding-field">
+                  <label>City</label>
+                  <input type="text" className="onboarding-input"
+                    placeholder="e.g. Boston, San Francisco, Research Triangle…"
+                    value={city} onChange={e => setCity(e.target.value)} autoFocus
+                  />
+                </div>
+                <div className="onboarding-field">
+                  <label>State</label>
+                  <select className="onboarding-input" value={obState} onChange={e => setObState(e.target.value)}>
+                    <option value="">Select state…</option>
+                    {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <label className="profile-map-toggle">
+                  <input type="checkbox" checked={showOnMap} onChange={e => setShowOnMap(e.target.checked)} />
+                  <span className="profile-map-toggle-track" />
+                  <span className="profile-map-toggle-label">Show me on the community map</span>
+                </label>
+              </div>
+              <div className="onboarding-nav">
+                <button className="onboarding-back" onClick={() => setStep(2)}>← Back</button>
+                <button className="onboarding-next onboarding-finish" disabled={saving} onClick={() => handleFinish(false)}>
+                  {saving ? 'Setting up…' : "Let's go →"}
+                </button>
+              </div>
+              <button className="onboarding-skip" onClick={() => handleFinish(true)} disabled={saving}>Skip for now</button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── India onboarding ────────────────────────────────────────────────────────
   const totalSteps = motivation === 'stay_ahead' ? 3 : 4;
   // For forward_deployed, auto-lock cluster so step 3 skips the cluster picker
   const effectiveCluster = motivation === 'forward_deployed' ? 'Emerging & Hybrid' : selectedCluster;
@@ -1991,7 +2141,7 @@ function OnboardingView({ student, careerProfile, onComplete }) {
         {step === 4 && (
           <>
             <h2 className="onboarding-heading">Put yourself on the map</h2>
-            <p className="onboarding-sub">Show other Bversity learners across India where you're studying from. Be the first in your city or state.</p>
+            <p className="onboarding-sub">Show other Bversity learners across India where you're studying from. Be the first pin in your city.</p>
             <div className="onboarding-fields">
               <div className="onboarding-field">
                 <label>City</label>
@@ -2158,7 +2308,10 @@ function WelcomeScreen({ onGetStarted }) {
 
       <header className="welcome-header">
         <img src="/logo-3.png" alt="Bversity" className="welcome-logo-img" />
-        <button className="welcome-signin-btn" onClick={onGetStarted}>Sign In</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <button className="region-switch-btn" onClick={() => { localStorage.removeItem('bversity_region'); window.location.reload(); }}>🌐 Switch Region</button>
+          <button className="welcome-signin-btn" onClick={onGetStarted}>Sign In</button>
+        </div>
       </header>
 
       <div className="welcome-content-block">
@@ -2302,22 +2455,42 @@ function WaitlistForm({ onBack, onCountUpdate }) {
               <input value={form.country} onChange={e => set('country', e.target.value)} placeholder="Where are you from?" />
             </div>
           </div>
-          <div className="waitlist-row">
-            <div className="waitlist-field">
-              <label>University / Institution</label>
-              <input value={form.university} onChange={e => set('university', e.target.value)} placeholder="Your university or workplace" />
+          {ACTIVE_REGION === 'us' ? (
+            <div className="waitlist-row">
+              <div className="waitlist-field">
+                <label>Current Employer / Organization</label>
+                <input value={form.university} onChange={e => set('university', e.target.value)} placeholder="e.g. IQVIA, Pfizer, a hospital, self-employed…" />
+              </div>
+              <div className="waitlist-field">
+                <label>Years of Experience in Life Sciences</label>
+                <select value={form.year_of_study} onChange={e => set('year_of_study', e.target.value)}>
+                  <option value="">Select…</option>
+                  {US_EXP_OPTIONS.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
             </div>
-            <div className="waitlist-field">
-              <label>Year of Study</label>
-              <select value={form.year_of_study} onChange={e => set('year_of_study', e.target.value)}>
-                <option value="">Select year</option>
-                {YEAR_OPTIONS.map(y => <option key={y} value={y}>{y}</option>)}
-              </select>
+          ) : (
+            <div className="waitlist-row">
+              <div className="waitlist-field">
+                <label>University / Institution</label>
+                <input value={form.university} onChange={e => set('university', e.target.value)} placeholder="Your university or workplace" />
+              </div>
+              <div className="waitlist-field">
+                <label>Year of Study</label>
+                <select value={form.year_of_study} onChange={e => set('year_of_study', e.target.value)}>
+                  <option value="">Select year</option>
+                  {YEAR_OPTIONS.map(y => <option key={y} value={y}>{y}</option>)}
+                </select>
+              </div>
             </div>
-          </div>
+          )}
           <div className="waitlist-field waitlist-field-full">
             <label>Why do you want access?</label>
-            <textarea value={form.reason} onChange={e => set('reason', e.target.value)} placeholder="Tell us about your goals, what you're hoping to learn, or what drew you to Bversity..." rows={4} />
+            <textarea value={form.reason} onChange={e => set('reason', e.target.value)}
+              placeholder={ACTIVE_REGION === 'us'
+                ? "Which certification are you targeting? Where are you in your prep? What gaps are you trying to close?"
+                : "Tell us about your goals, what you're hoping to learn, or what drew you to Bversity..."}
+              rows={4} />
           </div>
           {error && <p className="waitlist-error">{error}</p>}
           <button type="submit" className="waitlist-submit" disabled={submitting}>
@@ -4905,30 +5078,70 @@ function AdminView({ onBack }) {
             ))}
           </div>
 
-          <div className="admin-ov-section-title">Recent Activity</div>
-          <div className="admin-students-list">
-            {students.slice(0, 5).map(s => (
-              <div key={s.id} className="admin-student-row">
-                <div className="admin-st-avatar" style={{ background: s.avatar_color || '#00A896' }}>
-                  {s.name.charAt(0).toUpperCase()}
+          <div className="admin-ov-section-title">Learner Engagement</div>
+          <div className="admin-engage-row">
+            <div className="admin-engage-card admin-engage-card--red">
+              <div className="admin-engage-value">{overview?.never_started ?? '-'}</div>
+              <div className="admin-engage-label">Never Started</div>
+              <div className="admin-engage-sub">approved but haven't opened the platform</div>
+            </div>
+            <div className="admin-engage-card admin-engage-card--green">
+              <div className="admin-engage-value">{overview?.active_week ?? '-'}</div>
+              <div className="admin-engage-label">Active This Week</div>
+              <div className="admin-engage-sub">sent a message in the last 7 days</div>
+            </div>
+            <div className="admin-engage-card admin-engage-card--amber">
+              <div className="admin-engage-value">{overview?.gone_quiet ?? '-'}</div>
+              <div className="admin-engage-label">Gone Quiet</div>
+              <div className="admin-engage-sub">started but no activity in 7+ days</div>
+            </div>
+          </div>
+
+          <div className="admin-ov-section-title" style={{ marginTop: '28px' }}>All Learners — Usage</div>
+          <div className="admin-engage-table">
+            <div className="admin-et-header">
+              <span>Learner</span>
+              <span>Status</span>
+              <span>Days Used</span>
+              <span>Messages</span>
+              <span>Last Active</span>
+            </div>
+            {students.map(s => {
+              const isNeverStarted = !s.last_active;
+              const lastDate = s.last_active ? new Date(s.last_active) : null;
+              const daysSince = lastDate ? Math.floor((Date.now() - lastDate.getTime()) / 86400000) : null;
+              const isActiveWeek = daysSince !== null && daysSince <= 7;
+              const status = isNeverStarted ? 'never' : isActiveWeek ? 'active' : 'quiet';
+              const statusLabel = { never: 'Not Started', active: 'Active', quiet: 'Gone Quiet' }[status];
+              return (
+                <div key={s.id} className="admin-et-row">
+                  <div className="admin-et-name">
+                    <div className="admin-st-avatar admin-st-avatar--sm" style={{ background: s.avatar_color || '#00A896' }}>
+                      {s.name.charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <div className="admin-et-fullname">{s.name}</div>
+                      <div className="admin-et-email">{s.email}</div>
+                    </div>
+                  </div>
+                  <div>
+                    <span className={`admin-status-badge admin-status-badge--${status}`}>{statusLabel}</span>
+                  </div>
+                  <div className="admin-et-days">
+                    {s.days_active > 0 ? (
+                      <>
+                        <span className="admin-et-days-num">{s.days_active}</span>
+                        <span className="admin-et-days-label"> day{s.days_active !== 1 ? 's' : ''}</span>
+                      </>
+                    ) : '—'}
+                  </div>
+                  <div className="admin-et-msgs">{s.message_count > 0 ? s.message_count : '—'}</div>
+                  <div className="admin-et-last">
+                    {lastDate ? lastDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                  </div>
                 </div>
-                <div className="admin-st-info">
-                  <div className="admin-st-name">{s.name}</div>
-                  <div className="admin-st-email">{s.email}</div>
-                </div>
-                {s.career_icon && (
-                  <div className="admin-st-career">{s.career_icon} {s.career_title}</div>
-                )}
-                <div className="admin-st-stats">
-                  <span>{s.concepts_covered} concepts</span>
-                  <span className="admin-st-dot">·</span>
-                  <span>{s.message_count} messages</span>
-                </div>
-                <div className="admin-st-last">
-                  {s.last_active ? new Date(s.last_active).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : 'Never'}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
@@ -4970,6 +5183,9 @@ function AdminView({ onBack }) {
                   <div className="admin-st-last">
                     {s.last_active ? new Date(s.last_active).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Never'}
                   </div>
+                  {s.days_active > 0 && (
+                    <div className="admin-st-days-used">{s.days_active} day{s.days_active !== 1 ? 's' : ''} used</div>
+                  )}
                   {s.city || s.state ? (
                     <div className="admin-st-location">{[s.city, s.state].filter(Boolean).join(', ')}</div>
                   ) : null}
