@@ -4539,6 +4539,8 @@ function AdminView({ onBack }) {
   const [metricsLoading, setMetricsLoading]           = useState(false);
   const [weeklySending, setWeeklySending]             = useState(false);
   const [weeklyResult, setWeeklyResult]               = useState(null);
+  const [reminderSending, setReminderSending]         = useState(false);
+  const [reminderResult, setReminderResult]           = useState(null);
   const [peakHours, setPeakHours]                     = useState([]);
   const [health, setHealth]                           = useState(null);
   const [chatLogs, setChatLogs]                       = useState([]);
@@ -5761,6 +5763,52 @@ function AdminView({ onBack }) {
 
             </div>
           )}
+
+          {(() => {
+            const joinedEmails = new Set(students.map(s => s.email.toLowerCase()));
+            const notJoined = approvedEmails.filter(e => !joinedEmails.has(e.email.toLowerCase()));
+            return (
+              <div className="email-not-joined-section">
+                <div className="admin-ov-section-title" style={{ marginBottom: '0.75rem' }}>Approved But Haven't Joined</div>
+                <div className="email-not-joined-card">
+                  <div className="email-nj-summary">
+                    <div className="email-nj-count">{notJoined.length}</div>
+                    <div className="email-nj-desc">
+                      <div className="email-nj-title">People approved but never logged in</div>
+                      <div className="email-nj-sub">Send them a reminder to come join the platform.</div>
+                    </div>
+                    <button
+                      className="email-send-btn email-send-btn--amber"
+                      disabled={notJoined.length === 0 || reminderSending}
+                      onClick={async () => {
+                        if (!window.confirm(`Send a reminder email to ${notJoined.length} people who haven't joined yet?`)) return;
+                        setReminderSending(true); setReminderResult(null);
+                        try {
+                          const r = await fetch('/api/admin/send-join-reminder', { method: 'POST', headers: { 'X-Admin-Key': adminKey } });
+                          if (r.ok) setReminderResult(await r.json());
+                        } finally { setReminderSending(false); }
+                      }}
+                    >
+                      {reminderSending ? 'Sending…' : `Send reminder to ${notJoined.length}`}
+                    </button>
+                  </div>
+                  {reminderResult && (
+                    <div className="email-nj-result">✓ Sent to {reminderResult.sent} of {reminderResult.total} people</div>
+                  )}
+                  {notJoined.length > 0 && (
+                    <div className="email-nj-list">
+                      {notJoined.map(e => (
+                        <div key={e.email} className="email-nj-row">
+                          <span className="email-nj-email">{e.email}</span>
+                          <span className="email-nj-date">Approved {e.added_at ? new Date(e.added_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="email-auto-section">
             <div className="admin-ov-section-title">Automatic Emails</div>
