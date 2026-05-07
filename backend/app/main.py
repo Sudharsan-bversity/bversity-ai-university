@@ -2394,6 +2394,35 @@ def admin_add_email(req: AddEmailRequest, x_admin_key: str = Header(None)):
     conn.close()
     return {"email": email, "added_at": datetime.utcnow().isoformat()}
 
+@app.post("/admin/send-join-reminder")
+async def send_join_reminder(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    approved = conn.execute("SELECT email FROM approved_emails").fetchall()
+    joined   = {r["email"] for r in conn.execute("SELECT email FROM students").fetchall()}
+    conn.close()
+    not_joined = [r["email"] for r in approved if r["email"] not in joined]
+    sent = 0
+    for email in not_joined:
+        first = email.split("@")[0].split(".")[0].capitalize()
+        body = (
+            _heading(f"Your Bversity access is waiting, {first}!") +
+            _para("You were approved for Bversity — the world's first AI-Native Biotech University — "
+                  "but we noticed you haven't logged in yet.") +
+            _btn("Start Learning Now →", "https://university.bversity.io") +
+            _divider() +
+            _para("<strong>Getting started takes 2 minutes:</strong><br>"
+                  "1. Click the button above.<br>"
+                  "2. Enter your email to get a one-time login code.<br>"
+                  "3. Pick a subject and begin your first AI tutoring session.") +
+            _divider() +
+            _small("Your access is still active. If you have any questions, just reply to this email.")
+        )
+        ok = await _send_email(email, "Your Bversity access is waiting — come join us! 🎓", _email_wrap(body))
+        if ok:
+            sent += 1
+    return {"sent": sent, "total": len(not_joined)}
+
 @app.delete("/admin/approved-emails/{email}")
 def admin_remove_email(email: str, x_admin_key: str = Header(None)):
     require_admin(x_admin_key)
