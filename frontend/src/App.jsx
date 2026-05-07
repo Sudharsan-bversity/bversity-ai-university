@@ -4188,6 +4188,32 @@ const FEEDBACK_Q3_OPTIONS = [
   'This is my first structured learning tool',
 ];
 
+function FreeTrialModal({ onClose }) {
+  return (
+    <div className="freetrial-overlay">
+      <div className="freetrial-modal">
+        <div className="freetrial-badge">Free Trial</div>
+        <h2 className="freetrial-title">You're on a 7-day free trial</h2>
+        <p className="freetrial-body">
+          We've given you full access to explore Bversity — every subject, every AI tutor, every concept session.
+          This trial runs for <strong>7–10 days</strong>, and we're using it to understand how the platform is being used
+          and what's adding the most value.
+        </p>
+        <p className="freetrial-body">
+          If Bversity is helping you grow and you'd like to continue beyond the trial,
+          reach out to Sudharsan for paid access at <strong>₹299/month</strong>.
+        </p>
+        <a className="freetrial-contact-link" href="mailto:sudharsan@bversity.io?subject=Paid Access Request">
+          sudharsan@bversity.io
+        </a>
+        <button className="freetrial-cta" onClick={onClose}>
+          Continue using the platform →
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function FeedbackModal({ studentId, onClose }) {
   const [q1, setQ1]           = useState('');
   const [q2, setQ2]           = useState('');
@@ -10083,6 +10109,7 @@ export default function App() {
   const [isReturning, setIsReturning] = useState(!!getStoredStudent());
   const [careerProfile, setCareerProfile] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
+  const [showFreeTrial, setShowFreeTrial] = useState(false);
   const [showReEntry, setShowReEntry] = useState(false);
   const [showSearch, setShowSearch]     = useState(false);
   const [showLinkedIn, setShowLinkedIn] = useState(false);
@@ -10125,6 +10152,17 @@ export default function App() {
       }
     }, 60000);
     return () => clearInterval(interval);
+  }, [student]);
+
+  useEffect(() => {
+    if (!student) return;
+    const seenKey = `bv_freetrial_seen_${student.id}`;
+    if (sessionStorage.getItem(seenKey)) return;
+    const t = setTimeout(() => {
+      sessionStorage.setItem(seenKey, '1');
+      setShowFreeTrial(true);
+    }, 10 * 60 * 1000);
+    return () => clearTimeout(t);
   }, [student]);
 
   useEffect(() => {
@@ -10443,6 +10481,7 @@ export default function App() {
         />
       )}
       </main>
+      {showFreeTrial && <FreeTrialModal onClose={() => setShowFreeTrial(false)} />}
       {showFeedback && student && (
         <FeedbackModal
           studentId={student.id}
