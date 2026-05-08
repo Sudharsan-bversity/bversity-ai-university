@@ -8075,7 +8075,7 @@ function LearningPathTrack({ student, career, careerSubjects, progress, statuses
           });
           return careerSubjects.map((s, idx) => {
           const st        = statuses[s.id]?.status;
-          const prog      = progress[s.id];
+          const prog      = (progress || {})[s.id];
           const covered   = prog?.covered_count  ?? 0;
           const mastered  = prog?.mastered_count ?? 0;
           const total     = prog?.total ?? 36;
@@ -8533,10 +8533,11 @@ function computeReadiness(careerProfile, progress) {
   if (!careerProfile?.career) return null;
   const ids = careerProfile.career.relevant_subjects || [];
   if (!ids.length) return null;
+  const safeProgress = progress || {};
   const BASE = 10, SUBJECT_MAX = 88;
   let scoreSum = 0, completed = 0;
   ids.forEach(id => {
-    const p = progress[id];
+    const p = safeProgress[id];
     if (!p || p.total === 0) return;
     const s = (p.mastered_count + 0.4 * Math.max(0, p.covered_count - p.mastered_count)) / p.total;
     scoreSum += s;
@@ -8544,7 +8545,7 @@ function computeReadiness(careerProfile, progress) {
   });
   const score = Math.min(Math.round(BASE + (scoreSum / ids.length) * SUBJECT_MAX), 98);
   const nextSubjectId = ids.find(id => {
-    const p = progress[id];
+    const p = safeProgress[id];
     if (!p || p.total === 0) return true;
     const s = (p.mastered_count + 0.4 * Math.max(0, p.covered_count - p.mastered_count)) / p.total;
     return s < 0.7;
@@ -8749,7 +8750,7 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
                   <SubjectCard
                     key={s.id}
                     subject={s}
-                    progress={progress[s.id]}
+                    progress={(progress || {})[s.id]}
                     status={statuses[s.id]?.status}
                     isRecommended={false}
                     activeCount={activeCount}
