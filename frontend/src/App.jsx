@@ -7472,8 +7472,8 @@ function JourneySection({ data }) {
   const [showReport, setShowReport]   = useState(false);
   const [showCert, setShowCert]       = useState(false);
 
-  const hasCapstone = Object.values(data.subjects).some(s => s.capstone_submission);
-  const hasCert     = Object.values(data.subjects).some(s => s.certificate_earned);
+  const hasCapstone = Object.values(data.subjects || {}).some(s => s.capstone_submission);
+  const hasCert     = Object.values(data.subjects || {}).some(s => s.certificate_earned);
 
   const steps = [
     {
@@ -7554,9 +7554,9 @@ function DashboardView({ student, onStudy, onCapstone, onCertificate }) {
   if (loading) return <div className="dashboard-loading">Loading your progress map...</div>;
   if (!data) return null;
 
-  const totalCovered  = Object.values(data.subjects).reduce((s, x) => s + x.covered_count, 0);
-  const totalMastered = Object.values(data.subjects).reduce((s, x) => s + x.mastered_count, 0);
-  const totalConcepts = Object.values(data.subjects).reduce((s, x) => s + x.total, 0);
+  const totalCovered  = Object.values(data.subjects || {}).reduce((s, x) => s + x.covered_count, 0);
+  const totalMastered = Object.values(data.subjects || {}).reduce((s, x) => s + x.mastered_count, 0);
+  const totalConcepts = Object.values(data.subjects || {}).reduce((s, x) => s + x.total, 0);
 
   const today = new Date();
   const lagDays = studyPlan?.lag_days ?? 0;
@@ -8624,9 +8624,9 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
 
   const career         = careerProfile?.career;
   const recommendedIds = new Set(career?.relevant_subjects || []);
-  const totalCoveredConcepts = Object.values(progress).reduce((sum, p) => sum + (p.covered_count ?? 0), 0);
+  const totalCoveredConcepts = Object.values(progress || {}).reduce((sum, p) => sum + (p.covered_count ?? 0), 0);
   const showCareerNudge = !career && totalCoveredConcepts >= 5 && careerProfile?.motivation === 'stay_ahead' && !nudgeDismissed;
-  const activeCount    = Object.values(statuses).filter(s => s.status === 'active').length;
+  const activeCount    = Object.values(statuses || {}).filter(s => s.status === 'active').length;
   const careerSubjects = career
     ? (career.relevant_subjects || []).map(id => SUBJECTS.find(s => s.id === id)).filter(Boolean)
     : [];
