@@ -403,6 +403,7 @@ function cleanLine(line) {
 }
 
 function driveEmbedUrl(url) {
+  if (!url) return '';
   const m = url.match(/\/file\/d\/([^/?\s]+)/);
   if (m) return `https://drive.google.com/file/d/${m[1]}/preview`;
   return url;
@@ -9879,7 +9880,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
                   </div>
                 );
               }
-              const cardMatch = msg.role === 'bot' ? msg.content.match(/<<<CARD:(\{[\s\S]*?\})>>>/) : null;
+              const cardMatch = msg.role === 'bot' && msg.content ? msg.content.match(/<<<CARD:(\{[\s\S]*?\})>>>/) : null;
               let cardTitle = null;
               if (cardMatch) { try { cardTitle = JSON.parse(cardMatch[1]).title; } catch {} }
               const ccVote = cardTitle ? conceptFeedback[cardTitle] : null;
