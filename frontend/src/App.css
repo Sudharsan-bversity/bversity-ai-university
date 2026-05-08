@@ -2348,6 +2348,7 @@ body {
   justify-content: flex-start;
   padding: 0;
   min-height: 100vh;
+  position: relative;
 }
 .entry-back-btn {
   align-self: flex-start; background: none; border: none; cursor: pointer;
@@ -11188,6 +11189,7 @@ body {
   padding: 0;
   justify-content: flex-start;
   min-height: 100vh;
+  position: relative;
 }
 
 .session-hero-card {

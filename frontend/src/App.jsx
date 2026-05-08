@@ -2,6 +2,24 @@ import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps';
 
+class ErrorBoundary extends React.Component {
+  constructor(props) { super(props); this.state = { error: null }; }
+  static getDerivedStateFromError(error) { return { error }; }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: '2rem', fontFamily: 'monospace', background: '#fff' }}>
+          <h2 style={{ color: '#c00' }}>Something went wrong</h2>
+          <pre style={{ color: '#333', whiteSpace: 'pre-wrap', fontSize: '0.85rem' }}>{this.state.error.message}</pre>
+          <pre style={{ color: '#666', whiteSpace: 'pre-wrap', fontSize: '0.75rem' }}>{this.state.error.stack}</pre>
+          <button onClick={() => this.setState({ error: null })} style={{ marginTop: '1rem', padding: '0.5rem 1rem' }}>Dismiss</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const SUBJECT_ICONS = {
   bioinformatics: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -538,6 +556,7 @@ function ConceptCard({ data, color, studentId, subjectId, savedId: initialSavedI
 }
 
 function renderMessageContent(content, opts = {}) {
+  if (content == null) return null;
   let cardData = null;
   let cleanContent = content;
 
@@ -10218,6 +10237,7 @@ export default function App() {
   const [sessionIsFirstVisit, setSessionIsFirstVisit] = useState(false);
 
   function handleSelectSubject(subject) {
+    window.scrollTo(0, 0);
     setSelectedSubject(subject);
     const met = localStorage.getItem(`bv_met_${subject.id}_${student?.id}`);
     setSubjectEntryPhase(met ? 'session' : 'intro');
@@ -10225,6 +10245,7 @@ export default function App() {
   }
 
   function handleBack() {
+    window.scrollTo(0, 0);
     fireSessionEnd();
     setSelectedSubject(null);
     setSubjectEntryPhase(null);
@@ -10352,6 +10373,7 @@ export default function App() {
         />
       )}
       <main className="main-panel">
+      <ErrorBoundary>
       {view === 'subject-pause' && pauseSubject ? (
         <SubjectPauseView
           subject={pauseSubject}
@@ -10480,6 +10502,7 @@ export default function App() {
           onPauseSubject={handlePauseSubject}
         />
       )}
+      </ErrorBoundary>
       </main>
       {showFreeTrial && <FreeTrialModal onClose={() => setShowFreeTrial(false)} />}
       {showFeedback && student && (
