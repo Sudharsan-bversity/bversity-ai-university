@@ -2689,6 +2689,9 @@ def get_profile(student_id: str, background_tasks: BackgroundTasks = None):
         (student_id,)
     ).fetchone()
     student_row = conn.execute("SELECT email FROM students WHERE id = ?", (student_id,)).fetchone()
+    if not student_row:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Student not found")
     waitlist_row = None
     if student_row:
         waitlist_row = conn.execute(

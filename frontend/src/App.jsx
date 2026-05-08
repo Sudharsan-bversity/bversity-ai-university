@@ -10147,6 +10147,12 @@ export default function App() {
   async function fetchCareerProfile(studentId) {
     try {
       const res = await fetch(`/api/profile/${studentId}`);
+      if (res.status === 404) {
+        clearStudent();
+        setStudent(null);
+        setScreen('welcome');
+        return;
+      }
       const data = await res.json();
       setCareerProfile(data);
       if (!data.onboarded) setShowOnboarding(true);
