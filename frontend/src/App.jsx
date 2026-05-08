@@ -4088,7 +4088,7 @@ function CapstoneView({ subject, student, onBack }) {
         <div className="capstone-section">
           <div className="capstone-section-label">Instructions</div>
           <ol className="capstone-instructions">
-            {capstone.instructions.split('\n').filter(l => l.trim()).map((step, i) => (
+            {(capstone.instructions || '').split('\n').filter(l => l.trim()).map((step, i) => (
               <li key={i}>{step.replace(/^\d+\.\s*/, '')}</li>
             ))}
           </ol>
@@ -7319,7 +7319,7 @@ function LabProjectView({ student, project, subject, onBack }) {
               <div key={i} className={`lab-assist-msg${m.role === 'user' ? ' user' : ' bot'}`}>
                 <div
                   className="lab-assist-bubble"
-                  dangerouslySetInnerHTML={{ __html: m.content.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>') }}
+                  dangerouslySetInnerHTML={{ __html: (m.content || '').replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br/>') }}
                 />
               </div>
             ))}
@@ -7640,7 +7640,8 @@ function DashboardView({ student, onStudy, onCapstone, onCertificate }) {
 
       <div className="dashboard-subjects">
         {SUBJECTS.map((subject) => {
-          const prog = data.subjects[subject.id];
+          const prog = (data.subjects || {})[subject.id];
+          if (!prog) return null;
           const capSub = prog.capstone_submission;
           return (
             <div key={subject.id} className="dashboard-subject-card">
@@ -7676,7 +7677,7 @@ function DashboardView({ student, onStudy, onCapstone, onCertificate }) {
                 {(() => {
                   // Group concepts into modules (strip trailing _a/_b/_c)
                   const moduleMap = {};
-                  prog.concepts.forEach(c => {
+                  (prog.concepts || []).forEach(c => {
                     const parent = c.id.replace(/_[abc]$/, '');
                     if (!moduleMap[parent]) moduleMap[parent] = [];
                     moduleMap[parent].push(c);
@@ -8558,7 +8559,7 @@ function CareerReadinessScore({ careerProfile, progress, onViewPath, onShare }) 
   const data = computeReadiness(careerProfile, progress);
   if (!data) return null;
   const { score, remaining, nextSubject } = data;
-  const career = careerProfile.career;
+  const career = careerProfile?.career;
 
   const R = 52, stroke = 8;
   const circ = 2 * Math.PI * R;
@@ -9761,8 +9762,8 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
                 </div>
                 <p className="chat-ready-hint">
                   {conceptsCovered > 0
-                    ? `${subject.tutor.split(' ')[1]} will recap where you left off and pick up from your next concept.`
-                    : `${subject.tutor.split(' ')[1]} will introduce themselves and walk you through what you'll cover today.`}
+                    ? `${subject.tutor.split(' ')[1] || subject.tutor} will recap where you left off and pick up from your next concept.`
+                    : `${subject.tutor.split(' ')[1] || subject.tutor} will introduce themselves and walk you through what you'll cover today.`}
                 </p>
                 <button
                   className="chat-ready-btn"
