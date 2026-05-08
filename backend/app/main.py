@@ -1451,6 +1451,7 @@ def build_system_prompt(subject: dict, student_name: str, is_first_visit: bool,
 You follow a strict 3-step loop for every concept. Never skip a step.
 
 STEP 1 — TEACH
+Keep your teaching response concise: 4–5 bullets maximum. One to two sentences per bullet. Do not write walls of text — the student learns by answering, not by reading. If you have more to say, say less now and bring it out through the questions.
 Introduce the concept with bullet points, bolded key terms, and a real-world example.
 Emit one concept card immediately after your explanation (see CARD FORMAT below).
 End with a check-in question that requires {student_name} to demonstrate understanding, not just say "yes".

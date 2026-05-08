@@ -455,6 +455,7 @@ function formatInline(text) {
   return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**')) {
       const inner = part.slice(2, -2);
+      if (inner.trim().endsWith('?')) return <strong key={i} className="question-bold">{inner}</strong>;
       return <TermTooltip key={i} term={inner} />;
     }
     return part.split(/(`[^`]+`)/g).map((cp, j) => {
@@ -468,7 +469,7 @@ function formatMessage(text) { return formatInline(text); }
 
 function ConceptCard({ data, color, studentId, subjectId, savedId: initialSavedId }) {
   const c = color || '#16c1ad';
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
   const [savedId, setSavedId]     = useState(initialSavedId || null);
   const [saving, setSaving]       = useState(false);
 
@@ -567,8 +568,7 @@ function renderMessageContent(content, opts = {}) {
     cleanContent = cleanContent.replace(/\n?<<<CARD:\{[\s\S]*?\}>>>\n?/, '').trim();
   }
 
-  // strip DEFS tag — no longer used for rendering
-  cleanContent = cleanContent.replace(/\n?<<<DEFS:\{[\s\S]*?\}>>>\n?/, '').trim();
+  cleanContent = cleanContent.replace(/\n?<<<DEFS:[\s\S]*?>>>\n?/g, '').trim();
 
   const fi = (t) => formatInline(t);
 
@@ -606,7 +606,7 @@ function renderMessageContent(content, opts = {}) {
     }
   });
   if (pending.length) out.push(<p key="last">{pending.map((t, j) => j < pending.length - 1 ? [fi(t), <br key={j}/>] : fi(t))}</p>);
-  if (cardData) out.push(<ConceptCard key="cc" data={cardData} color={opts.color} studentId={opts.studentId} subjectId={opts.subjectId} savedId={opts.savedIds?.[cardData.title]} />);
+  if (cardData && !opts.skipCard) out.push(<ConceptCard key="cc" data={cardData} color={opts.color} studentId={opts.studentId} subjectId={opts.subjectId} savedId={opts.savedIds?.[cardData.title]} />);
   return out;
 }
 
@@ -9350,7 +9350,8 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
   const historyLengthRef = useRef(0);
   const prevMsgCountRef = useRef(0);
 
-  const [savedConceptIds, setSavedConceptIds] = useState({}); // title -> saved_concept id
+  const [savedConceptIds, setSavedConceptIds] = useState({});
+  const [cardHintSeen, setCardHintSeen] = useState(() => !!localStorage.getItem('bv_card_hint_seen'));
 
   async function loadSavedConcepts() {
     try {
@@ -9884,51 +9885,60 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
                 );
               }
               const cardMatch = msg.role === 'bot' && msg.content ? msg.content.match(/<<<CARD:(\{[\s\S]*?\})>>>/) : null;
+              let cardData = null;
               let cardTitle = null;
-              if (cardMatch) { try { cardTitle = JSON.parse(cardMatch[1]).title; } catch {} }
+              if (cardMatch) { try { cardData = JSON.parse(cardMatch[1]); cardTitle = cardData.title; } catch {} }
               const ccVote = cardTitle ? conceptFeedback[cardTitle] : null;
               const msgVote = msgFeedback[i];
               const isLastBot = msg.role === 'bot' && i === messages.length - 1;
+              const firstCardIdx = messages.findIndex(m => m.role === 'bot' && m.content && m.content.includes('<<<CARD:'));
+              const showCardHint = cardData && !cardHintSeen && i === firstCardIdx;
               return (
                 <div key={i} ref={isLastBot ? lastAiMsgRef : null} className={`message-row ${msg.role}${msg.quiz ? ' quiz-message' : ''}`}>
                   <div className={`message-avatar ${msg.role}`}>
                     {msg.role === 'bot' ? subject.tutor.replace(/^Dr\.\s*/, '').charAt(0) : student.name.charAt(0).toUpperCase()}
                   </div>
-                  <div className="message-bubble">
-                    {msg.quiz && msg.role === 'bot' && <div className="quiz-label">Assessment</div>}
-                    {renderMessageContent(msg.content, { color: subject.color, studentId: student.id, subjectId: subject.id, savedIds: savedConceptIds })}
-                    {msg.role === 'bot' && (
-                      <div className="msg-actions-row">
-                        <button className="msg-save-btn" title="Save to notes" onClick={() => { saveNote(msg.content); setNotesOpen(true); }}>
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
-                          Save
-                        </button>
-                        <button
-                          className={`msg-flag-btn${msgVote === 'down' ? ' flagged' : ''}`}
-                          title="Flag this response"
-                          onClick={() => !msgVote && sendMsgFeedback(i, 'down')}
-                        >
-                          <svg width="11" height="11" viewBox="0 0 24 24" fill={msgVote === 'down' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3z"/><path d="M17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg>
-                          {msgVote === 'down' ? 'Flagged' : 'Flag'}
-                        </button>
-                      </div>
+                  <div className="message-body">
+                    <div className="message-bubble">
+                      {msg.quiz && msg.role === 'bot' && <div className="quiz-label">Assessment</div>}
+                      {renderMessageContent(msg.content, { color: subject.color, studentId: student.id, subjectId: subject.id, savedIds: savedConceptIds, skipCard: true })}
+                      {msg.role === 'bot' && (
+                        <div className="msg-actions-row">
+                          <button className="msg-save-btn" title="Save to notes" onClick={() => { saveNote(msg.content); setNotesOpen(true); }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/></svg>
+                            Save
+                          </button>
+                          <button
+                            className={`msg-flag-btn${msgVote === 'down' ? ' flagged' : ''}`}
+                            title="Flag this response"
+                            onClick={() => !msgVote && sendMsgFeedback(i, 'down')}
+                          >
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill={msgVote === 'down' ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 15v4a3 3 0 003 3l4-9V2H5.72a2 2 0 00-2 1.7l-1.38 9a2 2 0 002 2.3z"/><path d="M17 2h2.67A2.31 2.31 0 0122 4v7a2.31 2.31 0 01-2.33 2H17"/></svg>
+                            {msgVote === 'down' ? 'Flagged' : 'Flag'}
+                          </button>
+                        </div>
+                      )}
+                      {cardTitle && msg.role === 'bot' && (
+                        <div className="cc-feedback">
+                          <span className="cc-feedback-label">Got this concept?</span>
+                          <button className={`cc-feedback-btn up${ccVote === 'up' ? ' active' : ''}`} disabled={!!ccVote} onClick={() => sendConceptFeedback(cardTitle, 'up')} title="I got it">👍</button>
+                          <button className={`cc-feedback-btn down${ccVote === 'down' ? ' active' : ''}`} disabled={!!ccVote} onClick={() => sendConceptFeedback(cardTitle, 'down')} title="Still confused">👎</button>
+                          {ccVote && <span className="cc-feedback-thanks">{ccVote === 'up' ? 'Great!' : 'Noted. Will revisit.'}</span>}
+                        </div>
+                      )}
+                    </div>
+                    {cardData && msg.role === 'bot' && (
+                      <ConceptCard data={cardData} color={subject.color} studentId={student.id} subjectId={subject.id} savedId={savedConceptIds?.[cardData.title]} />
                     )}
-                    {cardTitle && msg.role === 'bot' && (
-                      <div className="cc-feedback">
-                        <span className="cc-feedback-label">Got this concept?</span>
-                        <button
-                          className={`cc-feedback-btn up${ccVote === 'up' ? ' active' : ''}`}
-                          disabled={!!ccVote}
-                          onClick={() => sendConceptFeedback(cardTitle, 'up')}
-                          title="I got it"
-                        >👍</button>
-                        <button
-                          className={`cc-feedback-btn down${ccVote === 'down' ? ' active' : ''}`}
-                          disabled={!!ccVote}
-                          onClick={() => sendConceptFeedback(cardTitle, 'down')}
-                          title="Still confused"
-                        >👎</button>
-                        {ccVote && <span className="cc-feedback-thanks">{ccVote === 'up' ? 'Great!' : 'Noted. Will revisit.'}</span>}
+                    {showCardHint && (
+                      <div className="card-hint">
+                        <div className="card-hint-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                        </div>
+                        <div className="card-hint-text">
+                          <strong>This is a Concept Card</strong> — a summary of what you just learned. Click it to expand, or save it to revisit from your sidebar anytime.
+                        </div>
+                        <button className="card-hint-dismiss" onClick={() => { localStorage.setItem('bv_card_hint_seen', '1'); setCardHintSeen(true); }}>Got it</button>
                       </div>
                     )}
                   </div>

@@ -2893,6 +2893,15 @@ body {
 
 .message-row.user { flex-direction: row-reverse; }
 
+.message-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+}
+.message-row.user .message-body { align-items: flex-end; }
+
 .message-avatar {
   width: 34px;
   height: 34px;
@@ -2946,6 +2955,12 @@ body {
   border-radius: 3px;
   padding: 0 3px;
   color: var(--teal-dim);
+}
+.message-row.bot .message-bubble strong.question-bold {
+  background: none;
+  color: var(--text-primary);
+  padding: 0;
+  border-radius: 0;
 }
 .message-row.user .message-bubble strong { font-weight: 700; }
 
@@ -11519,3 +11534,32 @@ body {
   background: #FA8C16; color: #fff; border-color: #FA8C16;
 }
 .email-send-btn--amber:hover:not(:disabled) { background: #D46B08; border-color: #D46B08; }
+
+.card-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #EEF9F7;
+  border: 1px solid rgba(22,193,173,0.3);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  max-width: 420px;
+}
+.card-hint-icon { color: var(--teal); flex-shrink: 0; margin-top: 1px; }
+.card-hint-text { flex: 1; line-height: 1.4; }
+.card-hint-text strong { font-weight: 600; color: var(--text-primary); background: none; padding: 0; }
+.card-hint-dismiss {
+  flex-shrink: 0;
+  background: var(--teal);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  align-self: center;
+}
