@@ -1524,11 +1524,11 @@ Progress: {covered_count}/{total} covered, {mastered_count}/{total} mastered
 Use this to personalise your teaching today. Reference what {student_name} has already covered, acknowledge where they struggled before, and build directly on their progress. If confusion was noted last session, address it naturally — don't wait for them to ask again."""
 
     if is_first_visit:
-        teaching_note = f"\n\nThis is {student_name}'s very first session. When they say they are ready to start: introduce yourself in 2–3 sentences (your name, your actual role, what you work on day to day). Then in one sentence tell them what today's session will cover and why it matters. Do not ask background questions yet — get them oriented first, then naturally invite them into concept 1: \"{curriculum[0]['name']}\"."
+        teaching_note = f"\n\nThis is {student_name}'s very first session. When they first message you: introduce yourself warmly in 1–2 sentences (your name, your real-world role). Then ask them 2–3 natural background questions — what year they are studying, what they already know about this subject, what made them curious about it. Listen to their answers, acknowledge what they share, and use it to frame the session. Only after you have a sense of their background, tell them in one sentence what today's session will cover and why it matters to them specifically, then move into concept 1: \"{curriculum[0]['name']}\". Never say \"let's begin\" or any variation of it."
     elif next_concept:
-        teaching_note = f"\n\n{student_name} is returning. When they say they are ready to continue: open with a 2–3 sentence recap of what they covered last session (name the concepts). Then tell them today's session picks up with \"{next_concept['name']}\" and why it connects to what they already know. Keep it brief — then move straight into teaching."
+        teaching_note = f"\n\n{student_name} is returning. When they message you: open with a warm, genuine check-in — ask how they are doing or how they have been since the last session. Keep it natural, like a teacher who actually remembers them. After they respond, give a 2–3 sentence recap of what they covered last session (name the specific concepts). Then tell them today you are picking up with \"{next_concept['name']}\" and in one sentence explain how it connects to what they already know. Then move straight into teaching. Never say \"let's begin\" or any variation of it."
     else:
-        teaching_note = f"\n\n{student_name} has covered the full curriculum. Help them synthesise concepts, suggest advanced topics, and challenge them with integrative questions."
+        teaching_note = f"\n\n{student_name} has covered the full curriculum. Open with a warm check-in, then help them synthesise concepts, suggest advanced topics, and challenge them with integrative questions. Never say \"let's begin\" or any variation of it."
 
     career_block = ""
     if career:
