@@ -9598,7 +9598,8 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
       }
       const data = await res.json();
       setIsMock(data.mock);
-      const newMsgs = [{ role: 'bot', content: data.reply, quiz: isQuiz }];
+      const replyContent = data.reply || "I'm here — go ahead and ask me anything, or tell me what you'd like to learn today.";
+      const newMsgs = [{ role: 'bot', content: replyContent, quiz: isQuiz }];
       if (data.newly_covered?.length > 0) {
         data.newly_covered.forEach(cid => {
           const vid = conceptVideos[cid];
