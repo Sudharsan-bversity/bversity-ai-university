@@ -3,247 +3,374 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Forte — From the makers of Bversity</title>
+  <title>Forte — AI-Powered Learning for Life Sciences</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
-      background: #050a12;
-      color: #f0f4f8;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
+    :root {
+      --bg:     #06080f;
+      --teal:   #16c1ad;
+      --teal-d: #0d9e8c;
+      --indigo: #6366f1;
+      --sky:    #38bdf8;
+      --white:  #ffffff;
     }
 
-    /* ── Video background ── */
-    .bg-video {
-      position: fixed;
-      inset: 0;
-      width: 100%; height: 100%;
-      object-fit: cover;
-      opacity: 0.18;
-      z-index: 0;
+    html, body {
+      height: 100%;
+      font-family: 'Inter Tight', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      -webkit-font-smoothing: antialiased;
     }
-    .bg-overlay {
+
+    /* ── Aurora background ── */
+    .aurora {
       position: fixed;
       inset: 0;
-      background: linear-gradient(to bottom, rgba(5,10,18,0.6) 0%, rgba(5,10,18,0.85) 100%);
-      z-index: 1;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 700px 600px at 15% 25%, rgba(22,193,173,0.13) 0%, transparent 65%),
+        radial-gradient(ellipse 500px 500px at 85% 75%, rgba(99,102,241,0.11) 0%, transparent 60%),
+        radial-gradient(ellipse 400px 350px at 70% 15%, rgba(56,189,248,0.08) 0%, transparent 55%),
+        radial-gradient(ellipse 350px 300px at 30% 85%, rgba(99,102,241,0.07) 0%, transparent 55%),
+        var(--bg);
+    }
+
+    /* subtle noise grain */
+    .aurora::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.025;
+      pointer-events: none;
     }
 
     /* ── Layout ── */
     .page {
       position: relative;
-      z-index: 2;
-      display: flex;
-      flex-direction: column;
+      z-index: 1;
       min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto auto;
+      padding: 0 3rem;
     }
 
+    /* ── Header ── */
     header {
-      padding: 2rem 2.5rem;
+      padding: 1.75rem 0;
       display: flex;
-      align-items: baseline;
-      gap: 1rem;
-    }
-    .forte-logo {
-      font-size: 1.9rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      color: #ffffff;
-    }
-    .forte-byline {
-      font-size: 0.78rem;
-      color: rgba(255,255,255,0.45);
-      font-weight: 400;
-      letter-spacing: 0.01em;
+      align-items: center;
+      justify-content: space-between;
     }
 
-    main {
-      flex: 1;
+    .logo-wrap { display: flex; flex-direction: column; gap: 0.12rem; }
+
+    .forte-name {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 1.65rem;
+      color: var(--white);
+      letter-spacing: -0.01em;
+      line-height: 1;
+    }
+
+    .forte-byline {
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.28);
+      font-weight: 400;
+      letter-spacing: 0.025em;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.68rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.35);
+      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(255,255,255,0.03);
+      border-radius: 999px;
+      padding: 0.3rem 0.85rem;
+      letter-spacing: 0.02em;
+    }
+
+    .badge-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--teal);
+      box-shadow: 0 0 6px var(--teal);
+    }
+
+    /* ── Hero ── */
+    .hero {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 2rem 1.5rem 4rem;
-    }
-
-    .hero-tag {
-      font-size: 0.72rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.4);
-      margin-bottom: 1.4rem;
-    }
-
-    .hero-title {
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      font-weight: 800;
-      letter-spacing: -0.03em;
       text-align: center;
-      line-height: 1.15;
-      margin-bottom: 1rem;
+      gap: 0;
+      padding: 1rem 0 0.5rem;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--teal);
+      border: 1px solid rgba(22,193,173,0.25);
+      background: rgba(22,193,173,0.05);
+      border-radius: 999px;
+      padding: 0.28rem 0.8rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .tag-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--teal);
+      box-shadow: 0 0 5px var(--teal);
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: clamp(2.8rem, 5.5vw, 5rem);
+      font-weight: 400;
+      line-height: 1.08;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.1rem;
       max-width: 680px;
     }
-    .hero-title span {
-      background: linear-gradient(135deg, #00d4b8 0%, #0077ff 100%);
+
+    h1 em {
+      font-style: italic;
+      background: linear-gradient(135deg, var(--teal) 0%, var(--sky) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
     }
 
-    .hero-sub {
-      font-size: 1.05rem;
-      color: rgba(255,255,255,0.5);
-      text-align: center;
-      max-width: 480px;
-      line-height: 1.6;
-      margin-bottom: 3.5rem;
+    .subline {
+      font-size: 0.95rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.42);
+      line-height: 1.7;
+      max-width: 420px;
+      margin-bottom: 1.5rem;
     }
 
+    .trust {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.22);
+      margin-bottom: 0;
+    }
+    .trust-label { color: rgba(255,255,255,0.18); }
+    .trust-name  { color: rgba(255,255,255,0.36); font-weight: 500; }
+
     /* ── Cards ── */
+    .cards-section {
+      padding: 1.75rem 0 0;
+    }
+
+    .choose-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.18);
+      margin-bottom: 1rem;
+      text-align: center;
+    }
+
     .cards {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 1.25rem;
-      width: 100%;
-      max-width: 860px;
-    }
-
-    @media (max-width: 640px) {
-      .cards { grid-template-columns: 1fr; }
+      gap: 1px;
+      max-width: 820px;
+      margin: 0 auto;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 20px;
+      overflow: hidden;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      background: rgba(255,255,255,0.02);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04),
+        0 24px 64px rgba(0,0,0,0.4),
+        0 0 80px rgba(22,193,173,0.04);
     }
 
     .card {
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.09);
-      border-radius: 18px;
-      padding: 2rem 2rem 1.75rem;
-      cursor: pointer;
+      padding: 2.25rem 2rem;
       text-decoration: none;
       color: inherit;
       display: flex;
       flex-direction: column;
-      gap: 0.85rem;
-      transition: border-color 0.2s, background 0.2s, transform 0.18s;
+      gap: 0.75rem;
+      transition: background 0.25s;
       position: relative;
-      overflow: hidden;
     }
-    .card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 18px;
-      opacity: 0;
-      transition: opacity 0.2s;
+
+    .card:first-child {
+      border-right: 1px solid rgba(255,255,255,0.07);
     }
-    .card-us::before  { background: linear-gradient(135deg, rgba(0,119,255,0.08), rgba(0,212,184,0.06)); }
-    .card-in::before  { background: linear-gradient(135deg, rgba(107,63,160,0.1), rgba(224,92,0,0.07)); }
 
     .card:hover {
-      border-color: rgba(255,255,255,0.2);
-      background: rgba(255,255,255,0.07);
-      transform: translateY(-3px);
-    }
-    .card:hover::before { opacity: 1; }
-
-    .card-icon {
-      font-size: 1.9rem;
-      line-height: 1;
+      background: rgba(255,255,255,0.035);
     }
 
-    .card-eyebrow {
-      font-size: 0.68rem;
-      font-weight: 600;
+    .card-region {
+      font-size: 0.62rem;
+      font-weight: 700;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: rgba(255,255,255,0.35);
+      color: rgba(255,255,255,0.22);
     }
 
     .card-title {
-      font-size: 1.25rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      line-height: 1.3;
-      color: #ffffff;
+      font-family: 'DM Serif Display', Georgia, serif;
+      font-size: 1.45rem;
+      color: rgba(255,255,255,0.92);
+      line-height: 1.25;
+      letter-spacing: -0.01em;
+    }
+
+    .card-title em {
+      font-style: italic;
+      background: linear-gradient(135deg, var(--teal) 0%, var(--sky) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .card-desc {
-      font-size: 0.88rem;
-      color: rgba(255,255,255,0.5);
-      line-height: 1.6;
+      font-size: 0.82rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.38);
+      line-height: 1.65;
       flex: 1;
+    }
+
+    .card-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.35rem;
+    }
+
+    .pill {
+      font-size: 0.62rem;
+      font-weight: 500;
+      padding: 0.18rem 0.48rem;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.3);
+      border: 1px solid rgba(255,255,255,0.07);
     }
 
     .card-cta {
       display: inline-flex;
       align-items: center;
       gap: 0.4rem;
-      font-size: 0.82rem;
+      font-size: 0.78rem;
       font-weight: 600;
-      margin-top: 0.5rem;
-      transition: gap 0.15s;
-    }
-    .card-us .card-cta { color: #38bdf8; }
-    .card-in .card-cta { color: #a78bfa; }
-    .card:hover .card-cta { gap: 0.65rem; }
-
-    .card-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.4rem;
+      color: rgba(255,255,255,0.3);
       margin-top: 0.25rem;
-    }
-    .pill {
-      font-size: 0.68rem;
-      font-weight: 600;
-      padding: 0.25rem 0.6rem;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.07);
-      color: rgba(255,255,255,0.5);
-      border: 1px solid rgba(255,255,255,0.1);
+      transition: color 0.15s, gap 0.15s;
     }
 
+    .card:hover .card-cta {
+      color: var(--teal);
+      gap: 0.6rem;
+    }
+
+    /* ── Footer ── */
     footer {
-      position: relative;
-      z-index: 2;
       text-align: center;
-      padding: 1.5rem;
-      font-size: 0.72rem;
-      color: rgba(255,255,255,0.22);
+      padding: 1.25rem 0;
+      font-size: 0.65rem;
+      color: rgba(255,255,255,0.15);
+      letter-spacing: 0.04em;
+      border-top: 1px solid rgba(255,255,255,0.04);
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 700px) {
+      .page { padding: 0 1.5rem; }
+      .cards { grid-template-columns: 1fr; }
+      .card:first-child { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); }
+      h1 { font-size: 2.6rem; }
+      .header-badge { display: none; }
     }
   </style>
 </head>
 <body>
-
-  <video class="bg-video" autoplay muted loop playsinline>
-    <source src="https://university.bversity.io/hero-video.mp4" type="video/mp4" />
-  </video>
-  <div class="bg-overlay"></div>
+  <div class="aurora"></div>
 
   <div class="page">
+
     <header>
-      <div class="forte-logo">Forte</div>
-      <div class="forte-byline">From the makers of Bversity</div>
+      <div class="logo-wrap">
+        <div class="forte-name">Forte</div>
+        <div class="forte-byline">From the makers of Bversity</div>
+      </div>
+      <div class="header-badge">
+        <div class="badge-dot"></div>
+        Powered by Anthropic Claude
+      </div>
     </header>
 
-    <main>
-      <div class="hero-tag">AI-Powered Learning · Life Sciences</div>
-      <h1 class="hero-title">Where are you on your<br /><span>life sciences journey?</span></h1>
-      <p class="hero-sub">Choose your path. Your AI expert is already waiting.</p>
+    <div class="hero">
+      <div class="tag">
+        <div class="tag-dot"></div>
+        AI-Powered Learning · Life Sciences
+      </div>
 
+      <h1>The learning platform<br />built for <em>life sciences</em></h1>
+
+      <p class="subline">
+        One-on-one with AI tutors who have real industry experience.
+        Forte meets you exactly where you are.
+      </p>
+
+      <div class="trust">
+        <span class="trust-label">AI experts from</span>
+        <span class="trust-name">Genentech</span>
+        <span>&middot;</span>
+        <span class="trust-name">Moderna</span>
+        <span>&middot;</span>
+        <span class="trust-name">Illumina</span>
+        <span>&middot;</span>
+        <span class="trust-name">AstraZeneca</span>
+        <span>&middot;</span>
+        <span class="trust-name">Bristol Myers Squibb</span>
+        <span>&middot;</span>
+        <span class="trust-name">IQVIA</span>
+      </div>
+    </div>
+
+    <div class="cards-section">
+      <div class="choose-label">Choose your path</div>
       <div class="cards">
 
-        <!-- US Certifications -->
-        <a class="card card-us" href="https://us.bversity.io">
-          <div class="card-icon">🎓</div>
-          <div class="card-eyebrow">US &amp; Europe</div>
-          <div class="card-title">I'm a working professional preparing for a certification</div>
+        <a class="card" href="https://us.bversity.io">
+          <div class="card-region">US &amp; Europe</div>
+          <div class="card-title">I am a working professional<br /><em>preparing for a certification</em></div>
           <div class="card-desc">
-            Preparing for CCRA, CCRP, RAC, CPVC, BCMAS or CCDM?
-            AI-powered exam prep built around the US and European life sciences curriculum.
+            AI-powered prep for the most in-demand life sciences certifications.
+            Built around the actual exam curriculum — not generic study guides.
           </div>
           <div class="card-pills">
             <span class="pill">CCRA</span>
@@ -253,17 +380,15 @@
             <span class="pill">BCMAS</span>
             <span class="pill">CCDM</span>
           </div>
-          <div class="card-cta">Get started →</div>
+          <div class="card-cta">Start your prep &rarr;</div>
         </a>
 
-        <!-- Career Pathways -->
-        <a class="card card-in" href="https://university.bversity.io">
-          <div class="card-icon">🧬</div>
-          <div class="card-eyebrow">Biotech &amp; Life Sciences</div>
-          <div class="card-title">I'm a student exploring a career in biotech</div>
+        <a class="card" href="https://university.bversity.io">
+          <div class="card-region">Biotech &amp; Life Sciences</div>
+          <div class="card-title">I am a student <em>building a career<br />in biotech</em></div>
           <div class="card-desc">
-            From career discovery to industry readiness — learn one-on-one with AI experts
-            from Genentech, Illumina, Moderna, AstraZeneca and more.
+            From career discovery to industry readiness. Learn one-on-one with AI experts
+            who have worked in the roles you are aiming for.
           </div>
           <div class="card-pills">
             <span class="pill">Bioinformatics</span>
@@ -271,14 +396,14 @@
             <span class="pill">Genomics</span>
             <span class="pill">RNA Therapeutics</span>
           </div>
-          <div class="card-cta">Explore careers →</div>
+          <div class="card-cta">Explore careers &rarr;</div>
         </a>
 
       </div>
-    </main>
+    </div>
 
-    <footer>Powered by Anthropic Claude · Forte by Bversity · 2025</footer>
+    <footer>Forte by Bversity &middot; Powered by Anthropic Claude &middot; 2025</footer>
+
   </div>
-
 </body>
 </html>
