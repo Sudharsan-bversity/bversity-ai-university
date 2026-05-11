@@ -4341,6 +4341,7 @@ async def send_nudges(background_tasks: BackgroundTasks, x_admin_key: str = Head
     plan_students = conn.execute("""
         SELECT DISTINCT sp.student_id, s.email, s.name
         FROM study_plan sp JOIN students s ON s.id = sp.student_id
+        WHERE s.email IN (SELECT email FROM approved_emails)
     """).fetchall()
     sent = 0
     for st in plan_students:
@@ -4382,6 +4383,7 @@ async def send_weekly_digest(background_tasks: BackgroundTasks, x_admin_key: str
     students = conn.execute("""
         SELECT s.id, s.email, s.name FROM students s
         WHERE EXISTS (SELECT 1 FROM messages m WHERE m.student_id = s.id AND m.role = 'user')
+        AND s.email IN (SELECT email FROM approved_emails)
     """).fetchall()
     student_list = [dict(st) for st in students]
     conn.close()
