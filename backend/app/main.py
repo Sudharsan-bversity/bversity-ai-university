@@ -2770,6 +2770,134 @@ def delete_student(student_id: str, x_admin_key: str = Header(None)):
     conn.commit(); conn.close()
     return {"message": "Student deleted"}
 
+@app.get("/admin/students/{student_id}/detail")
+def admin_student_detail(student_id: str, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+
+    # ── Core profile ──────────────────────────────────────────────────────────
+    student = conn.execute("SELECT id, name, email, created_at FROM students WHERE id = ?", (student_id,)).fetchone()
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    profile = conn.execute("SELECT * FROM student_profile WHERE student_id = ?", (student_id,)).fetchone()
+    profile = dict(profile) if profile else {}
+
+    career = CAREERS.get(profile.get("career_id")) if profile.get("career_id") else None
+
+    # ── Concept progress per subject ──────────────────────────────────────────
+    cp_rows = conn.execute(
+        "SELECT subject_id, concept_id, first_covered_at, mastered_at FROM concept_progress WHERE student_id = ? ORDER BY first_covered_at",
+        (student_id,)
+    ).fetchall()
+    progress_by_subject = {}
+    for r in cp_rows:
+        sid = r["subject_id"]
+        if sid not in progress_by_subject:
+            progress_by_subject[sid] = {"covered": [], "mastered": []}
+        progress_by_subject[sid]["covered"].append({"concept_id": r["concept_id"], "at": r["first_covered_at"]})
+        if r["mastered_at"]:
+            progress_by_subject[sid]["mastered"].append({"concept_id": r["concept_id"], "at": r["mastered_at"]})
+
+    # ── Sessions (group messages by 30-min gaps) ──────────────────────────────
+    msgs = conn.execute(
+        "SELECT subject_id, role, content, created_at FROM messages WHERE student_id = ? ORDER BY created_at",
+        (student_id,)
+    ).fetchall()
+    sessions = []
+    current_session = None
+    for m in msgs:
+        ts = m["created_at"]
+        if current_session is None or (
+            (len(current_session["messages"]) > 0) and
+            ((__import__("datetime").datetime.fromisoformat(ts) -
+              __import__("datetime").datetime.fromisoformat(current_session["messages"][-1]["at"])).total_seconds() > 1800)
+        ):
+            if current_session:
+                sessions.append(current_session)
+            current_session = {"subject_id": m["subject_id"], "started_at": ts, "messages": []}
+        current_session["messages"].append({"role": m["role"], "content": m["content"], "at": ts})
+    if current_session:
+        sessions.append(current_session)
+
+    session_summaries_list = [
+        {"subject_id": r["subject_id"], "summary": r["summary"], "message_count": r["message_count"], "created_at": r["created_at"]}
+        for r in conn.execute("SELECT subject_id, summary, message_count, created_at FROM session_summaries WHERE student_id = ? ORDER BY created_at DESC", (student_id,)).fetchall()
+    ]
+
+    # ── Activity timeline ─────────────────────────────────────────────────────
+    timeline = []
+    for s in sessions:
+        user_count = sum(1 for m in s["messages"] if m["role"] == "user")
+        timeline.append({"type": "session", "at": s["started_at"], "subject_id": s["subject_id"], "message_count": user_count})
+    for r in cp_rows:
+        timeline.append({"type": "concept_covered", "at": r["first_covered_at"], "subject_id": r["subject_id"], "concept_id": r["concept_id"]})
+        if r["mastered_at"]:
+            timeline.append({"type": "concept_mastered", "at": r["mastered_at"], "subject_id": r["subject_id"], "concept_id": r["concept_id"]})
+    for r in conn.execute("SELECT subject_id, module_id, passed, completed_at FROM module_quizzes WHERE student_id = ? AND completed_at IS NOT NULL", (student_id,)).fetchall():
+        timeline.append({"type": "quiz", "at": r["completed_at"], "subject_id": r["subject_id"], "module_id": r["module_id"], "passed": bool(r["passed"])})
+    for r in conn.execute("SELECT subject_id, completed_at FROM subject_completions WHERE student_id = ?", (student_id,)).fetchall():
+        timeline.append({"type": "subject_completed", "at": r["completed_at"], "subject_id": r["subject_id"]})
+    for r in conn.execute("SELECT from_career_id, to_career_id, reason, changed_at FROM career_changes WHERE student_id = ? ORDER BY changed_at", (student_id,)).fetchall():
+        timeline.append({"type": "career_change", "at": r["changed_at"], "from": r["from_career_id"], "to": r["to_career_id"], "reason": r["reason"]})
+    timeline.sort(key=lambda x: x["at"])
+
+    # ── Quiz results ──────────────────────────────────────────────────────────
+    quizzes = [dict(r) for r in conn.execute(
+        "SELECT subject_id, module_id, passed, completed_at FROM module_quizzes WHERE student_id = ? ORDER BY completed_at",
+        (student_id,)
+    ).fetchall()]
+
+    # ── Feedback ──────────────────────────────────────────────────────────────
+    platform_fb = conn.execute(
+        "SELECT q1, q2, q3, rating, comment, submitted_at FROM platform_feedback WHERE student_id = ? ORDER BY submitted_at DESC",
+        (student_id,)
+    ).fetchall()
+    concept_fb = conn.execute(
+        "SELECT subject_id, concept_title, value, created_at FROM concept_feedback WHERE student_id = ? ORDER BY created_at DESC LIMIT 50",
+        (student_id,)
+    ).fetchall()
+    msg_fb = conn.execute(
+        "SELECT subject_id, value, created_at FROM message_feedback WHERE student_id = ? ORDER BY created_at DESC LIMIT 50",
+        (student_id,)
+    ).fetchall()
+
+    # ── Study plan ────────────────────────────────────────────────────────────
+    study_plan = [dict(r) for r in conn.execute(
+        "SELECT day_number, subject_id, concept_id, target_date FROM study_plan WHERE student_id = ? ORDER BY day_number",
+        (student_id,)
+    ).fetchall()]
+
+    # ── Daily activity heatmap ────────────────────────────────────────────────
+    daily = conn.execute(
+        "SELECT DATE(created_at) as day, COUNT(*) as count FROM messages WHERE student_id = ? AND role = 'user' GROUP BY day ORDER BY day",
+        (student_id,)
+    ).fetchall()
+
+    conn.close()
+
+    return {
+        "student": {**dict(student), **profile, "career_title": career["title"] if career else None, "career_icon": career["icon"] if career else None},
+        "stats": {
+            "total_messages": sum(1 for m in msgs if m["role"] == "user"),
+            "total_concepts_covered": len(cp_rows),
+            "total_concepts_mastered": sum(1 for r in cp_rows if r["mastered_at"]),
+            "total_sessions": len(sessions),
+            "days_active": len(set(m["created_at"][:10] for m in msgs if m["role"] == "user")),
+            "streak_count": profile.get("streak_count", 0),
+            "subjects_touched": len(progress_by_subject),
+        },
+        "progress_by_subject": progress_by_subject,
+        "sessions": [{"subject_id": s["subject_id"], "started_at": s["started_at"], "message_count": sum(1 for m in s["messages"] if m["role"] == "user")} for s in sessions],
+        "session_summaries": session_summaries_list,
+        "timeline": timeline,
+        "quizzes": quizzes,
+        "platform_feedback": [dict(r) for r in platform_fb],
+        "concept_feedback": [dict(r) for r in concept_fb],
+        "message_feedback": [dict(r) for r in msg_fb],
+        "study_plan": study_plan,
+        "daily_activity": [dict(r) for r in daily],
+    }
+
 @app.get("/student/{student_id}")
 def get_student(student_id: str):
     conn = get_db()

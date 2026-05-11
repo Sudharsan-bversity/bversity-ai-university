@@ -5024,6 +5024,10 @@ function AdminView({ onBack }) {
   const [keyInput, setKeyInput]       = useState('');
   const [showKey, setShowKey]         = useState(false);
   const [tab, setTab]                 = useState('overview');
+  const [selectedStudentId, setSelectedStudentId] = useState(null);
+  const [studentDetail, setStudentDetail]         = useState(null);
+  const [studentDetailLoading, setStudentDetailLoading] = useState(false);
+  const [studentDetailTab, setStudentDetailTab]   = useState('timeline');
   const [submissions, setSubmissions] = useState([]);
   const [students, setStudents]       = useState([]);
   const [overview, setOverview]       = useState(null);
@@ -5386,6 +5390,18 @@ function AdminView({ onBack }) {
       if (r.ok) setChatThread({ studentId, subjectId, messages: await r.json() });
     } catch {}
     finally { setChatThreadLoading(false); }
+  }
+
+  async function loadStudentDetail(studentId) {
+    setSelectedStudentId(studentId);
+    setStudentDetail(null);
+    setStudentDetailLoading(true);
+    setStudentDetailTab('timeline');
+    try {
+      const r = await fetch(`/api/admin/students/${studentId}/detail`, { headers: { 'X-Admin-Key': adminKey } });
+      if (r.ok) setStudentDetail(await r.json());
+    } catch {}
+    finally { setStudentDetailLoading(false); }
   }
 
   async function loadStudyPlans() {
@@ -5894,7 +5910,7 @@ function AdminView({ onBack }) {
             {filtered.length === 0 ? (
               <div className="admin-empty">No students match.</div>
             ) : filtered.map(s => (
-              <div key={s.id} className="admin-student-row">
+              <div key={s.id} className="admin-student-row" style={{cursor:'pointer'}} onClick={() => loadStudentDetail(s.id)}>
                 <div className="admin-st-avatar" style={{ background: s.avatar_color || '#00A896' }}>
                   {s.name.charAt(0).toUpperCase()}
                 </div>
@@ -5929,7 +5945,8 @@ function AdminView({ onBack }) {
                     <div className="admin-st-location">{[s.city, s.state].filter(Boolean).join(', ')}</div>
                   ) : null}
                 </div>
-                <button className="admin-st-delete-btn" title="Delete student" onClick={() => {
+                <button className="admin-st-delete-btn" title="Delete student" onClick={e => {
+                  e.stopPropagation();
                   if (window.confirm(`Permanently delete ${s.name}? This removes all their messages, progress, and data.`)) {
                     fetch(`/api/admin/students/${s.id}`, { method: 'DELETE', headers: { 'X-Admin-Key': adminKey } })
                       .then(r => r.ok ? setStudents(prev => prev.filter(x => x.id !== s.id)) : alert('Failed to delete'));
@@ -5941,6 +5958,221 @@ function AdminView({ onBack }) {
         </div>
         );
       })()}
+
+      {/* ── Student Detail Drawer ── */}
+      {selectedStudentId && (
+        <div className="sd-overlay" onClick={() => setSelectedStudentId(null)}>
+          <div className="sd-drawer" onClick={e => e.stopPropagation()}>
+            <button className="sd-close" onClick={() => setSelectedStudentId(null)}>✕</button>
+
+            {studentDetailLoading && <div className="sd-loading">Loading...</div>}
+
+            {studentDetail && (() => {
+              const { student, stats, progress_by_subject, sessions, session_summaries, timeline, quizzes, platform_feedback, concept_feedback, daily_activity, study_plan } = studentDetail;
+              const SUBJECTS_MAP = Object.fromEntries([...US_SUBJECTS, ...INDIA_SUBJECTS].map(s => [s.id, s]));
+
+              // daily heatmap
+              const dailyMap = Object.fromEntries(daily_activity.map(d => [d.day, d.count]));
+              const today = new Date();
+              const heatmapDays = Array.from({length: 84}, (_, i) => {
+                const d = new Date(today); d.setDate(d.getDate() - (83 - i));
+                const key = d.toISOString().slice(0,10);
+                return { key, count: dailyMap[key] || 0 };
+              });
+
+              const positiveCF = concept_feedback.filter(f => f.value === 'up').length;
+              const negativeCF = concept_feedback.filter(f => f.value === 'down').length;
+
+              return (
+                <>
+                  {/* Header */}
+                  <div className="sd-header">
+                    <div className="sd-avatar" style={{background: student.avatar_color || '#00A896'}}>{student.name.charAt(0).toUpperCase()}</div>
+                    <div className="sd-header-info">
+                      <div className="sd-name">{student.name}</div>
+                      <div className="sd-email">{student.email}</div>
+                      <div className="sd-meta-row">
+                        {student.career_title && <span className="sd-badge">{student.career_icon} {student.career_title}</span>}
+                        {(student.city || student.state) && <span className="sd-badge-dim">{[student.city, student.state].filter(Boolean).join(', ')}</span>}
+                        {student.college && <span className="sd-badge-dim">{student.college}{student.year_of_study ? ` · ${student.year_of_study}` : ''}</span>}
+                        <span className="sd-badge-dim">Joined {new Date(student.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Stats row */}
+                  <div className="sd-stats">
+                    {[
+                      ['Days Active', stats.days_active],
+                      ['Sessions', stats.total_sessions],
+                      ['Messages', stats.total_messages],
+                      ['Concepts Covered', stats.total_concepts_covered],
+                      ['Concepts Mastered', stats.total_concepts_mastered],
+                      ['Streak', `${stats.streak_count} days`],
+                    ].map(([label, val]) => (
+                      <div key={label} className="sd-stat-box">
+                        <div className="sd-stat-val">{val}</div>
+                        <div className="sd-stat-label">{label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Activity heatmap */}
+                  <div className="sd-section">
+                    <div className="sd-section-title">Activity — last 12 weeks</div>
+                    <div className="sd-heatmap">
+                      {heatmapDays.map(d => (
+                        <div key={d.key} className="sd-heatmap-cell" title={`${d.key}: ${d.count} messages`}
+                          style={{background: d.count === 0 ? 'rgba(255,255,255,0.05)' : d.count < 3 ? '#0d9e8c55' : d.count < 8 ? '#0d9e8c99' : '#0d9e8c'}} />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Tabs */}
+                  <div className="sd-tabs">
+                    {[['timeline','Timeline'],['progress','Progress'],['sessions','Conversations'],['feedback','Feedback'],['plan','Study Plan']].map(([v,l]) => (
+                      <button key={v} className={`sd-tab ${studentDetailTab === v ? 'active' : ''}`} onClick={() => setStudentDetailTab(v)}>{l}</button>
+                    ))}
+                  </div>
+
+                  {/* Timeline */}
+                  {studentDetailTab === 'timeline' && (
+                    <div className="sd-timeline">
+                      {timeline.length === 0 && <div className="sd-empty">No activity yet.</div>}
+                      {[...timeline].reverse().map((e, i) => {
+                        const subj = SUBJECTS_MAP[e.subject_id];
+                        const subjName = subj?.name || e.subject_id || '';
+                        let icon = '💬', label = '';
+                        if (e.type === 'session') { icon = '💬'; label = `Started a session in ${subjName} · ${e.message_count} messages`; }
+                        else if (e.type === 'concept_covered') { icon = '📖'; label = `Covered concept in ${subjName}`; }
+                        else if (e.type === 'concept_mastered') { icon = '✅'; label = `Mastered concept in ${subjName}`; }
+                        else if (e.type === 'quiz') { icon = e.passed ? '🎯' : '❌'; label = `Quiz ${e.passed ? 'passed' : 'failed'} in ${subjName}`; }
+                        else if (e.type === 'subject_completed') { icon = '🏆'; label = `Completed subject: ${subjName}`; }
+                        else if (e.type === 'career_change') { icon = '🔄'; label = `Changed career goal · ${e.reason}`; }
+                        return (
+                          <div key={i} className="sd-tl-item">
+                            <div className="sd-tl-icon">{icon}</div>
+                            <div className="sd-tl-body">
+                              <div className="sd-tl-label">{label}</div>
+                              <div className="sd-tl-time">{new Date(e.at).toLocaleString('en-IN', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Progress */}
+                  {studentDetailTab === 'progress' && (
+                    <div className="sd-progress-list">
+                      {Object.keys(progress_by_subject).length === 0 && <div className="sd-empty">No progress yet.</div>}
+                      {Object.entries(progress_by_subject).map(([sid, data]) => {
+                        const subj = SUBJECTS_MAP[sid];
+                        const total = subj?.concepts?.length || 1;
+                        const covered = data.covered.length;
+                        const mastered = data.mastered.length;
+                        return (
+                          <div key={sid} className="sd-prog-subject">
+                            <div className="sd-prog-subj-name">{subj?.name || sid}</div>
+                            <div className="sd-prog-bars">
+                              <div className="sd-prog-bar-row">
+                                <span>Covered</span>
+                                <div className="sd-prog-track"><div className="sd-prog-fill sd-prog-fill--covered" style={{width:`${Math.min(100,(covered/total)*100)}%`}} /></div>
+                                <span>{covered}/{total}</span>
+                              </div>
+                              <div className="sd-prog-bar-row">
+                                <span>Mastered</span>
+                                <div className="sd-prog-track"><div className="sd-prog-fill sd-prog-fill--mastered" style={{width:`${Math.min(100,(mastered/total)*100)}%`}} /></div>
+                                <span>{mastered}/{total}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      {quizzes.length > 0 && (
+                        <div className="sd-quiz-section">
+                          <div className="sd-section-title" style={{marginTop:'1.5rem'}}>Module Quizzes</div>
+                          {quizzes.map((q, i) => (
+                            <div key={i} className="sd-quiz-row">
+                              <span className={`sd-quiz-badge ${q.passed ? 'pass' : 'fail'}`}>{q.passed ? 'Pass' : 'Fail'}</span>
+                              <span>{SUBJECTS_MAP[q.subject_id]?.name || q.subject_id} — {q.module_id}</span>
+                              <span className="sd-quiz-date">{q.completed_at ? new Date(q.completed_at).toLocaleDateString() : ''}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Conversations */}
+                  {studentDetailTab === 'sessions' && (
+                    <div className="sd-sessions-list">
+                      {sessions.length === 0 && <div className="sd-empty">No conversations yet.</div>}
+                      {[...sessions].reverse().map((s, i) => {
+                        const subj = SUBJECTS_MAP[s.subject_id];
+                        const summary = session_summaries.find(ss => ss.subject_id === s.subject_id);
+                        return (
+                          <div key={i} className="sd-session-card">
+                            <div className="sd-session-top">
+                              <span className="sd-session-subj">{subj?.name || s.subject_id}</span>
+                              <span className="sd-session-meta">{s.message_count} messages · {new Date(s.started_at).toLocaleString('en-IN', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>
+                            </div>
+                            {summary && <div className="sd-session-summary">{summary.summary}</div>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Feedback */}
+                  {studentDetailTab === 'feedback' && (
+                    <div className="sd-feedback-section">
+                      {platform_feedback.length === 0 && concept_feedback.length === 0 && <div className="sd-empty">No feedback submitted yet.</div>}
+                      {platform_feedback.map((f, i) => (
+                        <div key={i} className="sd-pfeedback-card">
+                          <div className="sd-pfeedback-rating">{'★'.repeat(f.rating)}{'☆'.repeat(5 - f.rating)} <span>{f.rating}/5</span></div>
+                          {f.q1 && <div className="sd-pfeedback-q"><strong>Q1:</strong> {f.q1}</div>}
+                          {f.q2 && <div className="sd-pfeedback-q"><strong>Q2:</strong> {f.q2}</div>}
+                          {f.q3 && <div className="sd-pfeedback-q"><strong>Q3:</strong> {f.q3}</div>}
+                          {f.comment && <div className="sd-pfeedback-comment">"{f.comment}"</div>}
+                          <div className="sd-pfeedback-date">{new Date(f.submitted_at).toLocaleDateString()}</div>
+                        </div>
+                      ))}
+                      {concept_feedback.length > 0 && (
+                        <>
+                          <div className="sd-section-title" style={{marginTop:'1rem'}}>Concept Reactions — {positiveCF} 👍 · {negativeCF} 👎</div>
+                          {concept_feedback.slice(0, 20).map((f, i) => (
+                            <div key={i} className="sd-cf-row">
+                              <span>{f.value === 'up' ? '👍' : '👎'}</span>
+                              <span>{f.concept_title}</span>
+                              <span className="sd-cf-subj">{SUBJECTS_MAP[f.subject_id]?.name || f.subject_id}</span>
+                            </div>
+                          ))}
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Study Plan */}
+                  {studentDetailTab === 'plan' && (
+                    <div className="sd-plan-list">
+                      {study_plan.length === 0 && <div className="sd-empty">No study plan generated yet.</div>}
+                      {study_plan.map((p, i) => (
+                        <div key={i} className="sd-plan-row">
+                          <span className="sd-plan-day">Day {p.day_number}</span>
+                          <span className="sd-plan-concept">{p.concept_id}</span>
+                          <span className="sd-plan-subj">{SUBJECTS_MAP[p.subject_id]?.name || p.subject_id}</span>
+                          <span className="sd-plan-date">{p.target_date}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      )}
 
       {tab === 'submissions' ? (
         <div className="admin-content">
