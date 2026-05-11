@@ -285,6 +285,12 @@ const SUBJECT_IMAGES = {
   rna_therapeutics:    'https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=800&h=320&fit=crop&q=80',
   biomanufacturing:    'https://images.unsplash.com/photo-1585435557343-3b092031a831?w=800&h=320&fit=crop&q=80',
   longevity_science:   'https://images.unsplash.com/photo-1559757175-0eb30cd8c063?w=800&h=320&fit=crop&q=80',
+  us_cra:              'https://images.unsplash.com/photo-1581093806997-124204d9fa9d?w=800&h=320&fit=crop&q=80',
+  us_ccrp:             'https://images.unsplash.com/photo-1516574187841-cb9cc2ca948b?w=800&h=320&fit=crop&q=80',
+  us_regulatory:       'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&h=320&fit=crop&q=80',
+  us_pharmacovigilance:'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=800&h=320&fit=crop&q=80',
+  us_msl:              'https://images.unsplash.com/photo-1559757175-5700dde675bc?w=800&h=320&fit=crop&q=80',
+  us_cdm:              'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=320&fit=crop&q=80',
 };
 
 const TUTOR_AVATARS = {
@@ -299,11 +305,59 @@ const TUTOR_AVATARS = {
   'Dr. Amira Hassan':   'https://i.pravatar.cc/150?img=44',
   'Dr. Carlos Reyes':   'https://i.pravatar.cc/150?img=16',
   'Dr. Yuki Tanaka':    'https://i.pravatar.cc/150?img=56',
+  'Sarah Mitchell':     'https://i.pravatar.cc/150?img=23',
+  'Marcus Webb':        'https://i.pravatar.cc/150?img=53',
+  'Dr. Robert Chen':    'https://i.pravatar.cc/150?img=33',
+  'Dr. Anika Sharma':   'https://i.pravatar.cc/150?img=49',
+  'Dr. Lisa Park':      'https://i.pravatar.cc/150?img=20',
+  'David Kim':          'https://i.pravatar.cc/150?img=60',
 };
 
-const ACTIVE_REGION = 'india';
+const _urlRegion = new URLSearchParams(window.location.search).get('region');
+const _hostRegion = window.location.hostname.startsWith('us.') ? 'us' : null;
+if (_urlRegion) localStorage.setItem('bversity_region', _urlRegion);
+else if (_hostRegion) localStorage.setItem('bversity_region', _hostRegion);
+const ACTIVE_REGION = localStorage.getItem('bversity_region') || 'india';
 
-const SUBJECTS = [
+const US_SUBJECTS = [
+  { id: 'us_cra',              name: 'Clinical Research Associate',    tutor: 'Sarah Mitchell',      role: 'Senior CRA, Oncology Trials',          org: 'IQVIA, Boston',                color: '#0066CC',
+    description: 'GCP & ICH E6, site qualification, informed consent, monitoring visits, SAE reporting, TMF management, and CCRA exam BOK',
+    intro: "I've been monitoring clinical trials across New England for 6 years  -  from site qual visits to close-outs. I know what a good site looks like and what a troubled one looks like before I even sit down. GCP isn't bureaucracy: every requirement exists because something went wrong for a patient once. I'll teach you the regulations the way I learned them  -  through the sites, the situations, and the hard calls you'll face.",
+    certification: 'CCRA', certBody: 'ACRP' },
+  { id: 'us_ccrp',             name: 'Clinical Research Professional', tutor: 'Marcus Webb',          role: 'Lead CRC, Academic Medical Center',    org: 'Cleveland Clinic',             color: '#2563EB',
+    description: 'Research ethics, scientific concepts, patient safety, clinical operations, data management, and CCRP exam BOK (SOCRA)',
+    intro: "I've coordinated over 40 trials at a major academic medical center  -  Phase I first-in-human studies to Phase IV post-market registries. SOCRA's CCRP is the credential for people who understand the full trial from the inside. The exam is broad by design: ethics, science, operations, data. I'll make sure none of those domains surprises you.",
+    certification: 'CCRP', certBody: 'SOCRA' },
+  { id: 'us_regulatory',       name: 'Regulatory Affairs  -  Drugs',    tutor: 'Dr. Robert Chen',     role: 'Senior Director, Regulatory Affairs',  org: 'Bristol Myers Squibb',         color: '#6B3FA0',
+    description: 'FDA organization, IND/NDA/BLA pathways, labeling, special designations, CMC, post-approval requirements, and RAC-Drugs exam BOK',
+    intro: "I spent 7 years as an FDA reviewer before moving to industry. I've seen the inside of both rooms  -  the agency and the sponsor. Most RA professionals know what to file. Very few understand why each requirement exists and how a reviewer thinks when they read your submission. That's what I'll teach you.",
+    certification: 'RAC-Drugs', certBody: 'RAPS' },
+  { id: 'us_pharmacovigilance', name: 'Pharmacovigilance',             tutor: 'Dr. Anika Sharma',    role: 'Global Pharmacovigilance Lead',         org: 'AstraZeneca, Wilmington DE',   color: '#E05C00',
+    description: 'Adverse event reporting, ICSR processing, MedDRA coding, signal detection, REMS, ICH E2 guidelines, periodic safety reports, and CPVC exam BOK',
+    intro: "Behind every case number in a safety database is a person who had a bad experience with a medicine. I spent 5 years at FDA reviewing those cases before joining industry. Pharmacovigilance done well protects the next million patients. I'll teach you the science and the judgment  -  how to assess a signal, when to escalate, how to write a PBRER that tells the real story.",
+    certification: 'CPVC', certBody: 'CCRPS' },
+  { id: 'us_msl',              name: 'Medical Science Liaison',        tutor: 'Dr. Lisa Park',       role: 'Senior MSL, Oncology',                 org: 'Genentech, San Francisco',     color: '#00A896',
+    description: 'KOL engagement, scientific exchange, HEOR, real-world evidence, IIT support, medical affairs compliance, and BCMAS exam BOK',
+    intro: "I have a PhD from Stanford and a postdoc from UCSF. I walked away from a tenure-track path to become an MSL, and I haven't looked back. This role is one of the best-kept secrets in biopharma  -  you sit at the intersection of cutting-edge science and clinical practice, trusted by physicians who won't take a sales call. Let me show you what that actually looks like.",
+    certification: 'BCMAS', certBody: 'ACMA' },
+  { id: 'us_cdm',              name: 'Clinical Data Management',       tutor: 'David Kim',           role: 'Senior Clinical Data Manager',         org: 'Medidata Solutions, New York', color: '#B5451B',
+    description: 'EDC configuration, CDISC standards (CDASH/SDTM/ADaM), edit checks, data cleaning, 21 CFR Part 11, database lock, and CCDM exam BOK',
+    intro: "I've built and locked databases for Phase III trials. CDM is the backbone of clinical evidence  -  if the data is wrong, every downstream decision is wrong. I'll teach you how to design edit checks that catch real errors, build SDTM that passes FDA scrutiny, and actually lock a database.",
+    certification: 'CCDM', certBody: 'SCDM' },
+];
+
+const US_CAREER_TRACKS = [
+  { id: 'us_ctm',    name: 'Clinical Trial Manager',              tutor: 'Jennifer Okafor',     role: 'Clinical Trial Manager',               org: 'PPD / Thermo Fisher, Durham NC',  color: '#0891B2', type: 'career',
+    salary: '$95K–$130K', markets: 'Boston · DC · NY',
+    description: 'Protocol management, site selection and oversight, CRO management, budget and timeline, regulatory submissions, and trial close-out',
+    intro: "I've managed Phase II and III trials across 20+ sites in the US. Clinical Trial Management is one of the most demanding  -  and most rewarding  -  roles in drug development. There's no single dominant certification for this role, so I'll give you something better: the actual skills, frameworks, and judgment that hiring managers at CROs and sponsors are looking for." },
+  { id: 'us_bioinformatics', name: 'Bioinformatics & AI Drug Discovery', tutor: 'Dr. Elena Rodriguez', role: 'Computational Biologist',            org: 'Genentech, South San Francisco',  color: '#047857', type: 'career',
+    salary: '$110K–$160K', markets: 'Bay Area · San Diego · Boston',
+    description: 'Python & R for biology, NGS pipelines, variant analysis, ML for drug target discovery, protein structure prediction, and cloud bioinformatics',
+    intro: "I build pipelines that turn terabytes of genomic data into drug targets. This is the hottest intersection in life sciences right now  -  Bay Area and San Diego companies are hiring bioinformaticians faster than any other role. The mistake most people make is treating it as pure coding. The biology is what separates a good pipeline from a great one. We'll work on real datasets from day one." },
+];
+
+const INDIA_SUBJECTS = [
   { id: 'bioinformatics',     name: 'Bioinformatics',                             tutor: 'Dr. Priya Nair',    role: 'Senior Bioinformatics Scientist',                  org: 'Broad Institute of MIT and Harvard', color: '#00A896', description: 'Sequence analysis, BLAST, phylogenetics, NGS pipelines, protein structure, and computational biology tools',
     intro: "I build computational pipelines to make sense of genomic data at scale, covering everything from cancer mutation signatures to population-level association studies. I've watched bioinformatics go from a niche specialty to the backbone of modern medicine, and I want to give you that foundation properly. By the end of this, you'll be fluent in the tools and concepts that the industry actually uses." },
   { id: 'genomics',           name: 'Genomics',                                    tutor: 'Dr. Marcus Webb',   role: 'Director of Genomics Research',                   org: 'Illumina',                           color: '#7B2D8B', description: 'Genome structure, sequencing technologies, variant analysis, GWAS, single-cell, and precision medicine',
@@ -328,18 +382,267 @@ const SUBJECTS = [
     intro: "I work at the Alphabet-funded company trying to understand why we age. Longevity science has a credibility problem: too much hype, too many supplements, too many claims not backed by human data. I'll be rigorous with you about what the data actually shows, what's mechanism and what's speculation, and where the genuinely exciting frontiers are." },
 ];
 
+const SUBJECTS = ACTIVE_REGION === 'us' ? US_SUBJECTS : INDIA_SUBJECTS;
+const SUBJECTS_BY_ID = Object.fromEntries([...US_SUBJECTS, ...INDIA_SUBJECTS].map(s => [s.id, s]));
+
+const US_EXAM_DOMAINS = {
+  us_cra: {
+    certBody: "ACRP", certName: "CCRA", examQuestions: 150, passScore: "70%",
+    tagline: "The gold standard credential for clinical site monitoring in the US and globally.",
+    salaryRange: "$75k – $120k", demandLabel: "High demand", demandColor: "#16a34a",
+    topEmployers: ["ICON plc", "Covance", "PPD", "Pfizer", "Syneos Health"],
+    careerLadder: ["Clinical Research Associate", "Senior CRA", "CRA Manager", "Clinical Operations Director"],
+    unlocks: ["Access roles at top CROs and pharma sponsors", "Required by most Phase II–IV monitoring jobs", "Recognized in 40+ countries"],
+    domains: [
+      { name: "GCP & Ethics", weight: 30, concepts: [
+        {id:"cra_gcp_a", name:"GCP Principles and ICH E6(R2)"},
+        {id:"cra_gcp_b", name:"Protocol Structure and Deviations"},
+        {id:"cra_gcp_c", name:"Investigator Brochure and IP Regulations"},
+        {id:"cra_ethics_a", name:"Informed Consent Process"},
+        {id:"cra_ethics_b", name:"IRB and IEC Roles"},
+        {id:"cra_ethics_c", name:"AE and SAE Identification"},
+      ]},
+      { name: "Regulatory Framework", weight: 20, concepts: [
+        {id:"cra_reg_a", name:"FDA Regulatory Framework"},
+        {id:"cra_reg_b", name:"Sponsor and Investigator Obligations"},
+      ]},
+      { name: "Site Management & Monitoring", weight: 30, concepts: [
+        {id:"cra_ops_a", name:"Monitoring Visit Conduct"},
+        {id:"cra_ops_b", name:"Site Qualification and Selection"},
+        {id:"cra_ops_c", name:"TMF and Essential Documents"},
+        {id:"cra_ops_d", name:"Issue Escalation and CAPA"},
+      ]},
+      { name: "Data & Safety Reporting", weight: 20, concepts: [
+        {id:"cra_data_a", name:"CRF Completion and EDC"},
+        {id:"cra_data_b", name:"Data Quality and Database Lock"},
+        {id:"cra_mgmt_a", name:"Site Staff and Delegation Logs"},
+        {id:"cra_mgmt_b", name:"Budget and Contract Management"},
+      ]},
+    ],
+  },
+  us_ccrp: {
+    certBody: "SOCRA", certName: "CCRP", examQuestions: 175, passScore: "70%",
+    tagline: "The most recognised credential for research coordinators at clinical trial sites.",
+    salaryRange: "$55k – $90k", demandLabel: "Very high demand", demandColor: "#16a34a",
+    topEmployers: ["Mayo Clinic", "Johns Hopkins", "UCSF", "MD Anderson", "Labcorp"],
+    careerLadder: ["Clinical Research Coordinator", "Senior Coordinator", "Lead CRC", "Research Operations Manager"],
+    unlocks: ["Entry point into site-based clinical research careers", "Preferred by academic medical centres and hospitals", "Pairs well with nursing or allied health backgrounds"],
+    domains: [
+      { name: "Study Startup", weight: 35, concepts: [
+        {id:"ccrp_startup_a", name:"Protocol Feasibility Assessment"},
+        {id:"ccrp_startup_b", name:"IRB Submission and Approval"},
+        {id:"ccrp_startup_c", name:"Informed Consent Document Creation"},
+        {id:"ccrp_startup_d", name:"Essential Document Preparation"},
+        {id:"ccrp_startup_e", name:"Staff Training and Delegation"},
+      ]},
+      { name: "Study Implementation", weight: 45, concepts: [
+        {id:"ccrp_impl_a", name:"Subject Screening and Enrollment"},
+        {id:"ccrp_impl_b", name:"Protocol Execution and Compliance"},
+        {id:"ccrp_impl_c", name:"Investigational Product Management"},
+        {id:"ccrp_impl_d", name:"AE Documentation and Reporting"},
+        {id:"ccrp_impl_e", name:"Data Entry and Source Documentation"},
+        {id:"ccrp_impl_f", name:"Regulatory Communication"},
+      ]},
+      { name: "Study Closeout", weight: 20, concepts: [
+        {id:"ccrp_close_a", name:"Closeout Visit Conduct"},
+        {id:"ccrp_close_b", name:"Record Archiving Requirements"},
+        {id:"ccrp_close_c", name:"Final Data Reconciliation"},
+      ]},
+    ],
+  },
+  us_regulatory: {
+    certBody: "RAPS", certName: "RAC (Drugs)", examQuestions: 200, passScore: "65%",
+    tagline: "The most respected regulatory credential in pharma and biotech — opens doors at FDA, sponsors and consultancies.",
+    salaryRange: "$90k – $150k", demandLabel: "High demand", demandColor: "#16a34a",
+    topEmployers: ["FDA", "Bristol Myers Squibb", "Genentech", "Medpace", "Regulatory Compliance Associates"],
+    careerLadder: ["Regulatory Associate", "Regulatory Specialist", "Senior Manager Regulatory Affairs", "VP Regulatory Affairs"],
+    unlocks: ["Qualify for regulatory roles at pharma, biotech and medical device companies", "Recognised by FDA and global health authorities", "Pathway to consulting and advisory board roles"],
+    domains: [
+      { name: "Regulatory Strategy", weight: 20, concepts: [
+        {id:"rac_strategy_a", name:"FDA Organizational Structure"},
+        {id:"rac_strategy_b", name:"Risk-Benefit Analysis"},
+        {id:"rac_strategy_c", name:"Regulatory Strategy Development"},
+      ]},
+      { name: "Pre-Marketing Submissions", weight: 35, concepts: [
+        {id:"rac_pre_a", name:"IND Application Requirements"},
+        {id:"rac_pre_b", name:"NDA and BLA Compilation"},
+        {id:"rac_pre_c", name:"ICH E-Series Clinical Guidelines"},
+        {id:"rac_pre_d", name:"ICH S-Series Nonclinical Guidelines"},
+        {id:"rac_pre_e", name:"Special Designations"},
+      ]},
+      { name: "Post-Marketing Requirements", weight: 25, concepts: [
+        {id:"rac_post_a", name:"Labeling Requirements"},
+        {id:"rac_post_b", name:"Post-Approval Changes and Supplements"},
+        {id:"rac_post_c", name:"PSUR and PBRER Reporting"},
+        {id:"rac_post_d", name:"REMS Programs"},
+      ]},
+      { name: "Regulatory Interfacing", weight: 20, concepts: [
+        {id:"rac_interface_a", name:"Regulatory Meeting Preparation"},
+        {id:"rac_interface_b", name:"EU and ICH Global Alignment"},
+        {id:"rac_interface_c", name:"CMC Regulatory Requirements"},
+      ]},
+    ],
+  },
+  us_pharmacovigilance: {
+    certBody: "CCRPS", certName: "CPVC", examQuestions: 120, passScore: "70%",
+    tagline: "Specialist credential for drug safety professionals — one of the fastest-growing niches in clinical operations.",
+    salaryRange: "$70k – $115k", demandLabel: "Growing fast", demandColor: "#0284c7",
+    topEmployers: ["AstraZeneca", "Parexel", "ICON plc", "Syneos Health", "Novo Nordisk"],
+    careerLadder: ["PV Associate", "Drug Safety Scientist", "PV Manager", "Head of Drug Safety"],
+    unlocks: ["Enter the drug safety and pharmacovigilance function at CROs and pharma", "Required for roles involving ICSR processing and signal management", "Increasingly in demand as drug pipelines expand globally"],
+    domains: [
+      { name: "ICSR Processing", weight: 28, concepts: [
+        {id:"pv_icsr_a", name:"ICSR Processing and Triage"},
+        {id:"pv_icsr_b", name:"MedDRA Coding"},
+        {id:"pv_icsr_c", name:"Expedited Reporting Timelines"},
+        {id:"pv_icsr_d", name:"Narrative Writing"},
+      ]},
+      { name: "Signal Management", weight: 21, concepts: [
+        {id:"pv_signal_a", name:"Signal Detection Methods"},
+        {id:"pv_signal_b", name:"Signal Lifecycle Management"},
+        {id:"pv_signal_c", name:"Benefit-Risk Evaluation"},
+      ]},
+      { name: "Regulatory Requirements", weight: 21, concepts: [
+        {id:"pv_reg_a", name:"FDA PV Regulations"},
+        {id:"pv_reg_b", name:"EMA GVP Modules"},
+        {id:"pv_reg_c", name:"ICH E2 Guidelines"},
+      ]},
+      { name: "Aggregate Reporting", weight: 15, concepts: [
+        {id:"pv_aggregate_a", name:"PSUR and PBRER Structure"},
+        {id:"pv_aggregate_b", name:"DSUR Preparation"},
+      ]},
+      { name: "PV Systems & Governance", weight: 15, concepts: [
+        {id:"pv_systems_a", name:"Safety Database Operations"},
+        {id:"pv_systems_b", name:"QPPV and PV System Governance"},
+      ]},
+    ],
+  },
+  us_msl: {
+    certBody: "ACMA", certName: "BCMAS", examQuestions: 100, passScore: "70%",
+    tagline: "The credential for science-driven professionals moving into high-impact field medical roles.",
+    salaryRange: "$130k – $185k", demandLabel: "Premium salaries", demandColor: "#7c3aed",
+    topEmployers: ["Genentech", "Eli Lilly", "Novartis", "Johnson & Johnson", "AbbVie"],
+    careerLadder: ["Medical Science Liaison", "Senior MSL", "Regional MSL Director", "Head of Medical Affairs"],
+    unlocks: ["One of the highest-paid non-clinical roles in pharma", "Credentialises your transition from science or clinical practice", "Direct access to KOLs and clinical decision-makers"],
+    domains: [
+      { name: "Industry & Drug Development", weight: 20, concepts: [
+        {id:"msl_industry_a", name:"Pharma Industry Structure"},
+        {id:"msl_industry_b", name:"Drug Development Stages"},
+        {id:"msl_industry_c", name:"Real-World Evidence and RWE Studies"},
+      ]},
+      { name: "Compliance & Regulations", weight: 22, concepts: [
+        {id:"msl_reg_a", name:"Good Promotion Practices"},
+        {id:"msl_reg_b", name:"Compliant Off-Label Communication"},
+        {id:"msl_reg_c", name:"AI and Digital Compliance in Medical Affairs"},
+      ]},
+      { name: "KOL Engagement", weight: 28, concepts: [
+        {id:"msl_kol_a", name:"KOL Identification and Mapping"},
+        {id:"msl_kol_b", name:"Scientific Exchange Skills"},
+        {id:"msl_kol_c", name:"Congress and Advisory Board Engagement"},
+      ]},
+      { name: "HEOR & Value Communication", weight: 22, concepts: [
+        {id:"msl_heor_a", name:"Health Economics Principles"},
+        {id:"msl_heor_b", name:"Patient-Reported Outcomes"},
+        {id:"msl_heor_c", name:"Value Dossier and Payer Engagement"},
+      ]},
+      { name: "Publications & Field Insights", weight: 8, concepts: [
+        {id:"msl_pubs_a", name:"Publication Planning"},
+        {id:"msl_pubs_b", name:"MSL Field Insights and Reporting"},
+      ]},
+    ],
+  },
+  us_cdm: {
+    certBody: "SCDM", certName: "CCDM", examQuestions: 150, passScore: "70%",
+    tagline: "The benchmark certification for clinical data managers — validates your expertise across CDISC, EDC and regulatory submission.",
+    salaryRange: "$85k – $145k", demandLabel: "High demand", demandColor: "#16a34a",
+    topEmployers: ["Medidata Solutions", "Veeva Systems", "Oracle Health Sciences", "IQVIA", "Covance"],
+    careerLadder: ["Clinical Data Coordinator", "Clinical Data Manager", "Sr. CDM", "Data Management Lead / Director"],
+    unlocks: ["Qualify for CDM roles at CROs, sponsors and EDC vendors", "Required by most companies for independent data management work", "Strong pathway into data standards and CDISC consulting"],
+    domains: [
+      { name: "Database & CRF Design", weight: 27, concepts: [
+        {id:"cdm_design_a", name:"CRF and eCRF Design"},
+        {id:"cdm_design_b", name:"CDISC Standards: CDASH"},
+        {id:"cdm_design_c", name:"Data Management Plan"},
+        {id:"cdm_design_d", name:"Edit Check Specification"},
+      ]},
+      { name: "Data Processing & Queries", weight: 20, concepts: [
+        {id:"cdm_process_a", name:"Query Management"},
+        {id:"cdm_process_b", name:"External Data Reconciliation"},
+        {id:"cdm_process_c", name:"SAE and AE Reconciliation"},
+      ]},
+      { name: "CDISC Standards", weight: 20, concepts: [
+        {id:"cdm_standards_a", name:"CDISC SDTM Standards"},
+        {id:"cdm_standards_b", name:"CDISC ADaM Standards"},
+      ]},
+      { name: "Regulatory Compliance", weight: 13, concepts: [
+        {id:"cdm_process_d", name:"21 CFR Part 11 Compliance"},
+        {id:"cdm_review_a", name:"SDTM Submission Package Review"},
+      ]},
+      { name: "Testing & Validation", weight: 13, concepts: [
+        {id:"cdm_testing_a", name:"UAT Planning and Execution"},
+        {id:"cdm_testing_b", name:"System Validation"},
+      ]},
+      { name: "Database Management", weight: 7, concepts: [
+        {id:"cdm_mgmt_a", name:"Database Lock Process"},
+        {id:"cdm_mgmt_b", name:"Vendor Oversight"},
+      ]},
+    ],
+  },
+};
+
+const US_SAMPLE_QUESTIONS = {
+  us_cra: [
+    { domain: "GCP & Ethics", text: "You arrive at a site and discover the PI has been signing informed consent forms on behalf of subjects who were conscious and capable. What is your immediate action?", options: ["Accept it since the PI is medically responsible for subjects","Document the finding, issue a protocol deviation, and escalate to your sponsor manager","Report the site directly to FDA","Close the site immediately pending investigation"], answer: 1, explanation: "Consent must be obtained by the subject themselves (or their LAR if incapacitated). PI-signed consent from capable subjects is a GCP violation requiring a deviation report and sponsor escalation." },
+    { domain: "Data & Safety Reporting", text: "During SDV, you find a hospitalization that occurred on study but was never reported as an SAE. The PI states it was unrelated to the drug. What do you do?", options: ["Accept the PI's causality assessment and close the finding","Document it and work with the site to submit a late SAE report to the sponsor","Report the site to the IRB immediately","Remove it from your monitoring report since the PI has cleared it"], answer: 1, explanation: "Causality is assessed by the investigator, but a hospitalization meets the SAE seriousness criterion regardless of relatedness. A late SAE report must still be submitted." },
+    { domain: "Site Management & Monitoring", text: "The IP temperature log shows a 4-hour excursion above the required storage range. Before the next dose can be dispensed, what must happen?", options: ["The PI can use clinical judgment and dispense if they believe it is safe","The sponsor must be notified and must provide disposition instructions","The pharmacist can approve continued use based on the short duration","The IP should be immediately destroyed without sponsor consultation"], answer: 1, explanation: "Temperature excursions require sponsor notification. Only the sponsor or manufacturer can assess impact on product integrity and authorize disposition - the site cannot make this decision alone." },
+  ],
+  us_ccrp: [
+    { domain: "Study Startup", text: "A subject signs and dates the consent form, but their signature is on the wrong line. The correct line is blank. What is the appropriate correction?", options: ["Draw a single line through the error, initial, date, and have the subject re-sign in the correct location","White-out the incorrect signature and ask the subject to re-sign","Create a new consent form and have the subject sign again, discarding the original","Leave it as-is since the subject clearly intended to consent"], answer: 0, explanation: "Good documentation practice requires a single-line correction, initialed and dated by the person making the correction. White-out is never acceptable. The original document must be retained." },
+    { domain: "Study Implementation", text: "A subject enrolled last week now reports a new medication they forgot to mention at screening. The medication is listed as prohibited in the protocol. What do you do?", options: ["Document it in the medical history and continue","Document a protocol deviation, notify the PI, and notify the sponsor per protocol","Remove the subject from the study without documentation","Ask the subject to stop the medication before documenting anything"], answer: 1, explanation: "Taking a prohibited medication is a protocol deviation that must be documented, assessed by the PI, and reported to the sponsor. Subject safety and protocol integrity both require proper documentation." },
+    { domain: "Study Closeout", text: "According to FDA regulations, how long must research records generally be retained after an NDA is approved?", options: ["5 years","2 years after approval or 2 years after the investigation is discontinued","Indefinitely","10 years"], answer: 1, explanation: "21 CFR 312.62 requires records to be retained for 2 years after the NDA is approved or 2 years after the investigation is discontinued and FDA is notified - whichever is later." },
+  ],
+  us_regulatory: [
+    { domain: "Pre-Marketing Submissions", text: "A sponsor wants to conduct a Phase I first-in-human trial for a new chemical entity. Which of the following must be submitted to FDA before the trial can begin?", options: ["NDA with Phase I data","IND with pharmacology/toxicology data, clinical protocol, and investigator information","BLA with CMC data only","510(k) premarket notification"], answer: 1, explanation: "An IND (Investigational New Drug Application) under 21 CFR 312 must be submitted and allowed to go into effect (30-day review period with no clinical hold) before any human trials can begin." },
+    { domain: "Special Designations", text: "A drug for a rare pediatric disease has demonstrated preliminary clinical evidence of substantial improvement over available therapy. Which designation provides the most development benefits, including rolling review?", options: ["Priority Review","Fast Track","Breakthrough Therapy","Accelerated Approval"], answer: 2, explanation: "Breakthrough Therapy designation provides the most intensive FDA guidance and the ability to use rolling review. It requires preliminary clinical evidence showing substantial improvement over existing therapies on a clinically significant endpoint." },
+    { domain: "Post-Marketing Requirements", text: "A manufacturer wants to change the manufacturing site for the drug substance after NDA approval. What type of supplement is typically required for this change?", options: ["Annual Report","CBE-30 supplement","Prior Approval Supplement","CBE-0 supplement"], answer: 2, explanation: "A manufacturing site change for the drug substance is a major change under 21 CFR 314.70 that requires a Prior Approval Supplement - the change cannot be implemented until FDA approves the supplement." },
+  ],
+  us_pharmacovigilance: [
+    { domain: "ICSR Processing", text: "You receive a report of a patient death possibly related to your company's marketed product. It comes from a published case report. What is the reporting timeline to FDA?", options: ["15 calendar days from receipt","7 calendar days from receipt","30 days - it's from literature, not a direct report","No reporting required for literature cases"], answer: 1, explanation: "A fatal serious unexpected adverse event is subject to 7-calendar-day expedited reporting to FDA under 21 CFR 314.81. Literature reports are valid sources that trigger the same timelines as direct reports once identified." },
+    { domain: "Signal Management", text: "During a signal detection review, you notice a Proportional Reporting Ratio (PRR) of 4.2 with a chi-squared value above the threshold for a new drug-event combination. What is the appropriate next step?", options: ["Immediately withdraw the drug from the market","Document the finding and initiate a formal signal validation assessment","Report the signal to FDA within 24 hours","Discard it since PRR alone is not sufficient for a safety action"], answer: 1, explanation: "A PRR above threshold is a signal detection trigger, not a confirmed signal. It must be formally validated - assessed against clinical plausibility, existing data, and alternative explanations - before any regulatory action." },
+    { domain: "Regulatory Requirements", text: "A PSUR for an EU-approved product covers a 3-year data lock point. According to ICH E2C, what is the submission deadline to EMA after the data lock point?", options: ["30 days","60 days","90 days","6 months"], answer: 2, explanation: "ICH E2C(R2) and GVP Module VII require submission of the PBRER (PSUR) within 90 calendar days of the data lock point for products with a 3-year reporting frequency." },
+  ],
+  us_msl: [
+    { domain: "Compliance & Regulations", text: "A KOL contacts you asking for data on an unapproved indication for your company's product. They say they have a patient in mind. What is the appropriate MSL response?", options: ["Share the data since the request came from the KOL, not a sales interaction","Decline entirely as sharing any off-label information is prohibited","Route the request to Medical Information as a solicited unsolicited request, which can be fulfilled compliantly","Share only published data since that is publicly available"], answer: 2, explanation: "A healthcare provider's direct, unsolicited request for off-label information can be fulfilled compliantly by routing through Medical Information with appropriate documentation. The MSL should not personally fulfill the request without this process." },
+    { domain: "KOL Engagement", text: "An MSL is presenting Phase III data to a regional KOL. The KOL raises a point that contradicts one of your efficacy claims. What is the best response?", options: ["Defend your data and dismiss the KOL's concern to maintain product credibility","Acknowledge the point, explore their perspective, and offer to follow up with your medical affairs team","Immediately end the meeting and report the KOL's comment to your manager","Agree with the KOL to maintain the relationship"], answer: 1, explanation: "Scientific exchange requires intellectual honesty. Acknowledging and exploring a challenge builds credibility and trust. MSLs should engage with scientific debate, not avoid or deflect it. Follow-up with the medical affairs team is appropriate." },
+    { domain: "HEOR & Value Communication", text: "A payer asks you about the cost-effectiveness of your product versus the standard of care. What is the most appropriate way for an MSL to respond?", options: ["Provide the ICER and cost-per-QALY data from the value dossier in a one-on-one meeting","Decline - health economics discussions are for Market Access only","Share only published HEOR studies without any interpretation","Refer payers to the sales team for pricing discussions"], answer: 0, explanation: "MSLs can share health economic data with appropriate payer audiences in 1:1 settings under OIG guidance. Presenting value dossier evidence in context is within MSL scope and different from discussing pricing or contracting." },
+  ],
+  us_cdm: [
+    { domain: "CDISC Standards", text: "An SDTM dataset for adverse events uses the variable AESEV with a value of 'Grade 3'. A CDISC conformance check flags this as non-compliant. Why?", options: ["CTCAE grading is not allowed in SDTM","AESEV must use CDISC controlled terminology: MILD, MODERATE, SEVERE","Grade 3 should be coded as a MedDRA PT","The AE domain does not include severity"], answer: 1, explanation: "CDISC SDTM controlled terminology requires AESEV values of MILD, MODERATE, or SEVERE. CTCAE grade numbers are not valid for this variable. CTCAE grades may be captured in a separate variable (AETOXGR)." },
+    { domain: "Regulatory Compliance", text: "According to 21 CFR Part 11, which of the following is required for audit trails in electronic clinical trial systems?", options: ["Paper backup printouts signed by the investigator monthly","Computer-generated timestamps showing who made each change, what was changed, and when","Biometric verification for all data entries","Supervisor counter-signature for every edit"], answer: 1, explanation: "21 CFR Part 11 requires computer-generated audit trails that capture the date and time of operator entries and actions that create, modify, or delete electronic records - including the original value, new value, and the identity of the person making the change." },
+    { domain: "Database & CRF Design", text: "A site is entering lab values directly into the eCRF without a corresponding paper or electronic source document. What is the most appropriate CDM response?", options: ["Accept it since the eCRF audit trail serves as the source","Issue a query requiring the site to identify or create an original source document","Flag it as a major protocol deviation and lock the database","Report it to the IRB as a GCP violation"], answer: 1, explanation: "Source data must exist before eCRF transcription - the eCRF is not itself a source document unless it is the point of original data capture (PODC). A query should request that the site identify the original source or, if it was genuinely PODC, document it as such." },
+  ],
+};
+
 const SUBJECT_HOURS = {
-  bioinformatics:      25,
-  genomics:            22,
-  drug_discovery:      28,
-  clinical_trials:     20,
-  genai_ml:            24,
-  biotech_business:    18,
-  cell_gene_therapy:   22,
-  protein_engineering: 20,
-  rna_therapeutics:    20,
-  biomanufacturing:    18,
-  longevity_science:   16,
+  bioinformatics:        25,
+  genomics:              22,
+  drug_discovery:        28,
+  clinical_trials:       20,
+  genai_ml:              24,
+  biotech_business:      18,
+  cell_gene_therapy:     22,
+  protein_engineering:   20,
+  rna_therapeutics:      20,
+  biomanufacturing:      18,
+  longevity_science:     16,
+  us_cra:                20,
+  us_ccrp:               22,
+  us_regulatory:         22,
+  us_pharmacovigilance:  18,
+  us_msl:                20,
+  us_cdm:                18,
+  us_ctm:                24,
+  us_bioinformatics:     26,
 };
 
 const CLUSTER_COLORS = {
@@ -378,7 +681,7 @@ const CAREER_IMAGES = {
   biotech_founder:                'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=900&q=80',
 };
 
-// Image config context — populated from /api/images, falls back to hardcoded maps above
+// Image config context  -  populated from /api/images, falls back to hardcoded maps above
 const ImgCtx = React.createContext(null);
 function useImgs() {
   const ctx = React.useContext(ImgCtx);
@@ -692,7 +995,7 @@ function LinkedInModal({ student, onSaved }) {
           <input
             className="li-modal-input"
             type="text"
-            placeholder="e.g. Final year Biotech at BITS Pilani, interested in drug discovery and pharma consulting"
+            placeholder={ACTIVE_REGION === 'us' ? 'e.g. CRA at IQVIA, prepping for CCRA exam' : 'e.g. Final year Biotech at BITS Pilani, interested in drug discovery and pharma consulting'}
             maxLength={120}
             value={bio}
             onChange={e => setBio(e.target.value)}
@@ -834,7 +1137,7 @@ function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfil
     },
     {
       id: 'career',
-      label: hasCareer ? 'My Path' : 'Discover Path',
+      label: ACTIVE_REGION === 'us' ? 'My Path' : hasCareer ? 'My Path' : 'Discover Path',
       icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>,
       onClick: onCareerPath,
       active: view === 'career-map' || view === 'career-select',
@@ -846,14 +1149,14 @@ function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfil
       onClick: onLibrary,
       active: view === 'library',
     },
-    {
+    ...(ACTIVE_REGION !== 'us' ? [{
       id: 'labs',
       label: 'Innovation Labs',
       icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 2v7.527a2 2 0 01-.211.896L4.72 18.578A1 1 0 005.596 20h12.808a1 1 0 00.876-1.422L14.21 10.423A2 2 0 0114 9.527V2"/><line x1="8.5" y1="2" x2="15.5" y2="2"/><line x1="7" y1="16" x2="17" y2="16"/></svg>,
       onClick: onLabs,
       active: view === 'labs' || view === 'lab-project',
       sublabel: 'Real-world projects',
-    },
+    }] : []),
     {
       id: 'community',
       label: 'Community',
@@ -861,14 +1164,14 @@ function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfil
       onClick: onCommunity,
       active: view === 'community',
     },
-    {
+    ...(ACTIVE_REGION !== 'us' ? [{
       id: 'programs',
       label: 'Degree Programs',
       icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>,
       onClick: onPrograms,
       active: view === 'programs',
       sublabel: 'Admissions open · 2026',
-    },
+    }] : []),
   ];
 
   return (
@@ -937,11 +1240,11 @@ const INDUSTRY_LABS = [
         why_it_matters: 'Variant interpretation is one of the most in-demand skills in clinical genomics. Every genomics lab, hospital genetics department, and rare disease biotech needs people who can do this accurately.',
         expected_output: 'A 1-page variant interpretation report: variant details, ACMG evidence, classification, and a clear recommendation to the clinician.',
         steps: [
-          { id: 's1', text: 'Open ClinVar and search for the DMD gene. Browse pathogenic variants — note what types are reported (nonsense, frameshift, missense). Get familiar with how ClinVar classifies variants.', hint: 'Use the Gene filter on the left sidebar. Look for variants with "Pathogenic" or "Likely pathogenic" significance. ClinVar shows the evidence submitted by labs worldwide.' },
+          { id: 's1', text: 'Open ClinVar and search for the DMD gene. Browse pathogenic variants  -  note what types are reported (nonsense, frameshift, missense). Get familiar with how ClinVar classifies variants.', hint: 'Use the Gene filter on the left sidebar. Look for variants with "Pathogenic" or "Likely pathogenic" significance. ClinVar shows the evidence submitted by labs worldwide.' },
           { id: 's2', text: 'Open gnomAD and search for the DMD gene. Understand what allele frequency means: a variant seen in >1% of the population is unlikely to cause a rare disease. Note the AF threshold you will use (<0.01%).', hint: 'gnomAD shows how common a variant is across 125,000+ exomes. Rare disease variants are typically absent or extremely rare (AF < 0.0001). A high AF = likely benign.' },
           { id: 's3', text: 'Look up DMD on NCBI Gene. Read the gene summary. Understand what dystrophin does and why loss-of-function causes disease. Write 2 sentences summarising this.', hint: 'DMD encodes dystrophin, a structural protein in muscle fibres. Without it, muscle cells rupture during contraction. Loss-of-function variants (frameshift, nonsense) disrupt the reading frame and prevent functional protein production.' },
-          { id: 's4', text: 'Classify each of three hypothetical variants: (A) c.8713C>T (p.Arg2905*) — a nonsense variant, absent from gnomAD, reported pathogenic in ClinVar. (B) c.4515G>A (p.Glu1505=) — synonymous, in gnomAD at AF 0.3%. (C) c.9274G>A (p.Gly3092Ser) — missense, no ClinVar entries, AF 0.005%. Write ACMG classification for each.', hint: 'Variant A: PVS1 (null variant in a gene where LoF causes disease) + PS1 (same amino acid change as known pathogenic) = Pathogenic. Variant B: synonymous + common = Benign. Variant C: rare missense, no functional data = Uncertain Significance.' },
-          { id: 's5', text: 'Write your 1-page report. Structure: Patient context → Variants identified → Evidence per variant → Final classification → Recommendation to clinician. Keep it under 450 words. Be direct — clinicians need clear conclusions.', hint: 'A good report says: "Variant A (c.8713C>T) is classified Pathogenic based on PVS1 and ClinVar evidence. This is consistent with a diagnosis of Duchenne Muscular Dystrophy. We recommend genetic counselling and referral to a neuromuscular specialist." No hedging.' },
+          { id: 's4', text: 'Classify each of three hypothetical variants: (A) c.8713C>T (p.Arg2905*)  -  a nonsense variant, absent from gnomAD, reported pathogenic in ClinVar. (B) c.4515G>A (p.Glu1505=)  -  synonymous, in gnomAD at AF 0.3%. (C) c.9274G>A (p.Gly3092Ser)  -  missense, no ClinVar entries, AF 0.005%. Write ACMG classification for each.', hint: 'Variant A: PVS1 (null variant in a gene where LoF causes disease) + PS1 (same amino acid change as known pathogenic) = Pathogenic. Variant B: synonymous + common = Benign. Variant C: rare missense, no functional data = Uncertain Significance.' },
+          { id: 's5', text: 'Write your 1-page report. Structure: Patient context → Variants identified → Evidence per variant → Final classification → Recommendation to clinician. Keep it under 450 words. Be direct  -  clinicians need clear conclusions.', hint: 'A good report says: "Variant A (c.8713C>T) is classified Pathogenic based on PVS1 and ClinVar evidence. This is consistent with a diagnosis of Duchenne Muscular Dystrophy. We recommend genetic counselling and referral to a neuromuscular specialist." No hedging.' },
           { id: 's6', text: 'Review your report. Does it tell the clinician what to do next? Is every classification backed by at least two pieces of evidence? Would a non-specialist understand it? Finalise.', hint: 'Read it aloud. If any sentence is unclear, rewrite it. Precision and clarity are both required in clinical reporting.' },
         ],
         rubric: ['Correctly identified the pathogenic variant with at least two pieces of evidence', 'Applied ACMG criteria accurately to all three variants', 'Report is structured, specific, and actionable for a clinician', 'Demonstrates understanding of what the DMD gene does and why the variant causes disease'],
@@ -951,17 +1254,17 @@ const INDUSTRY_LABS = [
         id: 'bio_p2', title: 'Build a Sequence Homology Pipeline', time: '3–4 hours', difficulty: 'Intermediate',
         tools: [{ name: 'NCBI BLASTp', url: 'https://blast.ncbi.nlm.nih.gov/Blast.cgi?PAGE=Proteins' }, { name: 'Clustal Omega', url: 'https://www.ebi.ac.uk/Tools/msa/clustalo/' }, { name: 'iTOL', url: 'https://itol.embl.de/' }, { name: 'UniProt', url: 'https://www.uniprot.org/' }],
         scenario: "You've joined a biotech startup engineering novel enzymes for gene editing. Your PI found a promising bacterial nuclease in a published paper and wants to know: how conserved is it across species, and are there natural variants worth testing? Before spending lab time, she wants a computational answer.",
-        problem: 'Identify homologs of a target protein using BLAST, perform a multiple sequence alignment, build a phylogenetic tree, and identify the most conserved — and therefore functionally critical — regions.',
+        problem: 'Identify homologs of a target protein using BLAST, perform a multiple sequence alignment, build a phylogenetic tree, and identify the most conserved  -  and therefore functionally critical  -  regions.',
         why_it_matters: 'Homology analysis is used every day in drug target validation, protein engineering, and evolutionary biology. The ability to identify conserved functional residues from sequence alone is a core skill.',
         expected_output: 'A phylogenetic tree image, annotated alignment highlighting conserved regions, and a 1-paragraph written recommendation for which species variant to test first.',
         steps: [
           { id: 's1', text: 'Go to UniProt. Search for "Cas9 Streptococcus pyogenes" and open the SpCas9 entry (Q99ZW2). Download the protein sequence in FASTA format.', hint: 'The FASTA download is under the Sequences section. The format starts with a > header line followed by the amino acid sequence. Copy the entire thing including the > line.' },
-          { id: 's2', text: 'Go to NCBI BLASTp. Paste your FASTA sequence. Set database to "UniProtKB/Swiss-Prot", limit results to 15 hits, and run. Wait for results.', hint: 'BLASTp compares your protein sequence against a database. The E-value measures statistical significance — lower is more significant. Identity % tells you how similar the sequences are.' },
+          { id: 's2', text: 'Go to NCBI BLASTp. Paste your FASTA sequence. Set database to "UniProtKB/Swiss-Prot", limit results to 15 hits, and run. Wait for results.', hint: 'BLASTp compares your protein sequence against a database. The E-value measures statistical significance  -  lower is more significant. Identity % tells you how similar the sequences are.' },
           { id: 's3', text: 'From your BLAST results, select 8 hits from different bacterial species. Aim for a range of identity percentages (30–95%). Download their sequences and combine them with your original SpCas9 into a single FASTA file.', hint: 'Diversity matters for a good tree. Pick hits from different genera, not just Streptococcus. A range of identity values will give a more informative phylogenetic analysis.' },
           { id: 's4', text: 'Upload all 9 sequences to Clustal Omega and run a multiple sequence alignment. Download the alignment output.', hint: 'Clustal Omega aligns all sequences simultaneously. Positions where all sequences have the same amino acid are 100% conserved. These are your most important residues.' },
-          { id: 's5', text: 'Examine the alignment output. Identify at least 3 columns that are identical across all species. Look up what these positions correspond to in SpCas9 — are they in the RuvC or HNH nuclease domains? Write one sentence per conserved region.', hint: 'SpCas9 has two nuclease domains: HNH (cuts the target strand) and RuvC (cuts the non-target strand). Key catalytic residues include D10 (RuvC) and H840 (HNH). If these are conserved in your alignment, that is significant.' },
+          { id: 's5', text: 'Examine the alignment output. Identify at least 3 columns that are identical across all species. Look up what these positions correspond to in SpCas9  -  are they in the RuvC or HNH nuclease domains? Write one sentence per conserved region.', hint: 'SpCas9 has two nuclease domains: HNH (cuts the target strand) and RuvC (cuts the non-target strand). Key catalytic residues include D10 (RuvC) and H840 (HNH). If these are conserved in your alignment, that is significant.' },
           { id: 's6', text: 'Build a phylogenetic tree. Use the Newick tree output from Clustal Omega, upload it to iTOL, and download or screenshot the visualisation. Label each branch with the species name.', hint: 'iTOL (Interactive Tree of Life) can import Newick format trees directly. Once uploaded, use the display options to show labels and branch lengths.' },
-          { id: 's7', text: 'Write a 1-paragraph recommendation: which species variant would you prioritise for lab testing, and why? Consider: how close it is to SpCas9 (easier to predict behaviour), whether its active site residues are conserved, and whether the organism it comes from has any useful properties.', hint: 'A good recommendation considers both scientific rationale (active site conservation) and practical factors (the closer to SpCas9, the more predictable the behaviour in human cells). SaCas9 from S. aureus is a good real-world example — smaller, packaged more easily into AAV.' },
+          { id: 's7', text: 'Write a 1-paragraph recommendation: which species variant would you prioritise for lab testing, and why? Consider: how close it is to SpCas9 (easier to predict behaviour), whether its active site residues are conserved, and whether the organism it comes from has any useful properties.', hint: 'A good recommendation considers both scientific rationale (active site conservation) and practical factors (the closer to SpCas9, the more predictable the behaviour in human cells). SaCas9 from S. aureus is a good real-world example  -  smaller, packaged more easily into AAV.' },
         ],
         rubric: ['BLASTp search performed correctly with diverse, meaningful species selected', 'Conserved regions identified and their functional significance explained', 'Phylogenetic tree is correctly constructed and interpretable', 'Recommendation shows understanding of both biology and practical constraints'],
         whats_next: ['Try Project 1: Decode a Rare Disease Gene', 'Continue the Bioinformatics curriculum', 'Attempt the Bioinformatics Capstone'],
@@ -980,11 +1283,11 @@ const INDUSTRY_LABS = [
         expected_output: 'A structured 1-page clinical genomics report with variant classifications, evidence, and a clinical recommendation for each gene.',
         steps: [
           { id: 's1', text: 'Open OMIM (omim.org) and search for BRCA1, PALB2, and ATM. For each gene, note: what syndrome is associated with it, what cancers it increases risk for, and what the inheritance pattern is.', hint: 'BRCA1 is associated with Hereditary Breast and Ovarian Cancer syndrome (HBOC), autosomal dominant. PALB2 is now recognised as a high-risk breast cancer gene. ATM confers moderate risk. Note the relative risk increases.' },
-          { id: 's2', text: 'Search ClinVar for a pathogenic BRCA1 variant: c.5266dupC (p.Gln1756Profs*74). Note how many labs have submitted evidence, what the review status is, and what conditions it is associated with.', hint: 'c.5266dupC (formerly 5382insC) is one of the most common BRCA1 founder mutations. ClinVar shows "5 stars" for variants with expert panel review. Look at the evidence submitters — you will see ENIGMA, a major international consortium.' },
+          { id: 's2', text: 'Search ClinVar for a pathogenic BRCA1 variant: c.5266dupC (p.Gln1756Profs*74). Note how many labs have submitted evidence, what the review status is, and what conditions it is associated with.', hint: 'c.5266dupC (formerly 5382insC) is one of the most common BRCA1 founder mutations. ClinVar shows "5 stars" for variants with expert panel review. Look at the evidence submitters  -  you will see ENIGMA, a major international consortium.' },
           { id: 's3', text: 'Now look up an ATM variant: c.7271T>G (p.Val2424Gly) in ClinVar. This variant has conflicting interpretations. Note which labs classified it as pathogenic and which as uncertain. Understand why the same variant gets different classifications.', hint: 'Conflicting interpretations arise when labs use different evidence weightings. Some labs require functional data; others use population frequency alone. The variant\'s penetrance (how often it causes disease) is also debated for ATM.' },
           { id: 's4', text: 'Check gnomAD for both variants. Note the allele frequency. A pathogenic cancer predisposition variant should be very rare (<0.001% in the general population). Does what you see match the classifications?', hint: 'BRCA1 founder mutations are extremely rare globally but enriched in certain populations (Ashkenazi Jewish). Even then, AF is typically <0.5%. An AF of >1% would be inconsistent with a highly penetrant disease variant.' },
           { id: 's5', text: 'Assign clinical significance to each of the three variants using ACMG criteria: BRCA1 (pathogenic), ATM (uncertain significance), PALB2 (assume: likely pathogenic). Write the evidence basis for each classification in 2–3 sentences.', hint: 'For BRCA1: PVS1 (frameshift/null variant) + PS4 (observed in many affected individuals) = Pathogenic. For ATM: conflicting evidence, no functional data = Uncertain Significance. For PALB2 likely pathogenic: population data + segregation data.' },
-          { id: 's6', text: 'Write your clinical report. Include: patient demographics, variants found, classification per variant, what each means for cancer risk, and a recommendation (e.g., referral to genetic counsellor, surveillance protocol, cascade testing for family members).', hint: 'Actionable findings (BRCA1 pathogenic) require immediate referral. Uncertain significance findings should be reported but NOT used to drive clinical decisions — and you must say this explicitly. Family cascade testing is standard for pathogenic findings.' },
+          { id: 's6', text: 'Write your clinical report. Include: patient demographics, variants found, classification per variant, what each means for cancer risk, and a recommendation (e.g., referral to genetic counsellor, surveillance protocol, cascade testing for family members).', hint: 'Actionable findings (BRCA1 pathogenic) require immediate referral. Uncertain significance findings should be reported but NOT used to drive clinical decisions  -  and you must say this explicitly. Family cascade testing is standard for pathogenic findings.' },
         ],
         rubric: ['Correctly classified all three variants with evidence cited', 'Demonstrated understanding of ACMG criteria and why uncertain significance cannot drive clinical decisions', 'Recommendations are appropriate and specific (not generic)', 'Report is structured and written for a clinical audience'],
         whats_next: ['Try Project 2: Design a Liquid Biopsy Panel', 'Continue the Genomics curriculum', 'Attempt the Genomics Capstone'],
@@ -1001,7 +1304,7 @@ const INDUSTRY_LABS = [
           { id: 's2', text: 'For each of your 5 candidate genes, search ClinicalTrials.gov or PubMed for an FDA-approved targeted therapy. Write the gene, the mutation type (e.g., EGFR exon 19 deletion), the matched drug (e.g., osimertinib), and the approval year.', hint: 'Strong panel genes have approved therapies: EGFR → osimertinib (Tagrisso), ALK → alectinib (Alecensa), ROS1 → crizotinib, BRAF V600E → dabrafenib+trametinib, MET exon 14 → capmatinib. Each represents a companion diagnostic opportunity.' },
           { id: 's3', text: 'Download the Foundation One Liquid CDx FDA label (link above). Find the list of biomarkers it reports. Note which genes it includes for NSCLC. How many of your 5 genes overlap?', hint: 'Foundation One Liquid CDx reports 324 genes but highlights specific biomarkers for matched therapies. For NSCLC, look at Table 1 in the label which lists therapeutic indications by biomarker. It covers EGFR, ALK, ROS1, BRAF, MET, RET, and NTRK1/2/3.' },
           { id: 's4', text: 'Now consider sensitivity vs. specificity for a liquid biopsy panel. ctDNA circulates at very low allele frequencies (<0.1% in early disease). What does this mean for your panel design? Should you prioritise genes with hotspot mutations or broad coverage?', hint: 'Hotspot panels (targeting specific known mutations like KRAS G12C, EGFR exon 19 del) offer higher sensitivity at low allele frequency because you know exactly where to look. Broad coverage panels can detect novel mutations but require deeper sequencing. For a 5-gene panel, hotspot design is more practical.' },
-          { id: 's5', text: 'Finalise your 5-gene panel. For each gene write: (1) mutation type targeted, (2) frequency in NSCLC (from COSMIC), (3) matched approved therapy, (4) why you included it over alternatives.', hint: 'A good panel maximises clinical actionability per gene. TP53 is commonly mutated but has no matched therapy — so despite high frequency, it adds less clinical value than EGFR or ALK. Justify inclusions in terms of patient impact.' },
+          { id: 's5', text: 'Finalise your 5-gene panel. For each gene write: (1) mutation type targeted, (2) frequency in NSCLC (from COSMIC), (3) matched approved therapy, (4) why you included it over alternatives.', hint: 'A good panel maximises clinical actionability per gene. TP53 is commonly mutated but has no matched therapy  -  so despite high frequency, it adds less clinical value than EGFR or ALK. Justify inclusions in terms of patient impact.' },
           { id: 's6', text: 'Build a comparison table: your panel vs. Foundation One Liquid CDx. Columns: gene, mutation type, matched therapy, included in F1? Conclude with 1 paragraph: what does your focused panel offer that a 324-gene panel does not? (Think: turnaround time, cost, sensitivity at low VAF.)', hint: 'Focused panels have advantages: faster turnaround, lower cost, higher sensitivity for targeted mutations (you can sequence deeper at fewer loci), and simpler data interpretation. The trade-off is missing novel or rare mutations.' },
         ],
         rubric: ['5 genes selected with clear evidence-based justification and matched approved therapies', 'Demonstrates understanding of liquid biopsy sensitivity and allele frequency considerations', 'Comparison to Foundation One CDx is accurate and shows understanding of commercial landscape', 'Panel design shows awareness of clinical utility vs. breadth trade-offs'],
@@ -1015,17 +1318,17 @@ const INDUSTRY_LABS = [
       {
         id: 'dd_p1', title: 'Target an Undrugged Protein', time: '2–3 hours', difficulty: 'Beginner',
         tools: [{ name: 'ChEMBL', url: 'https://www.ebi.ac.uk/chembl/' }, { name: 'PDB', url: 'https://www.rcsb.org/' }, { name: 'UniProt', url: 'https://www.uniprot.org/' }, { name: 'Open Targets', url: 'https://www.opentargets.org/' }],
-        scenario: "You're a drug discovery scientist at a startup working on pancreatic cancer. Most pancreatic cancers are driven by KRAS mutations — historically called 'undruggable.' Amgen's sotorasib changed that in 2021 for KRAS G12C in lung cancer, but the KRAS G12D mutation (dominant in pancreatic cancer) still has no approved therapy. Your challenge is to assess whether KRAS G12D is a viable target today.",
+        scenario: "You're a drug discovery scientist at a startup working on pancreatic cancer. Most pancreatic cancers are driven by KRAS mutations  -  historically called 'undruggable.' Amgen's sotorasib changed that in 2021 for KRAS G12C in lung cancer, but the KRAS G12D mutation (dominant in pancreatic cancer) still has no approved therapy. Your challenge is to assess whether KRAS G12D is a viable target today.",
         problem: 'Evaluate KRAS G12D as a drug target using public databases: assess target validity, existing chemical matter, structural tractability, and write a 1-page target assessment memo.',
         why_it_matters: 'Target selection is the most consequential decision in drug discovery. A well-reasoned target assessment memo is exactly what a drug discovery team produces before committing years of work and hundreds of millions of dollars.',
         expected_output: 'A 1-page target assessment memo covering: disease linkage, existing compounds, structural analysis, and a go/no-go recommendation with rationale.',
         steps: [
-          { id: 's1', text: 'Open Open Targets (opentargets.org). Search for KRAS. Find its overall association score with pancreatic cancer and lung cancer. Note the evidence types contributing to the score (genetic, somatic mutation, literature).', hint: 'Open Targets aggregates genetic and clinical evidence for target-disease associations. A high score means strong evidence that the target is causally involved in the disease. Look at the "Somatic mutations" evidence for KRAS in pancreatic cancer — it should be very high.' },
-          { id: 's2', text: 'Search ChEMBL for KRAS. Find how many bioactive compounds have been reported. Filter to compounds with activity against KRAS G12C specifically. Note the contrast with KRAS G12D — how many approved drugs target each?', hint: 'ChEMBL will show sotorasib and adagrasib targeting KRAS G12C. For KRAS G12D, you will find experimental compounds in early development but no approved drugs. This contrast is the heart of the project.' },
-          { id: 's3', text: 'Open the RCSB PDB. Search for "KRAS G12D" structures. Open one structure. Look at the binding pocket around position 12. Is there a clear pocket for a small molecule to bind? Note the GDP/GTP binding site.', hint: 'KRAS is a GTPase — it cycles between GDP-bound (inactive) and GTP-bound (active) states. The G12D mutation locks it in the active state. The challenge is that KRAS has a very shallow binding groove, unlike classic enzyme active sites. Look for the switch I and switch II regions.' },
+          { id: 's1', text: 'Open Open Targets (opentargets.org). Search for KRAS. Find its overall association score with pancreatic cancer and lung cancer. Note the evidence types contributing to the score (genetic, somatic mutation, literature).', hint: 'Open Targets aggregates genetic and clinical evidence for target-disease associations. A high score means strong evidence that the target is causally involved in the disease. Look at the "Somatic mutations" evidence for KRAS in pancreatic cancer  -  it should be very high.' },
+          { id: 's2', text: 'Search ChEMBL for KRAS. Find how many bioactive compounds have been reported. Filter to compounds with activity against KRAS G12C specifically. Note the contrast with KRAS G12D  -  how many approved drugs target each?', hint: 'ChEMBL will show sotorasib and adagrasib targeting KRAS G12C. For KRAS G12D, you will find experimental compounds in early development but no approved drugs. This contrast is the heart of the project.' },
+          { id: 's3', text: 'Open the RCSB PDB. Search for "KRAS G12D" structures. Open one structure. Look at the binding pocket around position 12. Is there a clear pocket for a small molecule to bind? Note the GDP/GTP binding site.', hint: 'KRAS is a GTPase  -  it cycles between GDP-bound (inactive) and GTP-bound (active) states. The G12D mutation locks it in the active state. The challenge is that KRAS has a very shallow binding groove, unlike classic enzyme active sites. Look for the switch I and switch II regions.' },
           { id: 's4', text: 'Search PubMed for "KRAS G12D inhibitor 2023 2024." Find at least one experimental compound that has shown activity. Note the compound name, mechanism (covalent vs. non-covalent), and what stage of development it is in.', hint: 'MRTX1133 from Mirati Therapeutics is a non-covalent KRAS G12D inhibitor that reached clinical trials in 2023. Others include compounds from Revolution Medicines and Relay Therapeutics. Note that G12D is harder than G12C because there is no cysteine for covalent warhead attachment.' },
           { id: 's5', text: 'Summarise the target landscape in a structured table: Disease linkage (strong/moderate/weak), Genetic validation (yes/no), Existing approved drugs (yes/no), Structural tractability (high/medium/low), Clinical compounds (yes/no).', hint: 'KRAS G12D: Disease linkage = strong (>90% of pancreatic cancers). Genetic validation = yes (oncogenic driver). Approved drugs = no. Structural tractability = medium (improving). Clinical compounds = yes (MRTX1133, others). This is a genuinely tractable but hard target.' },
-          { id: 's6', text: 'Write your 1-page target assessment memo. Structure: Background → Target Biology → Drug Discovery Landscape → Structural Assessment → Recommendation. Your recommendation should be "Go" or "No Go" with clear rationale. State what the key risk is.', hint: 'A strong memo is decisive. Example conclusion: "We recommend pursuing KRAS G12D as a primary target. Genetic validation is unambiguous. The structural challenge of the flat binding pocket has been addressed by recent non-covalent inhibitors. Key risk: differentiation from MRTX1133 — our programme must identify a clear competitive advantage in potency, selectivity, or PK profile."' },
+          { id: 's6', text: 'Write your 1-page target assessment memo. Structure: Background → Target Biology → Drug Discovery Landscape → Structural Assessment → Recommendation. Your recommendation should be "Go" or "No Go" with clear rationale. State what the key risk is.', hint: 'A strong memo is decisive. Example conclusion: "We recommend pursuing KRAS G12D as a primary target. Genetic validation is unambiguous. The structural challenge of the flat binding pocket has been addressed by recent non-covalent inhibitors. Key risk: differentiation from MRTX1133  -  our programme must identify a clear competitive advantage in potency, selectivity, or PK profile."' },
         ],
         rubric: ['Target assessment covers all five dimensions with evidence from public databases', 'Demonstrates understanding of KRAS biology and why it was historically undruggable', 'Structural analysis shows engagement with PDB data, not just text descriptions', 'Recommendation is clear, decisive, and backed by specific evidence'],
         whats_next: ['Try Project 2: Reverse-Engineer a Phase III Failure', 'Continue the Drug Discovery curriculum', 'Attempt the Drug Discovery Capstone'],
@@ -1033,17 +1336,17 @@ const INDUSTRY_LABS = [
       {
         id: 'dd_p2', title: 'Reverse-Engineer a Phase III Failure', time: '3–4 hours', difficulty: 'Intermediate',
         tools: [{ name: 'ClinicalTrials.gov', url: 'https://clinicaltrials.gov/' }, { name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }, { name: 'FDA Drug Databases', url: 'https://www.fda.gov/drugs/drug-approvals-and-databases' }],
-        scenario: "Solanezumab was Eli Lilly's anti-amyloid antibody for Alzheimer's disease. It passed Phase II and entered two large Phase III trials — EXPEDITION and EXPEDITION2 — involving thousands of patients and nearly a billion dollars in investment. Both trials failed to meet their primary endpoints. Lilly continued with a third trial. It also failed. You are going to figure out why.",
+        scenario: "Solanezumab was Eli Lilly's anti-amyloid antibody for Alzheimer's disease. It passed Phase II and entered two large Phase III trials  -  EXPEDITION and EXPEDITION2  -  involving thousands of patients and nearly a billion dollars in investment. Both trials failed to meet their primary endpoints. Lilly continued with a third trial. It also failed. You are going to figure out why.",
         problem: "Using publicly available clinical trial data, reconstruct why solanezumab failed across three Phase III trials, identify the key scientific and design errors, and propose what you would have done differently.",
-        why_it_matters: 'Understanding drug failures is as important as understanding successes. The mistakes made in Alzheimer\'s drug development — and the lessons from solanezumab specifically — reshaped how the entire field designs trials and selects patients.',
+        why_it_matters: 'Understanding drug failures is as important as understanding successes. The mistakes made in Alzheimer\'s drug development  -  and the lessons from solanezumab specifically  -  reshaped how the entire field designs trials and selects patients.',
         expected_output: 'A structured 1-page failure analysis: timeline, hypothesis, what the data showed, why it failed, and 3 specific things you would have done differently.',
         steps: [
-          { id: 's1', text: 'Search ClinicalTrials.gov for "solanezumab." Open the EXPEDITION3 trial (NCT01900665). Read the study design: primary endpoint, patient population (mild vs. moderate Alzheimer\'s), intervention, and duration.', hint: 'EXPEDITION3 enrolled patients with mild Alzheimer\'s specifically — this was a design change from the earlier trials after a post-hoc analysis suggested the drug might work better in milder disease. Note the primary endpoint: CDR-SB (Clinical Dementia Rating Sum of Boxes).' },
-          { id: 's2', text: 'Search PubMed for "solanezumab EXPEDITION results." Find the NEJM paper (Doody et al., 2014) reporting EXPEDITION and EXPEDITION2 results. Note the primary outcome and whether the drug met it. What did the secondary outcomes show?', hint: 'The primary endpoint was not met. However, a pre-specified secondary analysis of mild Alzheimer\'s patients showed a 34% slowing of cognitive decline. This is what justified EXPEDITION3 — which ultimately also failed.' },
-          { id: 's3', text: 'Read about the amyloid hypothesis: the idea that amyloid-beta plaques cause Alzheimer\'s. Solanezumab targeted soluble amyloid-beta, not plaques. Search PubMed for "soluble vs. insoluble amyloid Alzheimer\'s" and note the debate.', hint: 'Solanezumab binds soluble monomeric amyloid-beta — the form circulating in the bloodstream — rather than insoluble plaques. The hypothesis was that clearing soluble amyloid would prevent plaque formation. Critics argued the drug needed to engage the actual plaques in the brain. Compare this to lecanemab, which targets protofibrils and was approved in 2023.' },
-          { id: 's4', text: 'Identify the three most likely reasons solanezumab failed: (1) wrong patient population, (2) wrong target form of amyloid, (3) treatment too late. Write one paragraph of evidence for each, citing the trial data or biology.', hint: 'Wrong population: the drug was tested in symptomatic patients where brain damage was already extensive. Wrong form: monomeric amyloid may not be the toxic species. Too late: amyloid accumulates 10–15 years before symptoms — by diagnosis, the window may have closed. The A4 trial tested solanezumab in pre-symptomatic patients — it also failed.' },
-          { id: 's5', text: 'Now propose 3 specific design changes. For each: what would you change, what evidence supports the change, and what risk does it carry?', hint: 'Example changes: (1) Use PET imaging to confirm amyloid burden before enrolling patients — ensure you are treating the right patients. (2) Target protofibrils or plaques instead of monomers — like lecanemab does. (3) Enrich for APOE4 carriers who have higher amyloid burden and faster progression. Each change has a trade-off: smaller eligible population, higher trial cost, etc.' },
-          { id: 's6', text: 'Write your 1-page failure analysis. Structure: What was the drug and hypothesis → What the trials showed → Three reasons it failed → Three things you would have done differently. Be specific — reference actual trial names, endpoints, and biology.', hint: 'The best failure analyses are honest and specific. Do not say "the endpoint was not met." Say "CDR-SB declined equally in the solanezumab and placebo arms, suggesting no slowing of cognitive decline at any stage of disease studied." Precision is what separates a good analyst from a generic one.' },
+          { id: 's1', text: 'Search ClinicalTrials.gov for "solanezumab." Open the EXPEDITION3 trial (NCT01900665). Read the study design: primary endpoint, patient population (mild vs. moderate Alzheimer\'s), intervention, and duration.', hint: 'EXPEDITION3 enrolled patients with mild Alzheimer\'s specifically  -  this was a design change from the earlier trials after a post-hoc analysis suggested the drug might work better in milder disease. Note the primary endpoint: CDR-SB (Clinical Dementia Rating Sum of Boxes).' },
+          { id: 's2', text: 'Search PubMed for "solanezumab EXPEDITION results." Find the NEJM paper (Doody et al., 2014) reporting EXPEDITION and EXPEDITION2 results. Note the primary outcome and whether the drug met it. What did the secondary outcomes show?', hint: 'The primary endpoint was not met. However, a pre-specified secondary analysis of mild Alzheimer\'s patients showed a 34% slowing of cognitive decline. This is what justified EXPEDITION3  -  which ultimately also failed.' },
+          { id: 's3', text: 'Read about the amyloid hypothesis: the idea that amyloid-beta plaques cause Alzheimer\'s. Solanezumab targeted soluble amyloid-beta, not plaques. Search PubMed for "soluble vs. insoluble amyloid Alzheimer\'s" and note the debate.', hint: 'Solanezumab binds soluble monomeric amyloid-beta  -  the form circulating in the bloodstream  -  rather than insoluble plaques. The hypothesis was that clearing soluble amyloid would prevent plaque formation. Critics argued the drug needed to engage the actual plaques in the brain. Compare this to lecanemab, which targets protofibrils and was approved in 2023.' },
+          { id: 's4', text: 'Identify the three most likely reasons solanezumab failed: (1) wrong patient population, (2) wrong target form of amyloid, (3) treatment too late. Write one paragraph of evidence for each, citing the trial data or biology.', hint: 'Wrong population: the drug was tested in symptomatic patients where brain damage was already extensive. Wrong form: monomeric amyloid may not be the toxic species. Too late: amyloid accumulates 10–15 years before symptoms  -  by diagnosis, the window may have closed. The A4 trial tested solanezumab in pre-symptomatic patients  -  it also failed.' },
+          { id: 's5', text: 'Now propose 3 specific design changes. For each: what would you change, what evidence supports the change, and what risk does it carry?', hint: 'Example changes: (1) Use PET imaging to confirm amyloid burden before enrolling patients  -  ensure you are treating the right patients. (2) Target protofibrils or plaques instead of monomers  -  like lecanemab does. (3) Enrich for APOE4 carriers who have higher amyloid burden and faster progression. Each change has a trade-off: smaller eligible population, higher trial cost, etc.' },
+          { id: 's6', text: 'Write your 1-page failure analysis. Structure: What was the drug and hypothesis → What the trials showed → Three reasons it failed → Three things you would have done differently. Be specific  -  reference actual trial names, endpoints, and biology.', hint: 'The best failure analyses are honest and specific. Do not say "the endpoint was not met." Say "CDR-SB declined equally in the solanezumab and placebo arms, suggesting no slowing of cognitive decline at any stage of disease studied." Precision is what separates a good analyst from a generic one.' },
         ],
         rubric: ['Accurately reconstructed the trial timeline and primary outcomes', 'Demonstrated understanding of the amyloid hypothesis and where solanezumab fit within it', 'Three failure reasons are evidence-based, specific, and biologically grounded', 'Proposed changes are realistic and show understanding of trial design trade-offs'],
         whats_next: ['Try Project 1: Target an Undrugged Protein', 'Continue the Drug Discovery curriculum', 'Attempt the Drug Discovery Capstone'],
@@ -1056,15 +1359,15 @@ const INDUSTRY_LABS = [
       {
         id: 'ct_p1', title: 'Annotate a Real FDA Drug Approval', time: '2–3 hours', difficulty: 'Beginner',
         tools: [{ name: 'FDA Drugs@FDA', url: 'https://www.accessdata.fda.gov/scripts/cder/daf/' }, { name: 'ClinicalTrials.gov', url: 'https://clinicaltrials.gov/' }, { name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }],
-        scenario: "You've just joined the regulatory affairs team at a mid-size oncology biotech. Your VP wants you to understand how FDA approval packages are structured before you start working on your own NDA. She gives you an assignment: download the complete review for a recently approved drug and annotate it — identify the pivotal trial, the primary endpoint, the safety signal that almost blocked approval, and the label restrictions that resulted.",
-        problem: "Read and annotate the FDA medical review for osimertinib (Tagrisso) — the third-generation EGFR inhibitor approved for NSCLC. Map the clinical evidence to the approval decision.",
+        scenario: "You've just joined the regulatory affairs team at a mid-size oncology biotech. Your VP wants you to understand how FDA approval packages are structured before you start working on your own NDA. She gives you an assignment: download the complete review for a recently approved drug and annotate it  -  identify the pivotal trial, the primary endpoint, the safety signal that almost blocked approval, and the label restrictions that resulted.",
+        problem: "Read and annotate the FDA medical review for osimertinib (Tagrisso)  -  the third-generation EGFR inhibitor approved for NSCLC. Map the clinical evidence to the approval decision.",
         why_it_matters: 'Being able to read and interpret an FDA medical review is a core skill for regulatory affairs, medical affairs, and clinical development roles. These documents are publicly available and form the foundation of how drugs reach patients.',
         expected_output: 'A structured annotation document: pivotal trial summary, primary endpoint and result, key safety findings, label restrictions, and your assessment of the approval rationale.',
         steps: [
-          { id: 's1', text: 'Go to FDA Drugs@FDA. Search for "osimertinib." Find the original NDA approval (2015). Download the "Medical Review" PDF. It will be long (100+ pages) — you do not need to read every page.', hint: 'Drugs@FDA organises reviews by application number. Osimertinib\'s original NDA was approved under Breakthrough Therapy designation. Look for the summary sections first: the Medical Officer\'s review and the statistical review. Skip the raw data appendices.' },
-          { id: 's2', text: 'Find the pivotal trial in the review. What was it called? What was the study design (single-arm, randomised, blinded)? What was the patient population? Note these in your annotation.', hint: 'The pivotal trial for the original approval was AURA Extension — a single-arm Phase II trial. Note: this was an accelerated approval based on response rate (ORR), not survival. Understand why FDA accepted a single-arm design for this indication.' },
+          { id: 's1', text: 'Go to FDA Drugs@FDA. Search for "osimertinib." Find the original NDA approval (2015). Download the "Medical Review" PDF. It will be long (100+ pages)  -  you do not need to read every page.', hint: 'Drugs@FDA organises reviews by application number. Osimertinib\'s original NDA was approved under Breakthrough Therapy designation. Look for the summary sections first: the Medical Officer\'s review and the statistical review. Skip the raw data appendices.' },
+          { id: 's2', text: 'Find the pivotal trial in the review. What was it called? What was the study design (single-arm, randomised, blinded)? What was the patient population? Note these in your annotation.', hint: 'The pivotal trial for the original approval was AURA Extension  -  a single-arm Phase II trial. Note: this was an accelerated approval based on response rate (ORR), not survival. Understand why FDA accepted a single-arm design for this indication.' },
           { id: 's3', text: 'Find the primary endpoint and the result. Was the endpoint objective response rate (ORR), progression-free survival (PFS), or overall survival (OS)? What was the result and how does it compare to historical controls?', hint: 'ORR of 57% in T790M-positive NSCLC patients who had progressed on prior EGFR therapy. This was substantially higher than chemotherapy in the same setting (~20% ORR). FDA accepted this as clinically meaningful for accelerated approval.' },
-          { id: 's4', text: 'Find the safety section. What were the most common adverse events? Was there a specific safety signal that required a Black Box Warning, label restriction, or REMS? Note it.', hint: 'Osimertinib has a risk of QTc prolongation and interstitial lung disease (ILD). ILD occurred in ~3% of patients in trials and was fatal in some cases. Look for how FDA addressed this in the label — there should be a "Warnings and Precautions" section.' },
+          { id: 's4', text: 'Find the safety section. What were the most common adverse events? Was there a specific safety signal that required a Black Box Warning, label restriction, or REMS? Note it.', hint: 'Osimertinib has a risk of QTc prolongation and interstitial lung disease (ILD). ILD occurred in ~3% of patients in trials and was fatal in some cases. Look for how FDA addressed this in the label  -  there should be a "Warnings and Precautions" section.' },
           { id: 's5', text: 'Read the label (Prescribing Information). Find: (1) the approved indication, (2) any patient selection requirement (companion diagnostic?), (3) the key warnings. Note how the approval was later converted from accelerated to regular approval.', hint: 'Osimertinib requires cobas EGFR Mutation Test v2 as a companion diagnostic for T790M detection. The approval was later expanded to first-line based on the FLAURA trial showing PFS benefit vs. first-gen EGFR inhibitors. Note how the indication evolved.' },
           { id: 's6', text: 'Write your annotation document. Include: Drug name and mechanism → Pivotal trial design and population → Primary endpoint and result → Key safety signals and how FDA addressed them → Label restrictions → Your 1-paragraph assessment of why FDA approved it despite being a single-arm trial.', hint: 'Your assessment should explain the regulatory reasoning: unmet medical need (no options after T790M resistance), substantial effect size (57% ORR in a population with rapidly progressing disease), and the commitment to a confirmatory trial. This is how Accelerated Approval is supposed to work.' },
         ],
@@ -1076,16 +1379,16 @@ const INDUSTRY_LABS = [
         tools: [{ name: 'ICH E6 GCP Guidelines', url: 'https://database.ich.org/sites/default/files/E6_R2__Guideline.pdf' }, { name: 'ClinicalTrials.gov', url: 'https://clinicaltrials.gov/' }, { name: 'FDA Guidance Documents', url: 'https://www.fda.gov/regulatory-information/search-fda-guidance-documents' }],
         scenario: "Your biotech has just completed a Phase I trial for BV-101, a novel KRAS G12C inhibitor. Dose-limiting toxicities were defined, the MTD was established at 600mg BID, and early efficacy signals were seen in NSCLC patients. The CMO wants a Phase II protocol synopsis ready in two weeks for the board to review before the IND amendment is filed.",
         problem: 'Write a 1-page Phase II protocol synopsis for a fictitious KRAS G12C inhibitor in NSCLC, covering study design, patient population, primary and secondary endpoints, and stopping rules.',
-        why_it_matters: 'Protocol writing is a core skill for clinical development, regulatory affairs, and medical affairs roles. A synopsis is what gets presented to FDA, the IRB, and the board — it must be precise, complete, and scientifically justified.',
+        why_it_matters: 'Protocol writing is a core skill for clinical development, regulatory affairs, and medical affairs roles. A synopsis is what gets presented to FDA, the IRB, and the board  -  it must be precise, complete, and scientifically justified.',
         expected_output: 'A 1-page protocol synopsis with all required sections filled in, following ICH E6 structure, with justified endpoint selection.',
         steps: [
           { id: 's1', text: 'Read the ICH E6 R2 guideline (section 6: Protocol and Protocol Amendment). List the 10 elements that every clinical trial protocol must contain. These will become your synopsis sections.', hint: 'ICH E6 Section 6 lists: background/rationale, objectives, design, selection/withdrawal criteria, treatment, efficacy/safety assessments, statistics, direct access to source data, ethics, and data handling. Your synopsis needs all of these in condensed form.' },
           { id: 's2', text: 'Define your study design. Will this be single-arm or randomised? What is the control arm if randomised? What is the treatment duration? Justify each choice.', hint: 'For a Phase II oncology trial, single-arm with historical control is acceptable if the primary endpoint is response rate and the control rate is well-established. Randomisation against docetaxel (a common second-line NSCLC therapy) would be more rigorous but slower to enrol. State your reasoning.' },
           { id: 's3', text: 'Define your patient population. Write the inclusion criteria (3–5) and exclusion criteria (3–5). Be specific: EGFR/ALK wild-type? KRAS G12C confirmed by local testing? Prior platinum-based therapy? ECOG status?', hint: 'Inclusion: NSCLC with confirmed KRAS G12C mutation (by an approved CDx or validated local test), ≥1 prior line of therapy (platinum-based), ECOG PS 0–1, adequate organ function. Exclusion: symptomatic CNS metastases, prior KRAS inhibitor treatment, active autoimmune disease requiring systemic treatment.' },
-          { id: 's4', text: 'Select your primary endpoint and justify it. Options: objective response rate (ORR), progression-free survival (PFS), or disease control rate (DCR). Explain why you chose it and what threshold would constitute a meaningful result.', hint: 'ORR is the most common Phase II primary endpoint in oncology — it is measurable earlier than PFS or OS, and FDA accepts it for accelerated approval. A meaningful threshold for KRAS G12C NSCLC second-line: ORR >30% (historical rate with docetaxel is ~10%). Use Simon\'s two-stage design to minimise exposure to an ineffective drug.' },
-          { id: 's5', text: 'Select 3 secondary endpoints. For each, explain what it measures and why it matters to regulators and prescribers.', hint: 'Good secondary endpoints: (1) Duration of response (DoR) — how long responses last. (2) Progression-free survival (PFS) — time from enrolment to progression or death. (3) Safety and tolerability — AE rates, dose reductions, discontinuations. These give a fuller picture than ORR alone.' },
-          { id: 's6', text: 'Write stopping rules for safety. Under what circumstances would the trial be paused or terminated early? Reference CTCAE grade definitions.', hint: 'Example stopping rules: ≥3 Grade 4 adverse events in the first 15 patients pause for safety review. If confirmed ILD Grade ≥2 occurs in >5% of patients, the trial is suspended. Early efficacy stopping: if ORR exceeds 60% at interim analysis, consider expanding the cohort. Use specific numbers — not vague language.' },
-          { id: 's7', text: 'Assemble your synopsis. One page, all sections present. Title → Background (2 sentences) → Objectives → Study Design → Population → Endpoints → Stopping Rules → Statistical Analysis Plan (sample size justification). Have a colleague or peer read it — is every section clear?', hint: 'For sample size: assume null ORR 10%, target ORR 30%, 80% power, α 0.05 (one-sided). Simon\'s two-stage design requires ~46 evaluable patients. State this explicitly in the statistical section.' },
+          { id: 's4', text: 'Select your primary endpoint and justify it. Options: objective response rate (ORR), progression-free survival (PFS), or disease control rate (DCR). Explain why you chose it and what threshold would constitute a meaningful result.', hint: 'ORR is the most common Phase II primary endpoint in oncology  -  it is measurable earlier than PFS or OS, and FDA accepts it for accelerated approval. A meaningful threshold for KRAS G12C NSCLC second-line: ORR >30% (historical rate with docetaxel is ~10%). Use Simon\'s two-stage design to minimise exposure to an ineffective drug.' },
+          { id: 's5', text: 'Select 3 secondary endpoints. For each, explain what it measures and why it matters to regulators and prescribers.', hint: 'Good secondary endpoints: (1) Duration of response (DoR)  -  how long responses last. (2) Progression-free survival (PFS)  -  time from enrolment to progression or death. (3) Safety and tolerability  -  AE rates, dose reductions, discontinuations. These give a fuller picture than ORR alone.' },
+          { id: 's6', text: 'Write stopping rules for safety. Under what circumstances would the trial be paused or terminated early? Reference CTCAE grade definitions.', hint: 'Example stopping rules: ≥3 Grade 4 adverse events in the first 15 patients pause for safety review. If confirmed ILD Grade ≥2 occurs in >5% of patients, the trial is suspended. Early efficacy stopping: if ORR exceeds 60% at interim analysis, consider expanding the cohort. Use specific numbers  -  not vague language.' },
+          { id: 's7', text: 'Assemble your synopsis. One page, all sections present. Title → Background (2 sentences) → Objectives → Study Design → Population → Endpoints → Stopping Rules → Statistical Analysis Plan (sample size justification). Have a colleague or peer read it  -  is every section clear?', hint: 'For sample size: assume null ORR 10%, target ORR 30%, 80% power, α 0.05 (one-sided). Simon\'s two-stage design requires ~46 evaluable patients. State this explicitly in the statistical section.' },
         ],
         rubric: ['All ICH E6 required sections are present and complete', 'Patient population (inclusion/exclusion) is specific and scientifically justified', 'Primary endpoint selection is justified with reference to historical control and regulatory precedent', 'Stopping rules are specific, use CTCAE grading, and cover both safety and efficacy scenarios'],
         whats_next: ['Try Project 1: Annotate a Real FDA Approval', 'Continue the Clinical Trials curriculum', 'Attempt the Clinical Trials Capstone'],
@@ -1098,16 +1401,16 @@ const INDUSTRY_LABS = [
       {
         id: 'ai_p1', title: 'Predict a Protein Structure with ColabFold', time: '2–3 hours', difficulty: 'Beginner',
         tools: [{ name: 'ColabFold (AlphaFold2)', url: 'https://colab.research.google.com/github/sokrypton/ColabFold/blob/main/AlphaFold2.ipynb' }, { name: 'RCSB PDB', url: 'https://www.rcsb.org/' }, { name: 'iCn3D Viewer', url: 'https://www.ncbi.nlm.nih.gov/Structure/icn3d/' }],
-        scenario: "You're a computational biologist at a drug discovery startup. Your target protein has no crystal structure in the PDB — the experimental team is backed up for months. Your PI asks you to run an AlphaFold prediction using ColabFold (free, runs in a browser), compare it to a homologous structure that does exist in the PDB, and assess how much you can trust the predicted model.",
+        scenario: "You're a computational biologist at a drug discovery startup. Your target protein has no crystal structure in the PDB  -  the experimental team is backed up for months. Your PI asks you to run an AlphaFold prediction using ColabFold (free, runs in a browser), compare it to a homologous structure that does exist in the PDB, and assess how much you can trust the predicted model.",
         problem: "Run an AlphaFold2 prediction for a real protein using ColabFold, visualise the structure, interpret the pLDDT confidence scores, and compare your predicted structure to its experimental PDB counterpart.",
         why_it_matters: 'AlphaFold changed structural biology overnight. Every drug discovery team now uses it. Understanding what the model predicts well (and what it does not) is essential for anyone using it to drive decisions.',
         expected_output: 'A structure image with confidence scores annotated, a written comparison to the PDB structure, and a 1-paragraph assessment of where the model can and cannot be trusted.',
         steps: [
-          { id: 's1', text: 'Open ColabFold in Google Colab (link above — you need a free Google account). In the "query_sequence" field, paste this sequence for lysozyme (PDB: 1LYZ): KVFERCELARTLKRLGMDGYRGISLANWMCLAKWESGYNTRATNYNAGDRSTDYGIFQINSRYWCNDGKTPGAVNACHLSCSALLQDNIADAVACAKRVVRDPQGIRAWVAWRNRCQNRDVRQYVQGCGV. Run all cells.', hint: 'ColabFold runs AlphaFold2 in the cloud for free. Click Runtime → Run All and accept the prompts. The prediction takes 5–15 minutes depending on server load. You will get a PDB file and confidence plots.' },
-          { id: 's2', text: 'When the run completes, download the top-ranked model (rank_001). Also download the pLDDT confidence plot. Note the overall pLDDT score — above 90 is high confidence, 70–90 is moderate, below 70 is low confidence.', hint: 'pLDDT (predicted Local Distance Difference Test) is AlphaFold\'s per-residue confidence metric. High pLDDT (blue in the standard colouring) means the prediction is reliable. Low pLDDT (red/orange) often corresponds to disordered regions.' },
+          { id: 's1', text: 'Open ColabFold in Google Colab (link above  -  you need a free Google account). In the "query_sequence" field, paste this sequence for lysozyme (PDB: 1LYZ): KVFERCELARTLKRLGMDGYRGISLANWMCLAKWESGYNTRATNYNAGDRSTDYGIFQINSRYWCNDGKTPGAVNACHLSCSALLQDNIADAVACAKRVVRDPQGIRAWVAWRNRCQNRDVRQYVQGCGV. Run all cells.', hint: 'ColabFold runs AlphaFold2 in the cloud for free. Click Runtime → Run All and accept the prompts. The prediction takes 5–15 minutes depending on server load. You will get a PDB file and confidence plots.' },
+          { id: 's2', text: 'When the run completes, download the top-ranked model (rank_001). Also download the pLDDT confidence plot. Note the overall pLDDT score  -  above 90 is high confidence, 70–90 is moderate, below 70 is low confidence.', hint: 'pLDDT (predicted Local Distance Difference Test) is AlphaFold\'s per-residue confidence metric. High pLDDT (blue in the standard colouring) means the prediction is reliable. Low pLDDT (red/orange) often corresponds to disordered regions.' },
           { id: 's3', text: 'Open RCSB PDB. Search for 1LYZ (hen egg white lysozyme). Download the PDB file. This is the experimental crystal structure you will compare to your prediction.', hint: '1LYZ was determined by X-ray crystallography at 2.0Å resolution. It is one of the most-studied proteins in history. Your AlphaFold prediction should be highly accurate for this protein since it is a small, well-structured globular protein with no disordered regions.' },
           { id: 's4', text: 'Open iCn3D (link above). Load your ColabFold predicted structure. Colour it by pLDDT score. Note which regions are high confidence vs. low confidence. Take a screenshot.', hint: 'In iCn3D, use File → Open → PDB File to load your model. Under Style → Color → Temperature Factor you can visualise pLDDT scores (stored in the B-factor column of the ColabFold output). Blue = high confidence, red = low confidence.' },
-          { id: 's5', text: 'Load the 1LYZ experimental structure in iCn3D. Visually compare the two structures. Do the secondary structure elements (alpha helices, beta sheets) align? Are there any major differences in loop regions?', hint: 'For lysozyme, the prediction should be very close to the experimental structure. Look for differences in loop regions — these are often less well-predicted. The core alpha helices should be essentially identical.' },
+          { id: 's5', text: 'Load the 1LYZ experimental structure in iCn3D. Visually compare the two structures. Do the secondary structure elements (alpha helices, beta sheets) align? Are there any major differences in loop regions?', hint: 'For lysozyme, the prediction should be very close to the experimental structure. Look for differences in loop regions  -  these are often less well-predicted. The core alpha helices should be essentially identical.' },
           { id: 's6', text: 'Write your 1-paragraph assessment. Answer: Where does the model perform well? Where should you be cautious? If you were using this prediction to design a drug binding site, which regions would you trust and which would you validate experimentally first?', hint: 'Key point: AlphaFold predictions for structured regions of well-folded proteins are highly reliable. Loop regions, termini, and intrinsically disordered regions are less reliable. For drug design, you should trust core structural elements but validate binding pocket geometry experimentally before committing to a lead series.' },
         ],
         rubric: ['ColabFold run successfully completed with correct sequence', 'pLDDT confidence scores correctly interpreted and annotated', 'Comparison to experimental structure is substantive and identifies specific differences', 'Assessment demonstrates understanding of where AlphaFold can and cannot be trusted'],
@@ -1116,17 +1419,17 @@ const INDUSTRY_LABS = [
       {
         id: 'ai_p2', title: 'Build a QSAR Bioactivity Classifier', time: '4–5 hours', difficulty: 'Intermediate',
         tools: [{ name: 'ChEMBL', url: 'https://www.ebi.ac.uk/chembl/' }, { name: 'Google Colab (Python)', url: 'https://colab.research.google.com/' }, { name: 'RDKit Docs', url: 'https://www.rdkit.org/docs/' }],
-        scenario: "You're at a computational chemistry team within a mid-size pharma. Your team is screening thousands of compounds for activity against EGFR — a well-validated oncology target. Running wet lab assays on all of them would take years. Your job is to build a simple QSAR (Quantitative Structure-Activity Relationship) model using public ChEMBL data that can predict which compounds are likely to be active before they ever go into the lab.",
+        scenario: "You're at a computational chemistry team within a mid-size pharma. Your team is screening thousands of compounds for activity against EGFR  -  a well-validated oncology target. Running wet lab assays on all of them would take years. Your job is to build a simple QSAR (Quantitative Structure-Activity Relationship) model using public ChEMBL data that can predict which compounds are likely to be active before they ever go into the lab.",
         problem: "Download EGFR bioactivity data from ChEMBL, featurise compounds with molecular fingerprints using RDKit, train a random forest classifier, and evaluate it with ROC-AUC and a confusion matrix.",
         why_it_matters: 'QSAR modelling is used in every major pharma company to prioritise compounds before expensive assays. Understanding how to build, evaluate, and honestly critique these models is a foundational skill in computational drug discovery.',
         expected_output: 'A working Colab notebook with the full pipeline, a ROC-AUC curve, a confusion matrix, and a written critique of the model\'s limitations.',
         steps: [
           { id: 's1', text: 'Open Google Colab. Create a new notebook. Install and import: rdkit, pandas, scikit-learn, matplotlib. Run: !pip install rdkit pandas scikit-learn matplotlib', hint: 'In Colab: !pip install rdkit installs RDKit. Import with: from rdkit import Chem; from rdkit.Chem import AllChem, DataStructs; import pandas as pd; from sklearn.ensemble import RandomForestClassifier; from sklearn.metrics import roc_auc_score, confusion_matrix' },
           { id: 's2', text: 'Go to ChEMBL. Search for "EGFR" as a target. Filter to human EGFR (CHEMBL203). Export bioactivity data as CSV (IC50 values, standard type = IC50, organism = Homo sapiens). Download and upload to Colab.', hint: 'ChEMBL will give you thousands of compounds with IC50 values against EGFR. Export with standard filters: Standard Type = IC50, Standard Units = nM. You want the SMILES column and the standard_value column at minimum.' },
-          { id: 's3', text: 'In your notebook, load the CSV. Create a binary label: active (IC50 ≤ 1000 nM = 1) vs. inactive (IC50 > 1000 nM = 0). Drop rows with missing SMILES. Print class distribution.', hint: 'df["label"] = (df["standard_value"] <= 1000).astype(int). Check class balance — if you have 90% actives and 10% inactives, your model will be biased. Note the imbalance ratio as it affects your evaluation strategy.' },
-          { id: 's4', text: 'Generate Morgan fingerprints for each compound using RDKit. Convert to a numpy array for model input. Morgan fingerprints encode circular atom environments — they are the standard representation for QSAR models.', hint: 'mols = [Chem.MolFromSmiles(s) for s in df["canonical_smiles"]]; fps = [AllChem.GetMorganFingerprintAsBitVect(m, 2, nBits=2048) for m in mols if m is not None]; X = np.array(fps). Use radius=2, nBits=2048 as standard parameters.' },
+          { id: 's3', text: 'In your notebook, load the CSV. Create a binary label: active (IC50 ≤ 1000 nM = 1) vs. inactive (IC50 > 1000 nM = 0). Drop rows with missing SMILES. Print class distribution.', hint: 'df["label"] = (df["standard_value"] <= 1000).astype(int). Check class balance  -  if you have 90% actives and 10% inactives, your model will be biased. Note the imbalance ratio as it affects your evaluation strategy.' },
+          { id: 's4', text: 'Generate Morgan fingerprints for each compound using RDKit. Convert to a numpy array for model input. Morgan fingerprints encode circular atom environments  -  they are the standard representation for QSAR models.', hint: 'mols = [Chem.MolFromSmiles(s) for s in df["canonical_smiles"]]; fps = [AllChem.GetMorganFingerprintAsBitVect(m, 2, nBits=2048) for m in mols if m is not None]; X = np.array(fps). Use radius=2, nBits=2048 as standard parameters.' },
           { id: 's5', text: 'Split data 80/20 train/test. Train a RandomForestClassifier (n_estimators=100). Predict on the test set. Calculate ROC-AUC. Plot the ROC curve and confusion matrix.', hint: 'from sklearn.model_selection import train_test_split; X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y). A ROC-AUC of 0.85+ is good for QSAR. 0.7–0.85 is acceptable. Below 0.7 suggests the model is not useful.' },
-          { id: 's6', text: 'Write a 1-paragraph critique of your model. Address: What does the ROC-AUC tell you? What are the limitations of Morgan fingerprints as features? Why might this model fail on structurally novel compounds? What would you do next to improve it?', hint: 'Key limitations: Morgan fingerprints capture local atom environments but miss 3D shape and conformational flexibility. The model was trained on historical data — it will perform poorly on compounds with novel scaffolds (applicability domain problem). Next steps: use 3D descriptors, add pharmacophore features, or switch to a graph neural network.' },
+          { id: 's6', text: 'Write a 1-paragraph critique of your model. Address: What does the ROC-AUC tell you? What are the limitations of Morgan fingerprints as features? Why might this model fail on structurally novel compounds? What would you do next to improve it?', hint: 'Key limitations: Morgan fingerprints capture local atom environments but miss 3D shape and conformational flexibility. The model was trained on historical data  -  it will perform poorly on compounds with novel scaffolds (applicability domain problem). Next steps: use 3D descriptors, add pharmacophore features, or switch to a graph neural network.' },
         ],
         rubric: ['Working notebook with complete pipeline from data loading to evaluation', 'ROC-AUC correctly calculated and plotted with proper train/test split', 'Critique demonstrates understanding of QSAR model limitations, not just accuracy reporting', 'Discussion of applicability domain and what the model cannot reliably predict'],
         whats_next: ['Try Project 1: Predict a Protein Structure with ColabFold', 'Continue the Gen AI & ML curriculum', 'Attempt the Gen AI & ML Capstone'],
@@ -1139,19 +1442,19 @@ const INDUSTRY_LABS = [
       {
         id: 'bb_p1', title: 'Tear Down a Real Biotech Acquisition', time: '2–3 hours', difficulty: 'Beginner',
         tools: [{ name: 'SEC EDGAR', url: 'https://www.sec.gov/cgi-bin/browse-edgar' }, { name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }, { name: 'Evaluate Pharma (free tier)', url: 'https://www.evaluate.com/vantage' }, { name: 'BMS press releases', url: 'https://news.bms.com/' }],
-        scenario: "In 2022, Bristol Myers Squibb acquired Turning Point Therapeutics for $4.1 billion — a 122% premium to the 60-day average share price. At the time, Turning Point's lead asset repotrectinib had not yet received FDA approval. You are an analyst at a life sciences investment bank. Your MD wants a deal teardown memo on your desk by tomorrow morning.",
-        problem: "Reconstruct the strategic rationale for BMS's $4.1B acquisition of Turning Point Therapeutics — what they were buying, why they paid a 122% premium, and whether it was worth it.",
-        why_it_matters: "Deal analysis is a core skill for BD, corporate strategy, investment banking, and VC roles. Understanding what drives biotech M&A premiums — pipeline value, competitive dynamics, strategic fit — is how you evaluate deals in real time.",
+        scenario: "In 2022, Bristol Myers Squibb acquired Turning Point Therapeutics for $4.1 billion  -  a 122% premium to the 60-day average share price. At the time, Turning Point's lead asset repotrectinib had not yet received FDA approval. You are an analyst at a life sciences investment bank. Your MD wants a deal teardown memo on your desk by tomorrow morning.",
+        problem: "Reconstruct the strategic rationale for BMS's $4.1B acquisition of Turning Point Therapeutics  -  what they were buying, why they paid a 122% premium, and whether it was worth it.",
+        why_it_matters: "Deal analysis is a core skill for BD, corporate strategy, investment banking, and VC roles. Understanding what drives biotech M&A premiums  -  pipeline value, competitive dynamics, strategic fit  -  is how you evaluate deals in real time.",
         expected_output: "A 1-page deal teardown memo: what BMS bought, why they paid the premium, the key risks, and your verdict on whether it was a good deal.",
         steps: [
           { id: 's1', text: "Search PubMed for 'repotrectinib ROS1 NSCLC.' Read the TRIDENT-1 trial abstract. Note the response rate, duration of response, and how it compared to existing ROS1 inhibitors (crizotinib, lorlatinib).", hint: "Repotrectinib showed ~91% ORR in treatment-naive ROS1-positive NSCLC in TRIDENT-1. More importantly, it showed ~40% ORR in patients who had already received 1–2 prior ROS1 inhibitors. This 'next-generation' activity in a pre-treated population is the scientific anchor of the deal." },
-          { id: 's2', text: "Search SEC EDGAR for the BMS acquisition proxy statement (S-4 or DEFM14A filing for Turning Point Therapeutics). Find the disclosed deal terms: upfront payment, any contingent value rights (CVRs), and the acquiree board's fairness opinion.", hint: "The BMS acquisition was an all-cash deal at $76 per share, no CVRs. The Turning Point board hired Centerview Partners to provide a fairness opinion. The S-4 will show the financial analysis supporting the price — look for the DCF and comparable company analysis sections." },
-          { id: 's3', text: "Estimate what BMS was paying for. At the time of acquisition, repotrectinib was in Phase 3. What is the ROS1-positive NSCLC market size? What was the estimated peak sales potential? How does $4.1B relate to a risk-adjusted NPV?", hint: "ROS1-positive NSCLC is ~1–2% of NSCLC patients (~4,000 new US patients/year). At ~$150,000/year treatment cost and high penetration, peak US sales could be $500–800M. Apply a 60% probability of approval and a 12% discount rate — you can back into roughly $1–1.5B rNPV. The premium above that represents competitive urgency and pipeline optionality." },
-          { id: 's4', text: "Identify 3 strategic reasons BMS paid a 122% premium beyond the DCF value. Think about: competitive dynamics (who else might have bid?), BMS's existing oncology portfolio, and what Turning Point's pipeline beyond repotrectinib offered.", hint: "Strategic reasons: (1) BMS needed a next-gen ROS1 asset to compete with Roche/Genentech's entrectinib and Pfizer's lorlatinib. (2) Turning Point had a broad kinase inhibitor platform with additional pipeline assets. (3) There was likely competitive tension — Pfizer, Roche, and Merck were all potential buyers, which pushed the price up. Fear of losing the deal to a competitor is a real premium driver." },
-          { id: 's5', text: "Identify 2 key risks of the deal at the time it was announced. What could go wrong between signing and value realisation?", hint: "Risk 1: FDA approval uncertainty — repotrectinib was not yet approved, and accelerated approval timelines can slip. Risk 2: Commercial execution — the ROS1-positive NSCLC market is small and requires precise patient identification through companion diagnostics. If testing rates are low, peak sales fall. Repotrectinib was approved in late 2023 as Augtyro." },
-          { id: 's6', text: "Write your 1-page teardown memo. Structure: The asset (what BMS bought) → The price and what justified it → Strategic rationale beyond DCF → Key risks → Your verdict (was it a good deal?). Be direct — your MD needs a view, not a summary.", hint: "A good verdict is specific: 'At $4.1B, BMS paid ~3x rNPV, which is aggressive but defensible given competitive urgency and platform optionality. The real question is whether repotrectinib can hold share against next-generation competitors in the pre-treated setting — the TRIDENT-1 data suggest yes. We rate this a strategically sound acquisition at a full price.'" },
+          { id: 's2', text: "Search SEC EDGAR for the BMS acquisition proxy statement (S-4 or DEFM14A filing for Turning Point Therapeutics). Find the disclosed deal terms: upfront payment, any contingent value rights (CVRs), and the acquiree board's fairness opinion.", hint: "The BMS acquisition was an all-cash deal at $76 per share, no CVRs. The Turning Point board hired Centerview Partners to provide a fairness opinion. The S-4 will show the financial analysis supporting the price  -  look for the DCF and comparable company analysis sections." },
+          { id: 's3', text: "Estimate what BMS was paying for. At the time of acquisition, repotrectinib was in Phase 3. What is the ROS1-positive NSCLC market size? What was the estimated peak sales potential? How does $4.1B relate to a risk-adjusted NPV?", hint: "ROS1-positive NSCLC is ~1–2% of NSCLC patients (~4,000 new US patients/year). At ~$150,000/year treatment cost and high penetration, peak US sales could be $500–800M. Apply a 60% probability of approval and a 12% discount rate  -  you can back into roughly $1–1.5B rNPV. The premium above that represents competitive urgency and pipeline optionality." },
+          { id: 's4', text: "Identify 3 strategic reasons BMS paid a 122% premium beyond the DCF value. Think about: competitive dynamics (who else might have bid?), BMS's existing oncology portfolio, and what Turning Point's pipeline beyond repotrectinib offered.", hint: "Strategic reasons: (1) BMS needed a next-gen ROS1 asset to compete with Roche/Genentech's entrectinib and Pfizer's lorlatinib. (2) Turning Point had a broad kinase inhibitor platform with additional pipeline assets. (3) There was likely competitive tension  -  Pfizer, Roche, and Merck were all potential buyers, which pushed the price up. Fear of losing the deal to a competitor is a real premium driver." },
+          { id: 's5', text: "Identify 2 key risks of the deal at the time it was announced. What could go wrong between signing and value realisation?", hint: "Risk 1: FDA approval uncertainty  -  repotrectinib was not yet approved, and accelerated approval timelines can slip. Risk 2: Commercial execution  -  the ROS1-positive NSCLC market is small and requires precise patient identification through companion diagnostics. If testing rates are low, peak sales fall. Repotrectinib was approved in late 2023 as Augtyro." },
+          { id: 's6', text: "Write your 1-page teardown memo. Structure: The asset (what BMS bought) → The price and what justified it → Strategic rationale beyond DCF → Key risks → Your verdict (was it a good deal?). Be direct  -  your MD needs a view, not a summary.", hint: "A good verdict is specific: 'At $4.1B, BMS paid ~3x rNPV, which is aggressive but defensible given competitive urgency and platform optionality. The real question is whether repotrectinib can hold share against next-generation competitors in the pre-treated setting  -  the TRIDENT-1 data suggest yes. We rate this a strategically sound acquisition at a full price.'" },
         ],
-        rubric: ["Correctly identified what BMS was acquiring and the clinical data supporting the premium", "rNPV logic is present — attempted to reconcile deal price with commercial opportunity", "Three strategic rationale points go beyond DCF and show understanding of competitive dynamics", "Verdict is specific, direct, and justified — not just a summary of what happened"],
+        rubric: ["Correctly identified what BMS was acquiring and the clinical data supporting the premium", "rNPV logic is present  -  attempted to reconcile deal price with commercial opportunity", "Three strategic rationale points go beyond DCF and show understanding of competitive dynamics", "Verdict is specific, direct, and justified  -  not just a summary of what happened"],
         whats_next: ["Try Project 2: Build a Market Size Model for a New Modality", "Continue the Biotech Business curriculum", "Attempt the Biotech Business Capstone"],
       },
       {
@@ -1159,12 +1462,12 @@ const INDUSTRY_LABS = [
         tools: [{ name: 'WHO Disease Statistics', url: 'https://www.who.int/data/gho' }, { name: 'FDA Orange Book', url: 'https://www.accessdata.fda.gov/scripts/cder/ob/' }, { name: 'ClinicalTrials.gov', url: 'https://clinicaltrials.gov/' }, { name: 'Google Sheets / Excel', url: 'https://sheets.google.com' }],
         scenario: "You're a strategy analyst at a life sciences VC fund. The partners are evaluating whether to lead a $50M Series B in an RNA therapeutics company focused on rare liver diseases. Before the partners meeting, you need a bottom-up market size model that tells them: what is the realistic addressable market for RNA liver drugs over the next 10 years?",
         problem: "Build a bottom-up market size model for RNA therapeutics in rare liver diseases, including patient population estimates, treatment penetration assumptions, pricing benchmarks, and a 10-year revenue projection.",
-        why_it_matters: "Market modelling is a core skill for VC, BD, strategy, and investor relations roles. A credible bottom-up model — grounded in epidemiology and pricing benchmarks, not top-down percentages — is what separates a rigorous analyst from a generic one.",
+        why_it_matters: "Market modelling is a core skill for VC, BD, strategy, and investor relations roles. A credible bottom-up model  -  grounded in epidemiology and pricing benchmarks, not top-down percentages  -  is what separates a rigorous analyst from a generic one.",
         expected_output: "A market model spreadsheet with all assumptions visible and a 1-page investment memo summarising the opportunity and your key assumptions.",
         steps: [
-          { id: 's1', text: "Open a new Google Sheet. Create columns: Disease, Global Prevalence, US Prevalence, Diagnosed Rate, Treatment-Eligible Rate, Year 5 Penetration, Year 10 Penetration, Price per patient/year, Year 5 Revenue, Year 10 Revenue.", hint: "A bottom-up model builds the market from patient counts, not percentages of a total market. This is more credible because every assumption is visible and challengeable. Start with the diseases — pick 3: Transthyretin Amyloidosis (ATTR), Alpha-1 Antitrypsin Deficiency (AATD), and Acute Hepatic Porphyria (AHP)." },
+          { id: 's1', text: "Open a new Google Sheet. Create columns: Disease, Global Prevalence, US Prevalence, Diagnosed Rate, Treatment-Eligible Rate, Year 5 Penetration, Year 10 Penetration, Price per patient/year, Year 5 Revenue, Year 10 Revenue.", hint: "A bottom-up model builds the market from patient counts, not percentages of a total market. This is more credible because every assumption is visible and challengeable. Start with the diseases  -  pick 3: Transthyretin Amyloidosis (ATTR), Alpha-1 Antitrypsin Deficiency (AATD), and Acute Hepatic Porphyria (AHP)." },
           { id: 's2', text: "Look up global and US prevalence for each disease. ATTR: ~50,000 US patients (hATTR subtype). AATD: ~100,000 symptomatic US patients. AHP: ~3,000 diagnosed US patients. Enter these in your model with sources noted in a comment.", hint: "Be precise about what you are counting. ATTR has two forms: hereditary (hATTR, ~50,000 US) and wild-type (wtATTR, much larger but different treatment dynamics). For a rare liver RNA drug focus, use hATTR. Note your disease scope decision explicitly." },
-          { id: 's3', text: "Add a 'Diagnosed Rate' column. Not all patients are diagnosed — especially in rare diseases. Research diagnosis rates for each: AATD is chronically underdiagnosed (~10% diagnosed). ATTR diagnosis has improved with technetium scintigraphy but remains at ~20–30% in the US. Adjust your patient numbers.", hint: "Diagnosed rate is the fraction of prevalent patients who have a confirmed diagnosis and are potentially accessible for treatment. For ATTR, ~20% diagnosed = ~10,000 US diagnosed patients. This is your starting pool before applying any additional filters." },
+          { id: 's3', text: "Add a 'Diagnosed Rate' column. Not all patients are diagnosed  -  especially in rare diseases. Research diagnosis rates for each: AATD is chronically underdiagnosed (~10% diagnosed). ATTR diagnosis has improved with technetium scintigraphy but remains at ~20–30% in the US. Adjust your patient numbers.", hint: "Diagnosed rate is the fraction of prevalent patients who have a confirmed diagnosis and are potentially accessible for treatment. For ATTR, ~20% diagnosed = ~10,000 US diagnosed patients. This is your starting pool before applying any additional filters." },
           { id: 's4', text: "Add pricing benchmarks. Look up current list prices: Alnylam's patisiran (Onpattro) launched at ~$450,000/patient/year. Givosiran (Givlaari) for AHP: ~$575,000/year. Use these as anchors for your price assumptions.", hint: "RNA therapeutics command ultra-high prices due to small patient populations and transformative efficacy. Your model price assumption should be $400,000–$600,000/patient/year for rare disease RNA drugs. Note that net price after rebates is typically 20–30% lower than list price." },
           { id: 's5', text: "Build penetration curves for Year 1, 5, and 10. A new RNA therapy entering a rare disease market typically reaches 10–15% penetration by Year 3, 30–40% by Year 5, 50–60% by Year 10 in well-diagnosed populations. Apply these to your diagnosed patient pool.", hint: "Penetration is slower in poorly-diagnosed diseases (AATD) and faster in better-characterised ones (AHP, where Alnylam already built physician awareness with givosiran). Adjust accordingly. Also apply an annual price erosion assumption of 2–5% per year as biosimilars or competitors may enter." },
           { id: 's6', text: "Calculate Year 5 and Year 10 total revenues across all three diseases. Sum them. Write your 1-page investment memo: What is the realistic addressable US market by Year 10? What is the key assumption driving the model? What would cause the model to be wrong on the upside and downside?", hint: "A rigorous memo names the single biggest assumption: for ATTR, it is likely diagnosis rate improvement driven by AI-assisted echocardiography screening. Upside: ATTR diagnosis rate reaches 50% (better screening). Downside: oral tafamidis (Pfizer's Vyndaqel) takes the majority of market share before RNA drugs reach peak penetration." },
@@ -1180,37 +1483,37 @@ const INDUSTRY_LABS = [
       {
         id: 'cgt_p1', title: 'Design a Gene Therapy Vector for Duchenne MD', time: '3–4 hours', difficulty: 'Intermediate',
         tools: [{ name: 'Addgene Vector Database', url: 'https://www.addgene.org/vector-database/' }, { name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }, { name: 'ClinicalTrials.gov', url: 'https://clinicaltrials.gov/' }, { name: 'FDA ATMP Guidance', url: 'https://www.fda.gov/vaccines-blood-biologics/cellular-gene-therapy-products' }],
-        scenario: "You're a vector biologist at a gene therapy startup. Your CSO has asked you to design the AAV vector construct for a microdystrophin gene therapy targeting Duchenne Muscular Dystrophy (DMD). Sarepta's Elevidys was approved in 2023 — you need to understand what they built and design a next-generation vector with a rationale for why it would be better.",
+        scenario: "You're a vector biologist at a gene therapy startup. Your CSO has asked you to design the AAV vector construct for a microdystrophin gene therapy targeting Duchenne Muscular Dystrophy (DMD). Sarepta's Elevidys was approved in 2023  -  you need to understand what they built and design a next-generation vector with a rationale for why it would be better.",
         problem: "Design a complete AAV vector construct for microdystrophin delivery in DMD: choose the serotype, promoter, payload, and ITR configuration. Justify each choice against existing approved products.",
-        why_it_matters: "Vector design is the most technically critical decision in gene therapy development. Every element — serotype, promoter, transgene design — directly determines whether the therapy will work, be safe, and be manufacturable.",
+        why_it_matters: "Vector design is the most technically critical decision in gene therapy development. Every element  -  serotype, promoter, transgene design  -  directly determines whether the therapy will work, be safe, and be manufacturable.",
         expected_output: "A vector design document: serotype choice with rationale, promoter selection, microdystrophin construct design, safety considerations, and a 1-paragraph comparison to Elevidys.",
         steps: [
-          { id: 's1', text: "Search PubMed for 'microdystrophin AAV DMD clinical trial.' Find the paper describing Sarepta's construct (SRP-9001, now Elevidys). Note the AAV serotype used, the promoter, and the microdystrophin design (which dystrophin domains are included).", hint: "Elevidys uses AAV9 as the serotype (broad muscle tropism, crosses blood-brain barrier). The promoter is MHCK7 (muscle-specific, high expression in cardiac and skeletal muscle). The microdystrophin includes spectrin-like repeats and the ABD domain — roughly 138kDa, fitting within AAV's 4.7kb packaging limit." },
+          { id: 's1', text: "Search PubMed for 'microdystrophin AAV DMD clinical trial.' Find the paper describing Sarepta's construct (SRP-9001, now Elevidys). Note the AAV serotype used, the promoter, and the microdystrophin design (which dystrophin domains are included).", hint: "Elevidys uses AAV9 as the serotype (broad muscle tropism, crosses blood-brain barrier). The promoter is MHCK7 (muscle-specific, high expression in cardiac and skeletal muscle). The microdystrophin includes spectrin-like repeats and the ABD domain  -  roughly 138kDa, fitting within AAV's 4.7kb packaging limit." },
           { id: 's2', text: "Open Addgene's Vector Database. Search for AAV vectors used in DMD or microdystrophin studies. Compare AAV8 vs. AAV9 vs. AAVrh74 for muscle tropism, immune profile, and prevalence of pre-existing antibodies in the human population.", hint: "AAVrh74 (used by Sarepta in earlier constructs) has lower pre-existing neutralising antibody prevalence than AAV9 in some populations. AAV9 reaches cardiac muscle well but has higher seroprevalence. For your next-gen design, consider: if you want to re-dose (not possible with current AAVs due to immune response), you need a different serotype or immune evasion strategy." },
-          { id: 's3', text: "Design your microdystrophin construct. The full dystrophin cDNA is 11.1kb — far too large for AAV. You need to select which domains to keep. Research which domains are essential: the actin-binding domain (ABD), the central rod domain (how many spectrin-like repeats?), and the C-terminal domain.", hint: "Essential domains for function: N-terminal ABD (binds F-actin), at least 4 spectrin-like repeats (R1-R3, R24 are commonly used), and the C-terminal domain (binds the DGC complex). Hinge regions H1, H2, H3 are needed for flexibility. The key trade-off: more repeats = better function but larger construct size." },
+          { id: 's3', text: "Design your microdystrophin construct. The full dystrophin cDNA is 11.1kb  -  far too large for AAV. You need to select which domains to keep. Research which domains are essential: the actin-binding domain (ABD), the central rod domain (how many spectrin-like repeats?), and the C-terminal domain.", hint: "Essential domains for function: N-terminal ABD (binds F-actin), at least 4 spectrin-like repeats (R1-R3, R24 are commonly used), and the C-terminal domain (binds the DGC complex). Hinge regions H1, H2, H3 are needed for flexibility. The key trade-off: more repeats = better function but larger construct size." },
           { id: 's4', text: "Choose your promoter. Options: CMV (ubiquitous, strong but silenced over time), CK8 or MHCK7 (muscle-specific, avoids off-target expression), MCK (strong in mature muscle). Justify your choice for DMD.", hint: "Muscle-specific promoters (MHCK7, CK8) are preferred for DMD because they restrict expression to skeletal and cardiac muscle, reducing off-target liver expression and potential immunogenicity. Sarepta uses MHCK7. A next-gen improvement could be a promoter with stronger cardiac expression given DMD cardiomyopathy is a major cause of death." },
-          { id: 's5', text: "Address safety: what are the three main safety risks of your AAV construct and how would you mitigate each?", hint: "Risk 1: Pre-existing neutralising antibodies — mitigate by screening patients pre-dosing (exclude seropositive patients or use immunosuppression). Risk 2: Immune response to microdystrophin (seen in some Elevidys patients) — mitigate with transient immunosuppression protocol. Risk 3: Genotoxicity — AAV integrates rarely but randomly; mitigate by selecting a self-complementary design and avoiding strong enhancers near proto-oncogenes." },
+          { id: 's5', text: "Address safety: what are the three main safety risks of your AAV construct and how would you mitigate each?", hint: "Risk 1: Pre-existing neutralising antibodies  -  mitigate by screening patients pre-dosing (exclude seropositive patients or use immunosuppression). Risk 2: Immune response to microdystrophin (seen in some Elevidys patients)  -  mitigate with transient immunosuppression protocol. Risk 3: Genotoxicity  -  AAV integrates rarely but randomly; mitigate by selecting a self-complementary design and avoiding strong enhancers near proto-oncogenes." },
           { id: 's6', text: "Write a 1-paragraph comparison to Elevidys. What design choices did you make differently and why? What would be the key experiment to validate your next-gen construct is superior?", hint: "Be specific: if you chose AAVrh74 over AAV9, explain the seroprevalence rationale. If you added extra spectrin-like repeats, cite the functional data showing improved muscle force. The key validation experiment: a head-to-head comparison in mdx mice measuring specific muscle force (not just western blot) and cardiac function at 6 months." },
         ],
-        rubric: ["Serotype choice is justified with reference to tropism, seroprevalence, and immune profile data", "Microdystrophin domain selection is scientifically grounded — essential domains identified correctly", "Promoter choice is appropriate for DMD and justified against alternatives", "Safety risks are specific and mitigations are realistic and evidence-based"],
+        rubric: ["Serotype choice is justified with reference to tropism, seroprevalence, and immune profile data", "Microdystrophin domain selection is scientifically grounded  -  essential domains identified correctly", "Promoter choice is appropriate for DMD and justified against alternatives", "Safety risks are specific and mitigations are realistic and evidence-based"],
         whats_next: ["Try Project 2: Audit a Real Gene Therapy FDA Approval", "Continue the Cell & Gene Therapy curriculum", "Attempt the CGT Capstone"],
       },
       {
         id: 'cgt_p2', title: 'Audit a Real Gene Therapy FDA Approval', time: '2–3 hours', difficulty: 'Beginner',
         tools: [{ name: 'FDA Biologics License Applications', url: 'https://www.fda.gov/vaccines-blood-biologics/biologics-license-applications-bla-process' }, { name: 'FDA Elevidys Approval Package', url: 'https://www.fda.gov/vaccines-blood-biologics/biologics-license-applications-bla-process/elevidys' }, { name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }],
-        scenario: "Elevidys (delandistrogene moxeparvovec) became the first approved gene therapy for Duchenne Muscular Dystrophy in June 2023 — and it was controversial. FDA granted accelerated approval over the objection of its own advisory committee. You are a regulatory consultant. A client wants to understand what FDA required, what the controversy was, and what the confirmatory trial must show.",
+        scenario: "Elevidys (delandistrogene moxeparvovec) became the first approved gene therapy for Duchenne Muscular Dystrophy in June 2023  -  and it was controversial. FDA granted accelerated approval over the objection of its own advisory committee. You are a regulatory consultant. A client wants to understand what FDA required, what the controversy was, and what the confirmatory trial must show.",
         problem: "Audit the Elevidys FDA approval: understand the clinical evidence package, the accelerated approval controversy, the surrogate endpoint debate, and what the EMBARK confirmatory trial must demonstrate.",
         why_it_matters: "Analysing a controversial approval teaches you more about FDA's decision-making than any textbook. The Elevidys approval is a masterclass in surrogate endpoints, unmet medical need, and the politics of accelerated approval.",
         expected_output: "A structured audit document: evidence package summary, why the advisory committee voted against approval, FDA's reasoning for overriding them, and what EMBARK must show for full approval.",
         steps: [
-          { id: 's1', text: "Search PubMed for 'delandistrogene moxeparvovec Elevidys FDA 2023.' Find the NEJM paper by Mendell et al. reporting the pivotal trial results. Note the primary endpoint, the result, and the patient age range studied.", hint: "The pivotal trial used microdystrophin expression (measured by western blot as % of normal) as the primary endpoint — a surrogate biomarker. The trial showed significant increase in microdystrophin expression. The controversy is whether this protein expression translates to clinical benefit (functional improvement)." },
-          { id: 's2', text: "Find the FDA advisory committee meeting transcript or briefing document for Elevidys (May 2023). What was the committee vote? What was the main concern they raised about the surrogate endpoint?", hint: "The Peripheral and Central Nervous System Drugs Advisory Committee voted 8-6 against approval. The core concern: microdystrophin expression is a surrogate endpoint — there was no statistically significant evidence that it translated to functional improvement (e.g., North Star Ambulatory Assessment scores). FDA overrode the adcom recommendation, which is unusual and controversial." },
+          { id: 's1', text: "Search PubMed for 'delandistrogene moxeparvovec Elevidys FDA 2023.' Find the NEJM paper by Mendell et al. reporting the pivotal trial results. Note the primary endpoint, the result, and the patient age range studied.", hint: "The pivotal trial used microdystrophin expression (measured by western blot as % of normal) as the primary endpoint  -  a surrogate biomarker. The trial showed significant increase in microdystrophin expression. The controversy is whether this protein expression translates to clinical benefit (functional improvement)." },
+          { id: 's2', text: "Find the FDA advisory committee meeting transcript or briefing document for Elevidys (May 2023). What was the committee vote? What was the main concern they raised about the surrogate endpoint?", hint: "The Peripheral and Central Nervous System Drugs Advisory Committee voted 8-6 against approval. The core concern: microdystrophin expression is a surrogate endpoint  -  there was no statistically significant evidence that it translated to functional improvement (e.g., North Star Ambulatory Assessment scores). FDA overrode the adcom recommendation, which is unusual and controversial." },
           { id: 's3', text: "Understand FDA's reasoning for overriding the committee. Search for 'FDA Elevidys accelerated approval reasoning 2023.' What unmet medical need argument did FDA make? What surrogate endpoint validation did they cite?", hint: "FDA's reasoning: (1) DMD is a devastating, life-limiting disease with significant unmet need. (2) Microdystrophin production is reasonably likely to predict clinical benefit based on the natural history of partial dystrophin expression in Becker MD patients (who have less severe disease than DMD). This is the 'reasonably likely to predict' standard for accelerated approval surrogates." },
-          { id: 's4', text: "Find the EMBARK confirmatory trial on ClinicalTrials.gov. Note: primary endpoint, patient population, trial duration, and expected completion date. This is what Sarepta must show to convert to full approval.", hint: "EMBARK uses the North Star Ambulatory Assessment (NSAA) as the primary functional endpoint — this is a validated clinical outcome measure. The trial compares treated vs. placebo in ambulatory DMD patients aged 4–7. If NSAA improvement is not significant at 52 weeks, FDA could withdraw approval." },
-          { id: 's5', text: "The EMBARK trial reported top-line results in late 2023. Search for 'EMBARK Elevidys results 2023 Sarepta.' Did the trial meet its primary endpoint? What happened to the FDA approval status?", hint: "EMBARK did not meet its primary NSAA endpoint at 52 weeks (p=0.17). Despite this, FDA expanded Elevidys approval in June 2024 to all ambulatory DMD patients aged 4 and older — another controversial decision. The secondary endpoint (100-metre walk test) was met. This created significant debate about FDA's standards." },
-          { id: 's6', text: "Write your audit document. Structure: What was approved and on what evidence → Advisory committee recommendation and why FDA overrode it → What EMBARK needed to show → What it actually showed → Your assessment: did FDA make the right call? Should Elevidys remain on the market?", hint: "There is no right answer — this is a genuine scientific and ethical debate. A good assessment acknowledges both sides: the urgency argument (these children have no other options and the disease is rapidly progressing) vs. the evidence standard argument (approving drugs without functional evidence sets a dangerous precedent and may mislead families). Take a position and defend it." },
+          { id: 's4', text: "Find the EMBARK confirmatory trial on ClinicalTrials.gov. Note: primary endpoint, patient population, trial duration, and expected completion date. This is what Sarepta must show to convert to full approval.", hint: "EMBARK uses the North Star Ambulatory Assessment (NSAA) as the primary functional endpoint  -  this is a validated clinical outcome measure. The trial compares treated vs. placebo in ambulatory DMD patients aged 4–7. If NSAA improvement is not significant at 52 weeks, FDA could withdraw approval." },
+          { id: 's5', text: "The EMBARK trial reported top-line results in late 2023. Search for 'EMBARK Elevidys results 2023 Sarepta.' Did the trial meet its primary endpoint? What happened to the FDA approval status?", hint: "EMBARK did not meet its primary NSAA endpoint at 52 weeks (p=0.17). Despite this, FDA expanded Elevidys approval in June 2024 to all ambulatory DMD patients aged 4 and older  -  another controversial decision. The secondary endpoint (100-metre walk test) was met. This created significant debate about FDA's standards." },
+          { id: 's6', text: "Write your audit document. Structure: What was approved and on what evidence → Advisory committee recommendation and why FDA overrode it → What EMBARK needed to show → What it actually showed → Your assessment: did FDA make the right call? Should Elevidys remain on the market?", hint: "There is no right answer  -  this is a genuine scientific and ethical debate. A good assessment acknowledges both sides: the urgency argument (these children have no other options and the disease is rapidly progressing) vs. the evidence standard argument (approving drugs without functional evidence sets a dangerous precedent and may mislead families). Take a position and defend it." },
         ],
-        rubric: ["Correctly identified the surrogate endpoint and the clinical concern about it", "Advisory committee vote and FDA override reasoning accurately described", "EMBARK trial design and results accurately reported", "Final assessment takes a clear position with evidence-based reasoning — not neutral"],
+        rubric: ["Correctly identified the surrogate endpoint and the clinical concern about it", "Advisory committee vote and FDA override reasoning accurately described", "EMBARK trial design and results accurately reported", "Final assessment takes a clear position with evidence-based reasoning  -  not neutral"],
         whats_next: ["Try Project 1: Design a Gene Therapy Vector", "Continue the Cell & Gene Therapy curriculum", "Attempt the CGT Capstone"],
       },
     ],
@@ -1221,17 +1524,17 @@ const INDUSTRY_LABS = [
       {
         id: 'pe_p1', title: 'Engineer Stability Mutations for a Therapeutic Antibody', time: '3–4 hours', difficulty: 'Intermediate',
         tools: [{ name: 'RCSB PDB', url: 'https://www.rcsb.org/' }, { name: 'iCn3D Structure Viewer', url: 'https://www.ncbi.nlm.nih.gov/Structure/icn3d/' }, { name: 'DynaMut2', url: 'https://biosig.lab.uq.edu.au/dynamut2/' }, { name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }],
-        scenario: "You're a protein engineer at a biologics company. Your antibody lead, based on trastuzumab (Herceptin), has a thermal stability problem — it aggregates at 37°C during manufacture. The CMC team is demanding a more stable variant before they can scale up. Your job is to identify the aggregation-prone regions and propose point mutations to improve thermal stability.",
+        scenario: "You're a protein engineer at a biologics company. Your antibody lead, based on trastuzumab (Herceptin), has a thermal stability problem  -  it aggregates at 37°C during manufacture. The CMC team is demanding a more stable variant before they can scale up. Your job is to identify the aggregation-prone regions and propose point mutations to improve thermal stability.",
         problem: "Using trastuzumab's crystal structure and free computational tools, identify aggregation-prone regions and propose 3 point mutations to improve thermal stability. Justify each mutation structurally.",
         why_it_matters: "Protein stability engineering is one of the most practically important skills in therapeutic protein development. Unstable antibodies aggregate, lose potency, cause adverse immune reactions, and fail in manufacturing. Every biologic program faces this challenge.",
         expected_output: "A mutation proposal document: 3 mutations with structural justification, predicted stability impact, and the experimental validation assay you would run to confirm.",
         steps: [
-          { id: 's1', text: "Open RCSB PDB. Search for trastuzumab — load structure 1N8Z (trastuzumab Fab in complex with HER2). Open it in iCn3D. Get familiar with the structure: identify the heavy chain (H), light chain (L), CDR loops (the antigen-binding loops), and the framework regions.", hint: "In iCn3D, use Analysis → Sequences to see the chain layout. The CDR loops are the most variable regions — they form the antigen-binding site. The framework regions form the stable scaffold. Aggregation often occurs at exposed hydrophobic patches on the CDR loops." },
+          { id: 's1', text: "Open RCSB PDB. Search for trastuzumab  -  load structure 1N8Z (trastuzumab Fab in complex with HER2). Open it in iCn3D. Get familiar with the structure: identify the heavy chain (H), light chain (L), CDR loops (the antigen-binding loops), and the framework regions.", hint: "In iCn3D, use Analysis → Sequences to see the chain layout. The CDR loops are the most variable regions  -  they form the antigen-binding site. The framework regions form the stable scaffold. Aggregation often occurs at exposed hydrophobic patches on the CDR loops." },
           { id: 's2', text: "Identify hydrophobic patches on the antibody surface that might drive aggregation. In iCn3D, colour the structure by hydrophobicity (Style → Color → Hydrophobicity). Large exposed hydrophobic patches on loop regions are aggregation-prone.", hint: "Hydrophobic residues prefer to be buried in the protein core. When they are exposed on the surface (often in CDR loops), they can drive aggregation by sticking to other antibody molecules. Look for Trp, Phe, Leu, Ile, Val residues in loop regions that are solvent-exposed." },
           { id: 's3', text: "Search PubMed for 'trastuzumab stability engineering mutations' or 'antibody aggregation CDR mutations.' Find at least one paper reporting mutations that improved antibody stability. Note the specific residues changed and the experimental validation.", hint: "Several groups have published trastuzumab stability engineering studies. Common strategies include: replacing exposed Trp or Phe in CDRs with less hydrophobic residues, introducing disulfide bonds in the VH-VL interface, or grafting CDRs onto more stable framework scaffolds." },
           { id: 's4', text: "Propose Mutation 1: target an exposed hydrophobic residue you identified in Step 2. Go to DynaMut2 (link above), upload the 1N8Z PDB file, enter your mutation, and predict the ΔΔG (stability change). A negative ΔΔG means stabilising.", hint: "DynaMut2 is a free web server that predicts the thermodynamic effect of point mutations on protein stability. Input: PDB file, chain ID, residue number, wildtype residue, mutant residue. Output: predicted ΔΔG in kcal/mol. Negative = stabilising. Try conservative mutations first: replace Trp with Ala or Ser in a non-essential loop position." },
           { id: 's5', text: "Propose Mutations 2 and 3 using the same DynaMut2 workflow. For each: note the position, the WT→mutant change, the predicted ΔΔG, and one sentence of structural justification (why does this mutation improve stability?)", hint: "Good mutations to explore: (1) Removing a buried cavity by filling it with a larger hydrophobic residue. (2) Adding a salt bridge by introducing a charged residue near an oppositely-charged partner. (3) Reducing entropy of a flexible loop by replacing Gly with Ala. Each strategy has a different mechanistic basis." },
-          { id: 's6', text: "Specify the experimental validation assay for each mutation. How would you confirm the mutation actually improves stability without harming antigen binding?", hint: "Thermal shift assay (DSF/nanoDSF): measure Tm of WT vs. mutant — a higher Tm means more stable. Size-exclusion chromatography (SEC): measure aggregation at 37°C over 4 weeks. SPR (surface plasmon resonance): confirm binding affinity to HER2 is unchanged (mutations must not reduce potency). All three assays are standard in biologics CMC development." },
+          { id: 's6', text: "Specify the experimental validation assay for each mutation. How would you confirm the mutation actually improves stability without harming antigen binding?", hint: "Thermal shift assay (DSF/nanoDSF): measure Tm of WT vs. mutant  -  a higher Tm means more stable. Size-exclusion chromatography (SEC): measure aggregation at 37°C over 4 weeks. SPR (surface plasmon resonance): confirm binding affinity to HER2 is unchanged (mutations must not reduce potency). All three assays are standard in biologics CMC development." },
         ],
         rubric: ["Aggregation-prone regions identified with structural reasoning (not just listed)", "DynaMut2 used correctly and ΔΔG values interpreted accurately", "Each mutation has a clear mechanistic justification beyond 'it is predicted to be stabilising'", "Experimental validation plan is specific and would actually distinguish stabilised from unstable variants"],
         whats_next: ["Try Project 2: Trace a Computational Protein Design", "Continue the Protein Engineering curriculum", "Attempt the Protein Engineering Capstone"],
@@ -1239,19 +1542,19 @@ const INDUSTRY_LABS = [
       {
         id: 'pe_p2', title: 'Trace a De Novo Protein Design from Computation to Experiment', time: '2–3 hours', difficulty: 'Beginner',
         tools: [{ name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }, { name: 'RCSB PDB', url: 'https://www.rcsb.org/' }, { name: 'Baker Lab Design Server', url: 'https://design.ipd.uw.edu/' }],
-        scenario: "The Baker Lab at the University of Washington published a landmark 2023 paper designing proteins from scratch using RFdiffusion — proteins with no natural counterpart, built to perform specific functions. You are a science writer at a biotech investor newsletter. Your readers are smart but not protein engineers. Your job is to explain this paper's significance and trace how one designed protein went from a computational model to experimental validation.",
+        scenario: "The Baker Lab at the University of Washington published a landmark 2023 paper designing proteins from scratch using RFdiffusion  -  proteins with no natural counterpart, built to perform specific functions. You are a science writer at a biotech investor newsletter. Your readers are smart but not protein engineers. Your job is to explain this paper's significance and trace how one designed protein went from a computational model to experimental validation.",
         problem: "Read and interpret the key RFdiffusion paper (Watson et al., 2023, Nature), trace how one specific designed protein was validated experimentally, and produce a 600-word explainer that non-experts can understand.",
         why_it_matters: "The ability to translate cutting-edge science into clear, accessible language is one of the most underrated skills in biotech. BD professionals, investors, and medical affairs teams all need people who can do this accurately and compellingly.",
         expected_output: "A 600-word explainer document covering: what RFdiffusion does, how one designed protein was validated, what this means for drug discovery, and one honest limitation.",
         steps: [
           { id: 's1', text: "Search PubMed for 'RFdiffusion de novo protein design Watson 2023 Nature.' Find and read the abstract and introduction. Note: what problem does RFdiffusion solve? What is the key innovation compared to previous methods?", hint: "RFdiffusion uses a diffusion model (the same class of AI behind image generators like DALL-E) to generate protein backbone structures from scratch. The key innovation is that it can design proteins for specific tasks: binding a target, building a symmetric assembly, or scaffolding a functional motif. Previous methods (Rosetta) required extensive human-guided search." },
-          { id: 's2', text: "Find the section of the paper where they design protein binders for a specific target. Which target did they choose as a case study? What was the experimental validation method? What affinity did the top binder achieve?", hint: "One major case study is designing binders for influenza hemagglutinin (HA). The computational designs were synthesised, expressed, and tested by SPR (surface plasmon resonance) for binding affinity. Top binders achieved low nanomolar or sub-nanomolar affinity — comparable to antibodies but in a smaller, more stable scaffold." },
-          { id: 's3', text: "Find a designed protein from the paper that has a structure deposited in the PDB. Search the RCSB PDB for 'RFdiffusion 2023.' Open the structure. Compare the experimental (crystal structure) to the computational prediction. Note the RMSD if reported.", hint: "Several designed proteins from the paper had crystal structures solved to validate the design. An RMSD < 1.5Å between the design model and crystal structure means the computational prediction was essentially correct. This experimental validation is what makes the results trustworthy — not just the computational model." },
-          { id: 's4', text: "Find one failure case or limitation in the paper. What types of proteins or design challenges did RFdiffusion struggle with? Be specific.", hint: "RFdiffusion performs better on structured, globular proteins than on intrinsically disordered proteins or membrane proteins. The paper reports success rates — what percentage of designed sequences expressed correctly and showed the designed function. Not all designs work. The success rate varies by task complexity." },
-          { id: 's5', text: "Draft your 600-word explainer. Structure: Hook (why should a biotech investor care?) → What RFdiffusion does in plain language → The experiment (what they built and how they confirmed it worked) → What this means for drug discovery → One honest limitation. Avoid jargon — every technical term must be explained.", hint: "Good hook: 'For 50 years, protein engineers have worked like archaeologists — sifting through evolution's library of natural proteins to find useful sequences. RFdiffusion does something fundamentally different: it builds proteins that have never existed.' Then explain the technology without using words like 'diffusion model' without explaining what that means." },
+          { id: 's2', text: "Find the section of the paper where they design protein binders for a specific target. Which target did they choose as a case study? What was the experimental validation method? What affinity did the top binder achieve?", hint: "One major case study is designing binders for influenza hemagglutinin (HA). The computational designs were synthesised, expressed, and tested by SPR (surface plasmon resonance) for binding affinity. Top binders achieved low nanomolar or sub-nanomolar affinity  -  comparable to antibodies but in a smaller, more stable scaffold." },
+          { id: 's3', text: "Find a designed protein from the paper that has a structure deposited in the PDB. Search the RCSB PDB for 'RFdiffusion 2023.' Open the structure. Compare the experimental (crystal structure) to the computational prediction. Note the RMSD if reported.", hint: "Several designed proteins from the paper had crystal structures solved to validate the design. An RMSD < 1.5Å between the design model and crystal structure means the computational prediction was essentially correct. This experimental validation is what makes the results trustworthy  -  not just the computational model." },
+          { id: 's4', text: "Find one failure case or limitation in the paper. What types of proteins or design challenges did RFdiffusion struggle with? Be specific.", hint: "RFdiffusion performs better on structured, globular proteins than on intrinsically disordered proteins or membrane proteins. The paper reports success rates  -  what percentage of designed sequences expressed correctly and showed the designed function. Not all designs work. The success rate varies by task complexity." },
+          { id: 's5', text: "Draft your 600-word explainer. Structure: Hook (why should a biotech investor care?) → What RFdiffusion does in plain language → The experiment (what they built and how they confirmed it worked) → What this means for drug discovery → One honest limitation. Avoid jargon  -  every technical term must be explained.", hint: "Good hook: 'For 50 years, protein engineers have worked like archaeologists  -  sifting through evolution's library of natural proteins to find useful sequences. RFdiffusion does something fundamentally different: it builds proteins that have never existed.' Then explain the technology without using words like 'diffusion model' without explaining what that means." },
           { id: 's6', text: "Review your explainer. Read it as if you are a life sciences investor who last took biology in university. Does every paragraph make sense without prior knowledge? Is the limitation clearly framed as a limitation, not buried? Is it exactly 600 words (±50)?", hint: "Common mistakes: starting paragraphs with 'Furthermore' or 'In conclusion'; using unexplained acronyms (RMSD, SPR, PDB); making claims the paper does not support ('this will cure cancer'). The best science writing is precise, clear, and honest about uncertainty." },
         ],
-        rubric: ["RFdiffusion's innovation clearly explained without jargon or unexplained acronyms", "Experimental validation accurately described — specific protein, specific assay, specific result", "Drug discovery implications are plausible and grounded in the paper's evidence", "Limitation is specific and honest, not softened into a non-criticism"],
+        rubric: ["RFdiffusion's innovation clearly explained without jargon or unexplained acronyms", "Experimental validation accurately described  -  specific protein, specific assay, specific result", "Drug discovery implications are plausible and grounded in the paper's evidence", "Limitation is specific and honest, not softened into a non-criticism"],
         whats_next: ["Try Project 1: Engineer Stability Mutations", "Continue the Protein Engineering curriculum", "Attempt the Protein Engineering Capstone"],
       },
     ],
@@ -1262,35 +1565,35 @@ const INDUSTRY_LABS = [
       {
         id: 'rna_p1', title: 'Design an mRNA Vaccine Sequence', time: '3–4 hours', difficulty: 'Intermediate',
         tools: [{ name: 'Benchling (free)', url: 'https://benchling.com/signup' }, { name: 'NCBI Nucleotide', url: 'https://www.ncbi.nlm.nih.gov/nucleotide/' }, { name: 'EMBOSS Backtranseq', url: 'https://www.ebi.ac.uk/Tools/st/emboss_backtranseq/' }, { name: 'mFold RNA folding', url: 'http://www.unafold.org/mfold/applications/rna-folding-form.php' }],
-        scenario: "It's 2019. Moderna's scientists have just been handed a new target: they need to design an mRNA sequence that encodes a stabilised coronavirus spike protein for a potential vaccine. You are going to recreate the key design decisions they faced — before COVID-19 changed everything.",
+        scenario: "It's 2019. Moderna's scientists have just been handed a new target: they need to design an mRNA sequence that encodes a stabilised coronavirus spike protein for a potential vaccine. You are going to recreate the key design decisions they faced  -  before COVID-19 changed everything.",
         problem: "Design a codon-optimised mRNA sequence for a stabilised viral spike protein: choose the antigen, apply proline stabilisation mutations, codon-optimise the sequence, add 5' cap and UTR elements, and assess secondary structure.",
         why_it_matters: "mRNA sequence design is now a foundational skill in RNA therapeutics. Every mRNA vaccine and therapeutic in development goes through exactly these steps. Understanding the logic behind each design choice is what separates a sequence engineer from someone who just runs software.",
         expected_output: "A complete mRNA design document: antigen choice rationale, 2P stabilisation mutations, codon-optimised sequence (first 30 codons), UTR elements selected, and mFold secondary structure screenshot with interpretation.",
         steps: [
-          { id: 's1', text: "Go to NCBI Nucleotide. Search for 'SARS-CoV-2 spike protein mRNA' and find the original Wuhan-1 strain spike protein sequence (accession MN908947 or QHD43416 for the protein). Download the spike protein amino acid sequence in FASTA format.", hint: "The spike protein is 1273 amino acids. You will not be designing the full mRNA — you will work with the first 100 amino acids and the key furin cleavage site region. Understanding the full sequence helps you appreciate the design problem: 1273 amino acids × 3 nucleotides/codon = ~3,800 nucleotide mRNA before UTRs." },
-          { id: 's2', text: "Research the '2P' proline stabilisation mutations. Search PubMed for 'prefusion spike stabilisation 2P mutations Wrapp 2020 Science.' What do K986P and V987P do to the spike protein, and why does this matter for an mRNA vaccine?", hint: "The native spike protein is metastable — it folds from a prefusion conformation (the one antibodies neutralise best) to a post-fusion conformation after it fuses with the host cell. 2P mutations (two prolines at positions 986-987) lock the protein in the prefusion conformation, which is far more immunogenic. Moderna and BioNTech both used this strategy in their COVID vaccines." },
-          { id: 's3', text: "Codon-optimise the first 30 amino acids of the spike protein for human expression. Use EMBOSS Backtranseq with the human codon usage table. Compare your codon-optimised sequence to the native coronavirus sequence — what percentage of codons changed?", hint: "Codon optimisation replaces rare human codons with common ones, increasing translation efficiency. Coronaviruses have evolved codon usage optimised for their own host biology — these are often different from optimal human codons. Expect 30–50% of codons to change. The goal is maximum protein expression from the mRNA." },
-          { id: 's4', text: "Design your 5' UTR. Research what the Moderna mRNA-1273 5' UTR looks like (it has been published). Key elements: a 5' cap (m7G), the Kozak sequence for ribosome recognition, and a stem-loop structure. Write the 5' UTR sequence you would use and justify each element.", hint: "The Moderna 5' UTR is based on human alpha-globin mRNA UTR — naturally highly translated. Key elements: 5' cap (m7GpppN) — required for ribosome recognition and mRNA stability; Kozak sequence (GCCACCAUGG) immediately before the start codon — optimal for ribosome loading; avoid secondary structure near the start codon." },
-          { id: 's5', text: "Run your designed sequence (5' UTR + first 90 nucleotides of spike coding sequence) through mFold RNA folding server. Screenshot the predicted secondary structure. Identify any stem-loops forming near the start codon — these reduce translation efficiency and should be avoided.", hint: "Ideal mRNA structure near the 5' end: minimal secondary structure in the 5' UTR (allows ribosome scanning), the start codon (AUG) in an accessible, unstructured region. If mFold shows a strong stem-loop overlapping your AUG, you need to change flanking codons to disrupt it while maintaining the amino acid sequence." },
-          { id: 's6', text: "Write your design document. Structure: Antigen choice and 2P rationale → Codon optimisation strategy and % change → 5' UTR design and element justification → mFold structure assessment → One design challenge you would need to solve next (e.g., poly-A tail length, pseudouridine modification, LNP formulation).", hint: "The next challenge to mention: pseudouridine modification. Native mRNA contains uridine, which triggers innate immune sensing (TLR7/8). Moderna and BioNTech replaced all uridines with N1-methylpseudouridine (m1Ψ) — this eliminates immune stimulation and dramatically increases protein expression. This is the most important chemical modification in mRNA therapeutics." },
+          { id: 's1', text: "Go to NCBI Nucleotide. Search for 'SARS-CoV-2 spike protein mRNA' and find the original Wuhan-1 strain spike protein sequence (accession MN908947 or QHD43416 for the protein). Download the spike protein amino acid sequence in FASTA format.", hint: "The spike protein is 1273 amino acids. You will not be designing the full mRNA  -  you will work with the first 100 amino acids and the key furin cleavage site region. Understanding the full sequence helps you appreciate the design problem: 1273 amino acids × 3 nucleotides/codon = ~3,800 nucleotide mRNA before UTRs." },
+          { id: 's2', text: "Research the '2P' proline stabilisation mutations. Search PubMed for 'prefusion spike stabilisation 2P mutations Wrapp 2020 Science.' What do K986P and V987P do to the spike protein, and why does this matter for an mRNA vaccine?", hint: "The native spike protein is metastable  -  it folds from a prefusion conformation (the one antibodies neutralise best) to a post-fusion conformation after it fuses with the host cell. 2P mutations (two prolines at positions 986-987) lock the protein in the prefusion conformation, which is far more immunogenic. Moderna and BioNTech both used this strategy in their COVID vaccines." },
+          { id: 's3', text: "Codon-optimise the first 30 amino acids of the spike protein for human expression. Use EMBOSS Backtranseq with the human codon usage table. Compare your codon-optimised sequence to the native coronavirus sequence  -  what percentage of codons changed?", hint: "Codon optimisation replaces rare human codons with common ones, increasing translation efficiency. Coronaviruses have evolved codon usage optimised for their own host biology  -  these are often different from optimal human codons. Expect 30–50% of codons to change. The goal is maximum protein expression from the mRNA." },
+          { id: 's4', text: "Design your 5' UTR. Research what the Moderna mRNA-1273 5' UTR looks like (it has been published). Key elements: a 5' cap (m7G), the Kozak sequence for ribosome recognition, and a stem-loop structure. Write the 5' UTR sequence you would use and justify each element.", hint: "The Moderna 5' UTR is based on human alpha-globin mRNA UTR  -  naturally highly translated. Key elements: 5' cap (m7GpppN)  -  required for ribosome recognition and mRNA stability; Kozak sequence (GCCACCAUGG) immediately before the start codon  -  optimal for ribosome loading; avoid secondary structure near the start codon." },
+          { id: 's5', text: "Run your designed sequence (5' UTR + first 90 nucleotides of spike coding sequence) through mFold RNA folding server. Screenshot the predicted secondary structure. Identify any stem-loops forming near the start codon  -  these reduce translation efficiency and should be avoided.", hint: "Ideal mRNA structure near the 5' end: minimal secondary structure in the 5' UTR (allows ribosome scanning), the start codon (AUG) in an accessible, unstructured region. If mFold shows a strong stem-loop overlapping your AUG, you need to change flanking codons to disrupt it while maintaining the amino acid sequence." },
+          { id: 's6', text: "Write your design document. Structure: Antigen choice and 2P rationale → Codon optimisation strategy and % change → 5' UTR design and element justification → mFold structure assessment → One design challenge you would need to solve next (e.g., poly-A tail length, pseudouridine modification, LNP formulation).", hint: "The next challenge to mention: pseudouridine modification. Native mRNA contains uridine, which triggers innate immune sensing (TLR7/8). Moderna and BioNTech replaced all uridines with N1-methylpseudouridine (m1Ψ)  -  this eliminates immune stimulation and dramatically increases protein expression. This is the most important chemical modification in mRNA therapeutics." },
         ],
-        rubric: ["2P stabilisation mutations correctly described with mechanistic understanding of why they work", "Codon optimisation performed and % codon change noted", "5' UTR elements are all present and individually justified", "mFold structure interpreted correctly — secondary structure near AUG identified and addressed"],
+        rubric: ["2P stabilisation mutations correctly described with mechanistic understanding of why they work", "Codon optimisation performed and % codon change noted", "5' UTR elements are all present and individually justified", "mFold structure interpreted correctly  -  secondary structure near AUG identified and addressed"],
         whats_next: ["Try Project 2: Reconstruct the COVID Vaccine Design", "Continue the RNA Therapeutics curriculum", "Attempt the RNA Therapeutics Capstone"],
       },
       {
         id: 'rna_p2', title: 'Reconstruct the COVID Vaccine Design Decisions', time: '2–3 hours', difficulty: 'Beginner',
         tools: [{ name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }, { name: 'FDA mRNA-1273 EUA Review', url: 'https://www.fda.gov/media/144434/download' }, { name: 'BioNTech BNT162b2 paper', url: 'https://pubmed.ncbi.nlm.nih.gov/33301246/' }],
-        scenario: "January 10, 2020. The SARS-CoV-2 genome sequence is posted online. Within hours, Moderna's team begins designing mRNA-1273. 66 days later, the first human is injected in a Phase I trial. You are going to reconstruct every major design decision they made in those 66 days — and understand the molecular biology behind each one.",
+        scenario: "January 10, 2020. The SARS-CoV-2 genome sequence is posted online. Within hours, Moderna's team begins designing mRNA-1273. 66 days later, the first human is injected in a Phase I trial. You are going to reconstruct every major design decision they made in those 66 days  -  and understand the molecular biology behind each one.",
         problem: "Trace the key sequence design decisions behind mRNA-1273 from antigen selection to first-in-human injection: antigen choice, proline stabilisation, chemical modifications, LNP formulation, and manufacturing strategy.",
         why_it_matters: "mRNA-1273 is the most consequential mRNA product ever made. Every decision in its design is now a case study for the entire field. Understanding what they chose and why gives you a framework for designing any mRNA therapeutic.",
         expected_output: "A structured decision log: 6 key design decisions, the reasoning behind each, and a 1-paragraph reflection on what you would have done differently with hindsight.",
         steps: [
-          { id: 's1', text: "Search PubMed for 'Corbett mRNA-1273 design 2020 NEJM' — this is the Moderna Phase I paper. Read the methods section on vaccine design. Note: what antigen did they choose and what stabilisation strategy did they use?", hint: "Corbett et al., NEJM 2020 (DOI 10.1056/NEJMoa2024671). Key design: full-length spike protein with K986P/V987P 2P proline mutations, transmembrane anchor (to present on cell surface), and furin cleavage site preserved. Alternative they considered: just the receptor-binding domain (RBD). They chose full-length for broader antibody response." },
+          { id: 's1', text: "Search PubMed for 'Corbett mRNA-1273 design 2020 NEJM'  -  this is the Moderna Phase I paper. Read the methods section on vaccine design. Note: what antigen did they choose and what stabilisation strategy did they use?", hint: "Corbett et al., NEJM 2020 (DOI 10.1056/NEJMoa2024671). Key design: full-length spike protein with K986P/V987P 2P proline mutations, transmembrane anchor (to present on cell surface), and furin cleavage site preserved. Alternative they considered: just the receptor-binding domain (RBD). They chose full-length for broader antibody response." },
           { id: 's2', text: "Find the section on chemical modifications. What nucleoside modification was used in mRNA-1273? Why was this modification critical for safety and efficacy?", hint: "mRNA-1273 uses N1-methylpseudouridine (m1Ψ) to replace all uridines. This modification: (1) prevents innate immune sensing via TLR7/8 and RIG-I (unmodified mRNA is immunostimulatory), (2) dramatically increases translational efficiency (the modified mRNA makes more spike protein per cell), and (3) reduces cytotoxicity. Karikó and Weissman won the 2023 Nobel Prize for this discovery." },
-          { id: 's3', text: "Research the LNP formulation. What are the four components of the Moderna LNP? What does each component do? Search 'Moderna SM-102 LNP formulation mRNA' for the ionisable lipid component.", hint: "Moderna's LNP contains: (1) SM-102 — an ionisable lipid (positively charged at low pH for mRNA loading, neutral at physiological pH to reduce toxicity); (2) DSPC — a phospholipid for structural stability; (3) cholesterol — membrane fluidity; (4) PEG-DMG — polyethylene glycol lipid for stealth (prevents immune clearance). The SM-102 ionisable lipid is the proprietary component and the subject of IP disputes with BioNTech." },
-          { id: 's4', text: "Read the FDA EUA review for mRNA-1273 (link above — page 1–30 of the briefing document). What was the primary endpoint in COVE Phase III? What was the efficacy result?", hint: "Primary endpoint: prevention of symptomatic COVID-19 at least 14 days after the second dose in participants without prior SARS-CoV-2 infection. Result: 94.1% efficacy (94.5% in the primary analysis). The placebo arm had 185 cases; the vaccine arm had 11 cases. Note: this was efficacy against symptomatic disease — not infection per se." },
+          { id: 's3', text: "Research the LNP formulation. What are the four components of the Moderna LNP? What does each component do? Search 'Moderna SM-102 LNP formulation mRNA' for the ionisable lipid component.", hint: "Moderna's LNP contains: (1) SM-102  -  an ionisable lipid (positively charged at low pH for mRNA loading, neutral at physiological pH to reduce toxicity); (2) DSPC  -  a phospholipid for structural stability; (3) cholesterol  -  membrane fluidity; (4) PEG-DMG  -  polyethylene glycol lipid for stealth (prevents immune clearance). The SM-102 ionisable lipid is the proprietary component and the subject of IP disputes with BioNTech." },
+          { id: 's4', text: "Read the FDA EUA review for mRNA-1273 (link above  -  page 1–30 of the briefing document). What was the primary endpoint in COVE Phase III? What was the efficacy result?", hint: "Primary endpoint: prevention of symptomatic COVID-19 at least 14 days after the second dose in participants without prior SARS-CoV-2 infection. Result: 94.1% efficacy (94.5% in the primary analysis). The placebo arm had 185 cases; the vaccine arm had 11 cases. Note: this was efficacy against symptomatic disease  -  not infection per se." },
           { id: 's5', text: "Compare Moderna's mRNA-1273 to BioNTech's BNT162b2 (Pfizer/BioNTech). Find the BNT162b2 paper (Polack et al., NEJM 2020). What are the three key differences between the two vaccines?", hint: "Key differences: (1) Antigen: BNT162b2 uses full-length spike with 2P mutations (same as Moderna); BNT162b2b1 (an earlier candidate) used just the RBD. (2) LNP formulation: different ionisable lipid (ALC-0315 vs SM-102). (3) Dose: Moderna 100μg vs BioNTech 30μg. (4) Storage: Moderna was -20°C stable; BioNTech originally required -70°C (later improved). These differences drove different deployment strategies." },
-          { id: 's6', text: "Write your 1-paragraph reflection. With hindsight (and the knowledge of Omicron immune escape, waning immunity, and the bivalent booster strategy): what one design decision would you revisit, and what would you change?", hint: "Strong reflection options: (1) Would you target RBD alone for better immune focusing? (2) Would you use a self-amplifying mRNA design to allow lower doses? (3) Would you use a pan-coronavirus conserved antigen to prepare for variants? There is no 'correct' answer — the reflection should show understanding of the trade-offs, not just describe the current approach." },
+          { id: 's6', text: "Write your 1-paragraph reflection. With hindsight (and the knowledge of Omicron immune escape, waning immunity, and the bivalent booster strategy): what one design decision would you revisit, and what would you change?", hint: "Strong reflection options: (1) Would you target RBD alone for better immune focusing? (2) Would you use a self-amplifying mRNA design to allow lower doses? (3) Would you use a pan-coronavirus conserved antigen to prepare for variants? There is no 'correct' answer  -  the reflection should show understanding of the trade-offs, not just describe the current approach." },
         ],
         rubric: ["All six design decisions correctly identified and their molecular basis explained", "m1Ψ modification correctly described with both the immune evasion and translation enhancement mechanisms", "LNP four-component formulation correctly explained", "Reflection is specific, takes a position, and shows understanding of the real trade-offs"],
         whats_next: ["Try Project 1: Design an mRNA Vaccine Sequence", "Continue the RNA Therapeutics curriculum", "Attempt the RNA Therapeutics Capstone"],
@@ -1308,32 +1611,32 @@ const INDUSTRY_LABS = [
         why_it_matters: "Epigenetic aging clocks are becoming the primary outcome measure in longevity clinical trials. Anyone working in longevity medicine, geroscience, or precision health needs to understand what these biomarkers mean and what they cannot tell you.",
         expected_output: "A 1-page data interpretation memo: clock mechanism, participant interpretation, 3 modifiable drivers, and the clock's key limitation in clinical trial use.",
         steps: [
-          { id: 's1', text: "Search PubMed for 'Horvath epigenetic clock 2013 Genome Biology.' Read the abstract and introduction. What does the clock measure? How was it built? What is the correlation between DNA methylation age and chronological age?", hint: "Horvath's clock measures DNA methylation at 353 CpG sites. It was trained on ~8,000 samples across 51 tissue types. The correlation between methylation age and chronological age is r=0.96 — remarkably accurate across tissues and ages. Key point: the clock measures biological age, not chronological age — they diverge, and that divergence is what we care about clinically." },
-          { id: 's2', text: "Find the DunedinPACE clock paper (Belsky et al., 2022, eLife). How is DunedinPACE different from Horvath's original clock? What does it measure that chronological clocks do not?", hint: "DunedinPACE measures the pace of aging — how fast someone is aging right now — rather than their current biological age. It was trained on longitudinal data from the Dunedin cohort. A DunedinPACE of 1.0 means you are aging at the average rate. 0.8 means 20% slower. 1.2 means 20% faster. This is more useful for intervention trials than a static biological age estimate." },
+          { id: 's1', text: "Search PubMed for 'Horvath epigenetic clock 2013 Genome Biology.' Read the abstract and introduction. What does the clock measure? How was it built? What is the correlation between DNA methylation age and chronological age?", hint: "Horvath's clock measures DNA methylation at 353 CpG sites. It was trained on ~8,000 samples across 51 tissue types. The correlation between methylation age and chronological age is r=0.96  -  remarkably accurate across tissues and ages. Key point: the clock measures biological age, not chronological age  -  they diverge, and that divergence is what we care about clinically." },
+          { id: 's2', text: "Find the DunedinPACE clock paper (Belsky et al., 2022, eLife). How is DunedinPACE different from Horvath's original clock? What does it measure that chronological clocks do not?", hint: "DunedinPACE measures the pace of aging  -  how fast someone is aging right now  -  rather than their current biological age. It was trained on longitudinal data from the Dunedin cohort. A DunedinPACE of 1.0 means you are aging at the average rate. 0.8 means 20% slower. 1.2 means 20% faster. This is more useful for intervention trials than a static biological age estimate." },
           { id: 's3', text: "Interpret a hypothetical participant result: Chronological age 45, Horvath GrimAge 51, DunedinPACE 1.15, GrimAge components elevated: smoking pack-years surrogate, plasminogen activator inhibitor-1 (PAI-1). What does this profile tell you clinically?", hint: "GrimAge 51 at chronological age 45 = 6 years of accelerated aging. DunedinPACE 1.15 = aging 15% faster than average. Elevated PAI-1 is associated with cardiovascular and metabolic disease risk. The smoking surrogate being elevated suggests either current/former smoking or significant oxidative stress. This participant is at substantially elevated mortality risk." },
-          { id: 's4', text: "Identify 3 modifiable factors that have the strongest evidence for reducing epigenetic age. Search PubMed for 'epigenetic clock reversal intervention' or 'biological age reduction lifestyle.' Note the intervention, the study, and the magnitude of effect.", hint: "Best-evidence interventions: (1) Exercise — multiple studies show 1–3 year biological age reduction with sustained aerobic + resistance training. (2) Diet quality — Mediterranean diet and caloric restriction both associated with slower DunedinPACE. (3) Sleep — poor sleep quality accelerates epigenetic aging by 1–2 years. Rapamycin and metformin have early trial data but less human evidence than lifestyle factors." },
-          { id: 's5', text: "Identify the single biggest limitation of using epigenetic clocks as a primary endpoint in a 12-month clinical trial.", hint: "The biggest limitation: clocks were calibrated on chronological age, not on actual health outcomes. We do not yet know that reducing your epigenetic age by 2 years on a clock translates to 2 fewer years of disease or mortality. The clock is a proxy — a very good one, but the clinical validation is still ongoing. The TRIIM-X trial (growth hormone + metformin + DHEA) showed clock reversal but was a small, uncontrolled study." },
+          { id: 's4', text: "Identify 3 modifiable factors that have the strongest evidence for reducing epigenetic age. Search PubMed for 'epigenetic clock reversal intervention' or 'biological age reduction lifestyle.' Note the intervention, the study, and the magnitude of effect.", hint: "Best-evidence interventions: (1) Exercise  -  multiple studies show 1–3 year biological age reduction with sustained aerobic + resistance training. (2) Diet quality  -  Mediterranean diet and caloric restriction both associated with slower DunedinPACE. (3) Sleep  -  poor sleep quality accelerates epigenetic aging by 1–2 years. Rapamycin and metformin have early trial data but less human evidence than lifestyle factors." },
+          { id: 's5', text: "Identify the single biggest limitation of using epigenetic clocks as a primary endpoint in a 12-month clinical trial.", hint: "The biggest limitation: clocks were calibrated on chronological age, not on actual health outcomes. We do not yet know that reducing your epigenetic age by 2 years on a clock translates to 2 fewer years of disease or mortality. The clock is a proxy  -  a very good one, but the clinical validation is still ongoing. The TRIIM-X trial (growth hormone + metformin + DHEA) showed clock reversal but was a small, uncontrolled study." },
           { id: 's6', text: "Write your 1-page memo. Structure: What the clock measures (2 sentences) → Participant interpretation → 3 modifiable drivers with evidence level → Key limitation and how you would address it in trial design.", hint: "Address the limitation practically: in your trial, you would use multiple clocks (Horvath, GrimAge, DunedinPACE) and require concordant improvement across at least 2 to call a response. You would also track clinical biomarkers (inflammatory markers, cardiovascular risk scores) as co-primaries to build the link between clock improvement and health outcomes." },
         ],
-        rubric: ["Epigenetic clock mechanism correctly explained — CpG methylation basis understood", "Participant interpretation is specific and clinically relevant, not generic", "3 modifiable interventions are evidence-graded — distinguishes between strong and preliminary evidence", "Limitation is the key causal validation gap, not a secondary methodological point"],
+        rubric: ["Epigenetic clock mechanism correctly explained  -  CpG methylation basis understood", "Participant interpretation is specific and clinically relevant, not generic", "3 modifiable interventions are evidence-graded  -  distinguishes between strong and preliminary evidence", "Limitation is the key causal validation gap, not a secondary methodological point"],
         whats_next: ["Try Project 2: Analyse the TAME Trial", "Continue the Longevity Science curriculum", "Attempt the Longevity Science Capstone"],
       },
       {
         id: 'lon_p2', title: 'Analyse the TAME Trial and the Future of Geroscience', time: '2–3 hours', difficulty: 'Beginner',
         tools: [{ name: 'TAME Trial website', url: 'https://www.afar.org/tame-trial' }, { name: 'ClinicalTrials.gov', url: 'https://clinicaltrials.gov/' }, { name: 'PubMed', url: 'https://pubmed.ncbi.nlm.nih.gov/' }],
-        scenario: "The TAME trial (Targeting Aging with Metformin) is the first clinical trial in history designed to target the biology of aging itself — not a specific disease, but aging as a process. FDA approved it as a trial, which required a landmark regulatory decision: recognising 'aging' as a modifiable condition. You are a science policy analyst advising a government health agency on whether to fund a second TAME-like trial.",
+        scenario: "The TAME trial (Targeting Aging with Metformin) is the first clinical trial in history designed to target the biology of aging itself  -  not a specific disease, but aging as a process. FDA approved it as a trial, which required a landmark regulatory decision: recognising 'aging' as a modifiable condition. You are a science policy analyst advising a government health agency on whether to fund a second TAME-like trial.",
         problem: "Analyse the TAME trial design, its regulatory significance, the metformin evidence base, and produce a policy memo recommending whether to fund a follow-on geroscience trial.",
         why_it_matters: "The TAME trial is redefining what clinical trials can target. Understanding its design, regulatory novelty, and the metformin evidence base is essential for anyone working in longevity medicine, health policy, or geroscience.",
         expected_output: "A 1-page policy memo: TAME trial design summary, regulatory significance, evidence for metformin as a geroscience intervention, and a funding recommendation with conditions.",
         steps: [
-          { id: 's1', text: "Read the TAME trial overview at afar.org/tame-trial. Then find the TAME protocol on ClinicalTrials.gov (NCT03077360). Note: primary endpoint, patient population, intervention, duration, and sample size.", hint: "TAME enrolls 3,000 participants aged 65–79 without diabetes (metformin is already standard of care for diabetes — this trial tests it in aging per se). Primary endpoint: a composite of first occurrence of any of 6 conditions (MI, stroke, heart failure, cancer, dementia, death). Duration: 6 years. This composite endpoint was chosen specifically because FDA would not accept 'aging' as a primary endpoint." },
-          { id: 's2', text: "Understand the regulatory innovation. Search 'FDA aging indication TAME Barzilai' and find Nir Barzilai's description of the FDA negotiations. What did FDA agree to that was unprecedented?", hint: "FDA agreed that the composite endpoint (multiple age-related conditions) could serve as a regulatory endpoint for a drug targeting aging. This implicitly recognised that aging is a targetable biological process. The regulatory significance: if TAME succeeds, metformin could receive an indication for 'slowing aging' — something no drug has ever had." },
-          { id: 's3', text: "Review the evidence base for metformin as a longevity intervention. Find the UK CPRD observational study (Bannister et al., 2014, Diabetes, Obesity and Metabolism) showing diabetic patients on metformin outlived matched non-diabetic controls. What is the main limitation of this evidence?", hint: "The Bannister study found metformin-treated diabetics had lower mortality than matched non-diabetic controls — suggesting metformin's effects go beyond glucose control. The key limitation: this is observational data. Confounders include healthy user bias (people stable enough to take metformin long-term may be healthier to begin with). TAME is a randomised controlled trial specifically designed to address this confounding." },
+          { id: 's1', text: "Read the TAME trial overview at afar.org/tame-trial. Then find the TAME protocol on ClinicalTrials.gov (NCT03077360). Note: primary endpoint, patient population, intervention, duration, and sample size.", hint: "TAME enrolls 3,000 participants aged 65–79 without diabetes (metformin is already standard of care for diabetes  -  this trial tests it in aging per se). Primary endpoint: a composite of first occurrence of any of 6 conditions (MI, stroke, heart failure, cancer, dementia, death). Duration: 6 years. This composite endpoint was chosen specifically because FDA would not accept 'aging' as a primary endpoint." },
+          { id: 's2', text: "Understand the regulatory innovation. Search 'FDA aging indication TAME Barzilai' and find Nir Barzilai's description of the FDA negotiations. What did FDA agree to that was unprecedented?", hint: "FDA agreed that the composite endpoint (multiple age-related conditions) could serve as a regulatory endpoint for a drug targeting aging. This implicitly recognised that aging is a targetable biological process. The regulatory significance: if TAME succeeds, metformin could receive an indication for 'slowing aging'  -  something no drug has ever had." },
+          { id: 's3', text: "Review the evidence base for metformin as a longevity intervention. Find the UK CPRD observational study (Bannister et al., 2014, Diabetes, Obesity and Metabolism) showing diabetic patients on metformin outlived matched non-diabetic controls. What is the main limitation of this evidence?", hint: "The Bannister study found metformin-treated diabetics had lower mortality than matched non-diabetic controls  -  suggesting metformin's effects go beyond glucose control. The key limitation: this is observational data. Confounders include healthy user bias (people stable enough to take metformin long-term may be healthier to begin with). TAME is a randomised controlled trial specifically designed to address this confounding." },
           { id: 's4', text: "Identify the proposed mechanism of metformin's longevity effect. Search PubMed for 'metformin AMPK mTOR aging mechanism.' What cellular pathways does it activate/inhibit?", hint: "Metformin activates AMPK (AMP-activated protein kinase) by inhibiting Complex I of the mitochondrial electron transport chain. AMPK activation: inhibits mTORC1 (reducing protein synthesis and cell growth signals associated with aging), activates autophagy (cellular cleanup), and improves mitochondrial function. These are core longevity pathways also targeted by caloric restriction." },
-          { id: 's5', text: "Identify 2 design limitations of the TAME trial. What would you change in a follow-on trial?", hint: "Limitations: (1) Only one drug — cannot assess combination approaches (metformin + rapamycin + NAD+ precursors). (2) Six-year duration — for practical policy decisions, we need shorter biomarker-based endpoints. (3) No biological aging clock as co-primary — if DunedinPACE or GrimAge were included, you could see biological effect before 6 years of clinical follow-up. In a follow-on trial, add validated aging clocks as co-primaries." },
+          { id: 's5', text: "Identify 2 design limitations of the TAME trial. What would you change in a follow-on trial?", hint: "Limitations: (1) Only one drug  -  cannot assess combination approaches (metformin + rapamycin + NAD+ precursors). (2) Six-year duration  -  for practical policy decisions, we need shorter biomarker-based endpoints. (3) No biological aging clock as co-primary  -  if DunedinPACE or GrimAge were included, you could see biological effect before 6 years of clinical follow-up. In a follow-on trial, add validated aging clocks as co-primaries." },
           { id: 's6', text: "Write your 1-page policy memo. Structure: TAME summary → Regulatory significance → Metformin evidence strength and limitations → Your recommendation (fund a follow-on trial? Yes/No/Conditional) → 2 conditions or modifications you would require.", hint: "A 'Conditional Yes' is the most defensible recommendation. Condition 1: the follow-on trial must include epigenetic aging clocks as co-primary endpoints to shorten the feedback loop. Condition 2: the trial should include a combination arm (metformin + rapamycin) since animal data shows synergy. State the risk: if TAME itself fails, public and regulatory appetite for geroscience trials may shrink significantly." },
         ],
-        rubric: ["TAME trial design accurately described with correct primary endpoint and population", "Regulatory significance correctly explained — what FDA agreed to and why it matters", "Metformin mechanism is specific (AMPK → mTOR pathway) and the observational evidence limitation is correctly identified", "Policy recommendation is specific, takes a clear position, and conditions are realistic"],
+        rubric: ["TAME trial design accurately described with correct primary endpoint and population", "Regulatory significance correctly explained  -  what FDA agreed to and why it matters", "Metformin mechanism is specific (AMPK → mTOR pathway) and the observational evidence limitation is correctly identified", "Policy recommendation is specific, takes a clear position, and conditions are realistic"],
         whats_next: ["Try Project 1: Interpret an Epigenetic Aging Clock", "Continue the Longevity Science curriculum", "Attempt the Longevity Science Capstone"],
       },
     ],
@@ -1343,6 +1646,7 @@ const INDUSTRY_LABS = [
 // ── Shared constants ───────────────────────────────────────────────────────
 
 const YEAR_OPTIONS = ['1st Year', '2nd Year', '3rd Year', '4th Year', "Master's", 'PhD', 'Working Professional', 'Other'];
+const US_YEAR_OPTIONS = ['0–1 years', '1–3 years', '3–5 years', '5–10 years', '10+ years'];
 const USE_CASES = [
   {
     id: 'career_direction',
@@ -1464,6 +1768,53 @@ const US_STATES = [
   'Oklahoma','Oregon','Pennsylvania','Rhode Island','South Carolina','South Dakota',
   'Tennessee','Texas','Utah','Vermont','Virginia','Washington','West Virginia',
   'Wisconsin','Wyoming','Washington DC',
+];
+
+const US_CITIES = [
+  { city: 'Boston',             state: 'Massachusetts' },
+  { city: 'Cambridge',          state: 'Massachusetts' },
+  { city: 'Worcester',          state: 'Massachusetts' },
+  { city: 'San Francisco',      state: 'California' },
+  { city: 'San Diego',          state: 'California' },
+  { city: 'Los Angeles',        state: 'California' },
+  { city: 'South San Francisco',state: 'California' },
+  { city: 'Thousand Oaks',      state: 'California' },
+  { city: 'New York',           state: 'New York' },
+  { city: 'New Brunswick',      state: 'New Jersey' },
+  { city: 'Princeton',          state: 'New Jersey' },
+  { city: 'Parsippany',         state: 'New Jersey' },
+  { city: 'Research Triangle',  state: 'North Carolina' },
+  { city: 'Durham',             state: 'North Carolina' },
+  { city: 'Raleigh',            state: 'North Carolina' },
+  { city: 'Chapel Hill',        state: 'North Carolina' },
+  { city: 'Washington DC',      state: 'Washington DC' },
+  { city: 'Rockville',          state: 'Maryland' },
+  { city: 'Gaithersburg',       state: 'Maryland' },
+  { city: 'Baltimore',          state: 'Maryland' },
+  { city: 'Philadelphia',       state: 'Pennsylvania' },
+  { city: 'Chicago',            state: 'Illinois' },
+  { city: 'Seattle',            state: 'Washington' },
+  { city: 'Bothell',            state: 'Washington' },
+  { city: 'Indianapolis',       state: 'Indiana' },
+  { city: 'Cleveland',          state: 'Ohio' },
+  { city: 'Columbus',           state: 'Ohio' },
+  { city: 'Houston',            state: 'Texas' },
+  { city: 'Austin',             state: 'Texas' },
+  { city: 'Dallas',             state: 'Texas' },
+  { city: 'Denver',             state: 'Colorado' },
+  { city: 'Salt Lake City',     state: 'Utah' },
+  { city: 'Atlanta',            state: 'Georgia' },
+  { city: 'Miami',              state: 'Florida' },
+  { city: 'Tampa',              state: 'Florida' },
+  { city: 'Wilmington',         state: 'Delaware' },
+  { city: 'Hartford',           state: 'Connecticut' },
+  { city: 'New Haven',          state: 'Connecticut' },
+  { city: 'Ann Arbor',          state: 'Michigan' },
+  { city: 'Minneapolis',        state: 'Minnesota' },
+  { city: 'Portland',           state: 'Oregon' },
+  { city: 'Nashville',          state: 'Tennessee' },
+  { city: 'Kansas City',        state: 'Missouri' },
+  { city: 'St. Louis',          state: 'Missouri' },
 ];
 
 const US_EXP_OPTIONS = ['< 1 year', '1–3 years', '3–5 years', '5–10 years', '10+ years'];
@@ -1599,7 +1950,7 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
             ) : (
               <div className="profile-nudge">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                LinkedIn is how biotech recruiters find talent. <a href="https://linkedin.com/signup" target="_blank" rel="noreferrer">Create your profile →</a>
+                {ACTIVE_REGION === 'us' ? 'LinkedIn is the primary channel pharma and CRO recruiters use to find candidates.' : 'LinkedIn is how biotech recruiters find talent.'}{' '}<a href="https://linkedin.com/signup" target="_blank" rel="noreferrer">Create your profile →</a>
               </div>
             )}
           </div>
@@ -1626,7 +1977,7 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
             ) : (
               <div className="profile-nudge">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                GitHub is essential for bioinformatics & AI roles. Employers check it. <a href="https://github.com/signup" target="_blank" rel="noreferrer">Create a free account →</a>
+                {ACTIVE_REGION === 'us' ? 'Useful for CDM and data roles — shows your scripting and analysis work.' : 'GitHub is essential for bioinformatics & AI roles. Employers check it.'}{' '}<a href="https://github.com/signup" target="_blank" rel="noreferrer">Create a free account →</a>
               </div>
             )}
           </div>
@@ -1636,7 +1987,7 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
             <input
               type="text"
               className="profile-input"
-              placeholder="e.g. 2nd-year PhD working on CRISPR diagnostics"
+              placeholder={ACTIVE_REGION === 'us' ? 'e.g. CRA with 3 years in oncology trials, preparing for CCRA' : 'e.g. 2nd-year PhD working on CRISPR diagnostics'}
               maxLength={100}
               value={bio}
               onChange={e => setBio(e.target.value)}
@@ -1652,14 +2003,17 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
           <h3 className="profile-section-title">Your Background</h3>
           <div className="profile-row">
             <div className="profile-field">
-              <label>College / University</label>
-              <input type="text" className="profile-input" placeholder="e.g. IIT Bombay, Stanford…" value={college} onChange={e => setCollege(e.target.value)} />
+              <label>{ACTIVE_REGION === 'us' ? 'College / Organization' : 'College / University'}</label>
+              <input type="text" className="profile-input" placeholder={ACTIVE_REGION === 'us' ? 'e.g. Duke University, ICON plc, Pfizer…' : 'e.g. IIT Bombay, Stanford…'} value={college} onChange={e => setCollege(e.target.value)} />
             </div>
             <div className="profile-field profile-field-sm">
-              <label>Year of Study</label>
+              <label>{ACTIVE_REGION === 'us' ? 'Experience Level' : 'Year of Study'}</label>
               <select className="profile-select" value={year} onChange={e => setYear(e.target.value)}>
                 <option value="">Select…</option>
-                {YEAR_OPTIONS.map(y => <option key={y} value={y}>{y}</option>)}
+                {(ACTIVE_REGION === 'us'
+                  ? ['0–1 years', '1–3 years', '3–5 years', '5–10 years', '10+ years']
+                  : YEAR_OPTIONS
+                ).map(y => <option key={y} value={y}>{y}</option>)}
               </select>
             </div>
           </div>
@@ -1672,7 +2026,7 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
           <h3 className="profile-section-title">Goals & Motivation</h3>
           <div className="profile-field">
             <label>Career aspirations</label>
-            <textarea className="profile-textarea" rows={3} placeholder="Where do you want to go in biotech?" value={aspirations} onChange={e => setAspirations(e.target.value)} />
+            <textarea className="profile-textarea" rows={3} placeholder={ACTIVE_REGION === 'us' ? 'What role are you targeting after your certification?' : 'Where do you want to go in biotech?'} value={aspirations} onChange={e => setAspirations(e.target.value)} />
           </div>
           <div className="profile-field">
             <label>Why Bversity?</label>
@@ -1695,17 +2049,17 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
         {/* Location & community map */}
         <div className="profile-section">
           <h3 className="profile-section-title">Location & Community</h3>
-          <p className="profile-section-sub">Show up on the Bversity Community Map so learners across India can find you.</p>
+          <p className="profile-section-sub">Show up on the Bversity Community Map so learners across the world can find you.</p>
           <div className="profile-row">
             <div className="profile-field">
               <label>City</label>
-              <input type="text" className="profile-input" placeholder="e.g. Bangalore, Mumbai…" value={city} onChange={e => setCity(e.target.value)} />
+              <input type="text" className="profile-input" placeholder={ACTIVE_REGION === 'us' ? 'e.g. Boston, San Francisco, Raleigh…' : 'e.g. Bangalore, Mumbai…'} value={city} onChange={e => setCity(e.target.value)} />
             </div>
             <div className="profile-field profile-field-sm">
               <label>State</label>
               <select className="profile-select" value={state} onChange={e => setState(e.target.value)}>
                 <option value="">Select…</option>
-                {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                {(ACTIVE_REGION === 'us' ? US_STATES : INDIAN_STATES).map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
           </div>
@@ -1777,6 +2131,37 @@ function OnboardingView({ student, careerProfile, onComplete }) {
 
   // ── US onboarding (3-step, working professional flow) ──────────────────────
   if (ACTIVE_REGION === 'us') {
+    function USCitySearch({ city, onSelect }) {
+      const [query, setQuery] = React.useState(city || '');
+      const [open, setOpen] = React.useState(false);
+      const filtered = query.length > 0
+        ? US_CITIES.filter(c => c.city.toLowerCase().startsWith(query.toLowerCase())).slice(0, 8)
+        : [];
+      return (
+        <div style={{ position: 'relative' }}>
+          <input
+            type="text"
+            className="onboarding-input"
+            placeholder="e.g. Boston, San Diego, Research Triangle…"
+            value={query}
+            autoFocus
+            onChange={e => { setQuery(e.target.value); setOpen(true); }}
+            onFocus={() => setOpen(true)}
+            onBlur={() => setTimeout(() => setOpen(false), 150)}
+          />
+          {open && filtered.length > 0 && (
+            <div className="us-city-dropdown">
+              {filtered.map(c => (
+                <div key={c.city} className="us-city-option" onMouseDown={() => { onSelect(c.city, c.state); setQuery(c.city); setOpen(false); }}>
+                  <span className="us-city-name">{c.city}</span>
+                  <span className="us-city-state">{c.state}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
     const canUsStep1 = college.trim() && year;
     const canUsStep2 = !!selectedCareerId;
     const ArrowIcon = () => (
@@ -1834,27 +2219,24 @@ function OnboardingView({ student, careerProfile, onComplete }) {
           {step === 2 && (
             <>
               <h2 className="onboarding-heading">Which certification are you targeting?</h2>
-              <p className="onboarding-sub">Your entire learning roadmap — subjects, concepts, and practice — will be built around this. You can change it later.</p>
+              <p className="onboarding-sub">Your entire learning roadmap  -  subjects, concepts, and practice  -  will be built around this. You can change it later.</p>
               <div className="ob-career-grid ob-career-grid--full">
-                {careers.map(career => (
-                  <div key={career.id}
-                    className={`ob-career-card ${selectedCareerId === career.id ? 'selected' : ''}`}
-                    style={{ '--career-color': US_SUBJECTS.find(s => s.id === career.relevant_subjects?.[0])?.color || '#00A896' }}
-                    onClick={() => setSelectedCareerId(career.id)}
+                {US_SUBJECTS.map(cert => (
+                  <div key={cert.id}
+                    className={`ob-career-card ${selectedCareerId === cert.id ? 'selected' : ''}`}
+                    style={{ '--career-color': cert.color }}
+                    onClick={() => setSelectedCareerId(cert.id)}
                     role="button" tabIndex={0}
-                    onKeyDown={e => e.key === 'Enter' && setSelectedCareerId(career.id)}
+                    onKeyDown={e => e.key === 'Enter' && setSelectedCareerId(cert.id)}
                   >
                     <div className="ob-career-card-top">
-                      <span className="ob-career-icon" style={{ color: US_SUBJECTS.find(s => s.id === career.relevant_subjects?.[0])?.color }}>
-                        {SUBJECT_ICONS[career.relevant_subjects?.[0]]}
-                      </span>
                       <div className="ob-career-meta">
-                        <div className="ob-career-title">{career.title}</div>
-                        <div className="ob-career-salary">{career.salary_range} · {career.target_certifications?.[0]}</div>
+                        <div className="ob-career-title">{cert.name}</div>
+                        <div className="ob-career-salary">{cert.certification} · {cert.certBody}</div>
                       </div>
-                      {selectedCareerId === career.id && <span className="ob-career-check">✓</span>}
+                      {selectedCareerId === cert.id && <span className="ob-career-check">✓</span>}
                     </div>
-                    <p className="ob-career-desc">{career.description}</p>
+                    <p className="ob-career-desc">{cert.org} · {cert.role}</p>
                   </div>
                 ))}
               </div>
@@ -1866,7 +2248,7 @@ function OnboardingView({ student, careerProfile, onComplete }) {
               </div>
               <div className="ob-explore-skip">
                 <button className="ob-explore-btn" onClick={() => { setSelectedCareerId(''); setStep(3); }}>
-                  Not sure yet — explore for now →
+                  Not sure yet  -  explore for now →
                 </button>
               </div>
             </>
@@ -1875,22 +2257,18 @@ function OnboardingView({ student, careerProfile, onComplete }) {
           {step === 3 && (
             <>
               <h2 className="onboarding-heading">Put yourself on the map</h2>
-              <p className="onboarding-sub">Connect with Bversity professionals across the US. Optional — skip if you prefer.</p>
+              <p className="onboarding-sub">Connect with Bversity professionals across the US. Optional  -  skip if you prefer.</p>
               <div className="onboarding-fields">
                 <div className="onboarding-field">
                   <label>City</label>
-                  <input type="text" className="onboarding-input"
-                    placeholder="e.g. Boston, San Francisco, Research Triangle…"
-                    value={city} onChange={e => setCity(e.target.value)} autoFocus
-                  />
+                  <USCitySearch city={city} onSelect={(c, s) => { setCity(c); setObState(s); }} />
                 </div>
-                <div className="onboarding-field">
-                  <label>State</label>
-                  <select className="onboarding-input" value={obState} onChange={e => setObState(e.target.value)}>
-                    <option value="">Select state…</option>
-                    {US_STATES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
+                {obState && (
+                  <div className="onboarding-field">
+                    <label>State</label>
+                    <input className="onboarding-input" value={obState} readOnly style={{ background: '#f5f5f5', color: '#666' }} />
+                  </div>
+                )}
                 <label className="profile-map-toggle">
                   <input type="checkbox" checked={showOnMap} onChange={e => setShowOnMap(e.target.checked)} />
                   <span className="profile-map-toggle-track" />
@@ -1982,16 +2360,16 @@ function OnboardingView({ student, careerProfile, onComplete }) {
             <p className="onboarding-sub">Let's set up your profile so your AI industry experts can teach to exactly where you are right now.</p>
             <div className="onboarding-fields">
               <div className="onboarding-field">
-                <label>Which college or university are you at?</label>
+                <label>{ACTIVE_REGION === 'us' ? 'College / Organization' : 'Which college or university are you at?'}</label>
                 <input type="text" className="onboarding-input"
-                  placeholder="e.g. IIT Bombay, BITS Pilani, Manipal…"
+                  placeholder={ACTIVE_REGION === 'us' ? 'e.g. Duke University, ICON plc, Pfizer…' : 'e.g. IIT Bombay, BITS Pilani, Manipal…'}
                   value={college} onChange={e => setCollege(e.target.value)} autoFocus
                 />
               </div>
               <div className="onboarding-field">
-                <label>What year are you in?</label>
+                <label>{ACTIVE_REGION === 'us' ? 'Experience Level' : 'What year are you in?'}</label>
                 <div className="onboarding-chips">
-                  {YEAR_OPTIONS.map(y => (
+                  {(ACTIVE_REGION === 'us' ? US_YEAR_OPTIONS : YEAR_OPTIONS).map(y => (
                     <button key={y} type="button"
                       className={`onboarding-chip ${year === y ? 'selected' : ''}`}
                       onClick={() => setYear(y)}
@@ -2163,12 +2541,12 @@ function OnboardingView({ student, careerProfile, onComplete }) {
         {step === 4 && (
           <>
             <h2 className="onboarding-heading">Put yourself on the map</h2>
-            <p className="onboarding-sub">Show other Bversity learners across India where you're studying from. Be the first pin in your city.</p>
+            <p className="onboarding-sub">Show other Bversity learners across the world where you're studying from. Be the first pin in your city.</p>
             <div className="onboarding-fields">
               <div className="onboarding-field">
                 <label>City</label>
                 <input type="text" className="onboarding-input"
-                  placeholder="e.g. Bangalore, Mumbai, Chennai…"
+                  placeholder={ACTIVE_REGION === 'us' ? 'e.g. Boston, San Francisco, Raleigh…' : 'e.g. Bangalore, Mumbai, Chennai…'}
                   value={city} onChange={e => setCity(e.target.value)} autoFocus
                 />
               </div>
@@ -2176,7 +2554,7 @@ function OnboardingView({ student, careerProfile, onComplete }) {
                 <label>State</label>
                 <select className="onboarding-input" value={obState} onChange={e => setObState(e.target.value)}>
                   <option value="">Select state…</option>
-                  {INDIAN_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+                  {(ACTIVE_REGION === 'us' ? US_STATES : INDIAN_STATES).map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
               </div>
               <label className="profile-map-toggle">
@@ -2215,20 +2593,20 @@ function HowItWorksOverlay({ onClose, onGetStarted, onRequestAccess }) {
         </button>
 
         <div className="hiw-header">
-          <div className="hiw-tag">Bversity Adaptive Learning Intelligence</div>
-          <h2 className="hiw-title">The world's first AI-Native University for Biotech &amp; Life Sciences</h2>
+          <div className="hiw-tag">Bversity · Biotech &amp; Life Sciences Career Pathways</div>
+          <h2 className="hiw-title">Discover your career in biotech &amp; life sciences</h2>
           <p className="hiw-desc">
-            Not lectures. Not video courses. A living, adaptive university built career-first for the AI era.
+            Not lectures. Not video courses. A living, adaptive platform built career-first — from discovery to industry readiness.
           </p>
         </div>
 
-        <div className="hiw-section-label">This is where Bversity will lead you to</div>
+        <div className="hiw-section-label">Your career pathway, built by Bversity</div>
         <div className="hiw-use-cases">
           <div className="hiw-use-case">
             <div className="hiw-uc-icon">🧭</div>
             <div className="hiw-uc-body">
-              <div className="hiw-uc-title">Career Direction</div>
-              <div className="hiw-uc-desc">Find exactly where your biology degree leads in biotech.</div>
+              <div className="hiw-uc-title">Career Discovery</div>
+              <div className="hiw-uc-desc">Find exactly where your biology background leads in biotech and life sciences.</div>
             </div>
           </div>
           <div className="hiw-use-case">
@@ -2241,15 +2619,15 @@ function HowItWorksOverlay({ onClose, onGetStarted, onRequestAccess }) {
           <div className="hiw-use-case">
             <div className="hiw-uc-icon">⚡</div>
             <div className="hiw-uc-body">
-              <div className="hiw-uc-title">Stay Ahead of Emerging Fields</div>
-              <div className="hiw-uc-desc">Longevity, AI in drug discovery, RNA therapeutics. Stay current on what's reshaping biotech right now.</div>
+              <div className="hiw-uc-title">Emerging Fields</div>
+              <div className="hiw-uc-desc">Longevity, AI in drug discovery, RNA therapeutics. Stay ahead of what's reshaping the industry.</div>
             </div>
           </div>
           <div className="hiw-use-case">
             <div className="hiw-uc-icon">🚀</div>
             <div className="hiw-uc-body">
-              <div className="hiw-uc-title">Become a Forward Deployed Engineer</div>
-              <div className="hiw-uc-desc">The most in-demand hybrid role in biotech. Bridge science and technology inside pharma and biotech companies.</div>
+              <div className="hiw-uc-title">Get Hired</div>
+              <div className="hiw-uc-desc">Build domain knowledge and real skills that hiring managers at CROs, pharma, and biotech actually look for.</div>
             </div>
           </div>
         </div>
@@ -2259,29 +2637,29 @@ function HowItWorksOverlay({ onClose, onGetStarted, onRequestAccess }) {
           <div className="hiw-step">
             <div className="hiw-step-num">1</div>
             <div className="hiw-step-text">
-              <strong>Pick your career path</strong>
-              <span>Choose the role you're building towards from curated biotech career tracks.</span>
+              <strong>Pick your career destination</strong>
+              <span>Choose the role you're building towards from curated biotech and life sciences career tracks.</span>
             </div>
           </div>
           <div className="hiw-step">
             <div className="hiw-step-num">2</div>
             <div className="hiw-step-text">
-              <strong>See exactly what it takes</strong>
-              <span>Your personalized learning track shows every skill and subject you need, in the right order.</span>
+              <strong>See your learning pathway</strong>
+              <span>Your personalised track shows every subject and skill you need, mapped to your target role, in the right order.</span>
             </div>
           </div>
           <div className="hiw-step">
             <div className="hiw-step-num">3</div>
             <div className="hiw-step-text">
-              <strong>Learn through Bversity</strong>
-              <span>Bversity's adaptive learning intelligence guides you through each subject with interactive, expert-level depth.</span>
+              <strong>Learn with AI industry experts</strong>
+              <span>One-on-one sessions with AI tutors who have real industry backgrounds — adaptive, deep, and built around you.</span>
             </div>
           </div>
           <div className="hiw-step">
             <div className="hiw-step-num">4</div>
             <div className="hiw-step-text">
-              <strong>Graduate career-ready</strong>
-              <span>Earn verified credentials, build a portfolio of domain knowledge, and walk into interviews with confidence.</span>
+              <strong>Walk in career-ready</strong>
+              <span>Build domain knowledge, earn verified credentials, and go into interviews knowing what the industry actually expects.</span>
             </div>
           </div>
         </div>
@@ -2334,49 +2712,93 @@ function WelcomeScreen({ onGetStarted }) {
       </header>
 
       <div className="welcome-content-block">
-        <div className="welcome-hero">
-          <div className="welcome-tag">AI-Native University · Biotech &amp; Life Sciences</div>
-          <h1 className="welcome-headline">
-            Learn from the world's first<br />
-            <span className="welcome-headline-accent">AI-Native Biotech University</span>
-          </h1>
-          <p className="welcome-subline">
-            Master bioinformatics, genomics, drug discovery, and more
-            through one-on-one sessions with AI-powered industry experts.
-          </p>
-          <div className="welcome-cta-row">
-            <button className="welcome-cta" onClick={() => setShowHowItWorks(true)}>
-              How it works
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M5 12h14M12 5l7 7-7 7"/>
-              </svg>
-            </button>
-            <button className="welcome-cta-ghost" onClick={() => setShowWaitlist(true)}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-              </svg>
-              Request Access
-            </button>
-          </div>
-          {waitlistCount !== null && waitlistCount > 0 && (
-            <p className="welcome-waitlist-count">
-              Join {waitlistCount} {waitlistCount === 1 ? 'person' : 'people'} already on the waitlist
+        {ACTIVE_REGION === 'us' ? (
+          <div className="welcome-hero">
+            <div className="welcome-tag">US &amp; Europe · Life Science Certifications</div>
+            <h1 className="welcome-headline">
+              Your AI co-pilot for<br />
+              <span className="welcome-headline-accent">life science certifications</span>
+            </h1>
+            <p className="welcome-subline">
+              Built for working professionals in clinical research, pharma, and life sciences.
+              Prep for CCRA, CCRP, RAC, and more  -  at your own pace.
             </p>
-          )}
-        </div>
+            <div className="welcome-cta-row">
+              <button className="welcome-cta" onClick={onGetStarted}>
+                Start your prep
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </button>
+              <button className="welcome-cta-ghost" onClick={() => setShowWaitlist(true)}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                Request Access
+              </button>
+            </div>
+            {waitlistCount !== null && waitlistCount > 0 && (
+              <p className="welcome-waitlist-count">
+                Join {waitlistCount} {waitlistCount === 1 ? 'person' : 'people'} already on the waitlist
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="welcome-hero">
+            <div className="welcome-tag">Biotech &amp; Life Sciences · Career Pathways</div>
+            <h1 className="welcome-headline">
+              Discover your path in<br />
+              <span className="welcome-headline-accent">biotech &amp; life sciences</span>
+            </h1>
+            <p className="welcome-subline">
+              From career discovery to industry readiness — learn from AI-powered experts
+              and build the skills that get you hired.
+            </p>
+            <div className="welcome-cta-row">
+              <button className="welcome-cta" onClick={() => setShowHowItWorks(true)}>
+                How it works
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </button>
+              <button className="welcome-cta-ghost" onClick={() => setShowWaitlist(true)}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                Request Access
+              </button>
+            </div>
+            {waitlistCount !== null && waitlistCount > 0 && (
+              <p className="welcome-waitlist-count">
+                Join {waitlistCount} {waitlistCount === 1 ? 'person' : 'people'} already on the waitlist
+              </p>
+            )}
+          </div>
+        )}
 
         <div className="welcome-subjects-bar">
-          {SUBJECTS.map(s => (
-            <span key={s.id} className="welcome-subject-pill">
-              <span className="welcome-pill-icon">{SUBJECT_ICONS[s.id]}</span>
-              {s.name}
-            </span>
-          ))}
+          {ACTIVE_REGION === 'us' ? (
+            US_SUBJECTS.map(s => (
+              <span key={s.id} className="welcome-subject-pill">
+                <span className="welcome-pill-icon">🎓</span>
+                {s.name}
+              </span>
+            ))
+          ) : (
+            SUBJECTS.map(s => (
+              <span key={s.id} className="welcome-subject-pill">
+                <span className="welcome-pill-icon">{SUBJECT_ICONS[s.id]}</span>
+                {s.name}
+              </span>
+            ))
+          )}
         </div>
       </div>
 
       <footer className="welcome-footer">
-        Powered by Anthropic Claude · Built for the next generation of biotech leaders
+        {ACTIVE_REGION === 'us'
+          ? 'Powered by Anthropic Claude · Life Science Certifications · US & Europe'
+          : 'Powered by Anthropic Claude · Biotech & Life Sciences Career Pathways'}
       </footer>
 
       {showHowItWorks && (
@@ -2671,7 +3093,7 @@ function SampleReportModal({ onClose }) {
     <div className="sample-report-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div className="sample-report-shell">
 
-        {/* Toolbar — hidden on print */}
+        {/* Toolbar  -  hidden on print */}
         <div className="sample-report-toolbar no-print">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <span style={{ fontSize: 13, color: '#3D5166', fontWeight: 600 }}>Sample Weekly Report</span>
@@ -2934,7 +3356,7 @@ function LoginView({ onLogin, onBack }) {
             <img src="/logo-3.png" alt="Bversity" className="login-logo-img" />
           </div>
           <h2 className="login-headline">Learn biotech like you're already working in it.</h2>
-          <p className="login-subline">Industry faculty from Broad Institute, Illumina, Genentech, and Novartis — teaching the exact curriculum your career requires.</p>
+          <p className="login-subline">Industry faculty from Broad Institute, Illumina, Genentech, and Novartis  -  teaching the exact curriculum your career requires.</p>
           <div className="login-features">
             <div className="login-feature"><span className="login-feature-dot" />Career-mapped curriculum, only what you need to know</div>
             <div className="login-feature"><span className="login-feature-dot" />AI industry experts that adapt to your pace and prior knowledge</div>
@@ -3095,6 +3517,224 @@ function CareerPreviewModal({ career, currentCareerId, saving, onConfirm, onClos
 }
 
 // ── Career Select ──────────────────────────────────────────────────────────
+
+function USPracticeQuestion({ question, index }) {
+  const [selected, setSelected] = useState(null);
+  const [revealed, setRevealed] = useState(false);
+  return (
+    <div className="us-pq-card">
+      <div className="us-pq-meta">
+        <span className="us-pq-number">Q{index + 1}</span>
+        <span className="us-pq-domain-tag">{question.domain}</span>
+      </div>
+      <p className="us-pq-text">{question.text}</p>
+      <div className="us-pq-options">
+        {question.options.map((opt, i) => (
+          <button
+            key={i}
+            className={`us-pq-option${selected === i ? ' selected' : ''}${revealed ? (i === question.answer ? ' correct' : selected === i ? ' wrong' : '') : ''}`}
+            onClick={() => { if (!revealed) setSelected(i); }}
+            disabled={revealed}
+          >
+            <span className="us-pq-letter">{String.fromCharCode(65 + i)}</span>
+            {opt}
+          </button>
+        ))}
+      </div>
+      {selected !== null && !revealed && (
+        <button className="us-pq-check-btn" onClick={() => setRevealed(true)}>Check Answer</button>
+      )}
+      {revealed && (
+        <div className={`us-pq-explanation${selected === question.answer ? ' correct' : ' wrong'}`}>
+          <strong>{selected === question.answer ? 'Correct.' : 'Not quite.'}</strong> {question.explanation}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function USExamBlueprintView({ student, careerProfile, onBack }) {
+  const certId = careerProfile?.career_id;
+  const certSubject = US_SUBJECTS.find(s => s.id === certId);
+  const examData = US_EXAM_DOMAINS[certId];
+  const [conceptProgress, setConceptProgress] = useState(null);
+  const [practiceUnlocked, setPracticeUnlocked] = useState(
+    () => localStorage.getItem(`bversity_pq_${student?.id}`) === '1'
+  );
+  const [showPopup, setShowPopup] = useState(false);
+  const [jobs, setJobs] = useState([]);
+  const [jobsLoading, setJobsLoading] = useState(false);
+  const [jobsError, setJobsError] = useState(null);
+
+  useEffect(() => {
+    if (student?.id && certId) {
+      fetch(`/api/progress/${student.id}/${certId}`)
+        .then(r => r.json())
+        .then(d => setConceptProgress(d))
+        .catch(() => {});
+    }
+  }, [student?.id, certId]);
+
+  useEffect(() => {
+    if (!certId) return;
+    setJobsLoading(true);
+    setJobsError(null);
+    fetch(`/api/jobs/${certId}`)
+      .then(r => { if (!r.ok) throw new Error('unavailable'); return r.json(); })
+      .then(d => { setJobs(d.jobs || []); setJobsLoading(false); })
+      .catch(e => { setJobsError(e.message); setJobsLoading(false); });
+  }, [certId]);
+
+  if (!certSubject || !examData) {
+    return (
+      <div className="us-blueprint-view">
+        <p className="us-blueprint-empty">No certification selected. Go to Courses to pick your cert.</p>
+      </div>
+    );
+  }
+
+  const conceptMap = {};
+  (conceptProgress?.concepts || []).forEach(c => { conceptMap[c.id] = c; });
+
+  const coveredSet = new Set(Object.values(conceptMap).filter(c => c.covered).map(c => c.id));
+  const totalConcepts = examData.domains.reduce((sum, d) => sum + d.concepts.length, 0);
+  const coveredConcepts = examData.domains.reduce(
+    (sum, d) => sum + d.concepts.filter(c => coveredSet.has(c.id)).length, 0
+  );
+  const readinessPct = totalConcepts > 0 ? Math.round((coveredConcepts / totalConcepts) * 100) : 0;
+
+  function handleUnlock() { setShowPopup(true); }
+  function handlePopupClose() {
+    localStorage.setItem(`bversity_pq_${student?.id}`, '1');
+    setPracticeUnlocked(true);
+    setShowPopup(false);
+  }
+
+  const sampleQuestions = US_SAMPLE_QUESTIONS[certId] || [];
+
+  return (
+    <div className="us-blueprint-view">
+
+      {/* ── Career context hero ── */}
+      <div className="us-bp-career-hero">
+        <div className="us-bp-ch-top">
+          <div className="us-bp-ch-badge-row">
+            <span className="us-bp-ch-cert-badge">{examData.certBody} · {examData.certName}</span>
+            <span className="us-bp-ch-demand" style={{ color: examData.demandColor, borderColor: examData.demandColor + '33', background: examData.demandColor + '12' }}>{examData.demandLabel}</span>
+          </div>
+          <p className="us-bp-ch-tagline">{examData.tagline}</p>
+        </div>
+
+        <div className="us-bp-ch-grid">
+          <div className="us-bp-ch-card">
+            <div className="us-bp-ch-card-label">Salary range</div>
+            <div className="us-bp-ch-card-val us-bp-ch-salary">{examData.salaryRange}</div>
+            <div className="us-bp-ch-card-sub">US market, certified holders</div>
+          </div>
+          <div className="us-bp-ch-card">
+            <div className="us-bp-ch-card-label">Career ladder</div>
+            <div className="us-bp-ch-ladder">
+              {(examData.careerLadder || []).map((step, i, arr) => (
+                <span key={i} className="us-bp-ch-ladder-step">
+                  <span className={`us-bp-ch-ladder-dot${i === 0 ? ' first' : ''}`} />
+                  <span className="us-bp-ch-ladder-text">{step}</span>
+                  {i < arr.length - 1 && <span className="us-bp-ch-ladder-arrow">→</span>}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="us-bp-ch-card">
+            <div className="us-bp-ch-card-label">Top employers</div>
+            <div className="us-bp-ch-employers">
+              {(examData.topEmployers || []).map(e => <span key={e} className="us-bp-ch-employer-pill">{e}</span>)}
+            </div>
+          </div>
+          <div className="us-bp-ch-card">
+            <div className="us-bp-ch-card-label">What this unlocks</div>
+            <ul className="us-bp-ch-unlocks">
+              {(examData.unlocks || []).map((u, i) => <li key={i}>{u}</li>)}
+            </ul>
+          </div>
+        </div>
+
+      </div>
+
+      {/* ── Active Job Roles ── */}
+      <div className="us-bp-section-header" style={{ marginTop: '2rem' }}>
+        <h2 className="us-bp-section-title">Active job roles</h2>
+        <p className="us-bp-section-sub">Live {examData.certName} openings across the US · updated every 3 days</p>
+      </div>
+      {jobsLoading ? (
+        <div className="us-jobs-loading">
+          <div className="us-jobs-loading-dots"><span/><span/><span/></div>
+          <p>Fetching live listings…</p>
+        </div>
+      ) : jobsError ? (
+        <div className="us-jobs-error"><p>Job listings unavailable right now.</p></div>
+      ) : jobs.length === 0 ? (
+        <div className="us-jobs-error"><p>No current listings found. Check back soon.</p></div>
+      ) : (
+        <div className="us-jobs-flat-list">
+          {jobs.map((job, i) => {
+            const hasSal = job.salary_min || job.salary_max;
+            const salStr = hasSal ? `$${job.salary_min ? Math.round(job.salary_min/1000)+'k' : ''}${job.salary_min && job.salary_max ? '–' : ''}${job.salary_max ? '$'+Math.round(job.salary_max/1000)+'k' : ''}` : null;
+            const cityOnly = job.location ? job.location.split(',')[0] : null;
+            const snippet = job.description ? job.description.replace(/<[^>]+>/g, '').slice(0, 110).trim() + '…' : null;
+            return (
+              <a key={i} className="us-job-row" href={job.url} target="_blank" rel="noopener noreferrer">
+                <div className="us-job-row-main">
+                  <div className="us-job-row-top">
+                    <span className="us-job-row-title">{job.title}</span>
+                    <span className="us-job-row-company">{job.company}</span>
+                    {cityOnly && <span className="us-job-row-loc">{cityOnly}</span>}
+                    {salStr && <span className="us-job-row-sal">{salStr}</span>}
+                    <span className="us-job-row-link">View →</span>
+                  </div>
+                  {snippet && <p className="us-job-row-desc">{snippet}</p>}
+                </div>
+              </a>
+            );
+          })}
+        </div>
+      )}
+
+      {/* ── Practice Questions ── */}
+      <div className="us-bp-section-header" style={{ marginTop: '2.5rem' }}>
+        <h2 className="us-bp-section-title">Practice Questions</h2>
+        <p className="us-bp-section-sub">Scenario-based questions modeled on the actual {examData.certName} exam format</p>
+      </div>
+      {!practiceUnlocked ? (
+        <div className="us-practice-locked">
+          <div className="us-practice-lock-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+          </div>
+          <h3 className="us-practice-lock-title">Test your exam readiness</h3>
+          <p className="us-practice-lock-desc">3 scenario-based questions per domain, with full answer explanations. Unlock once, use forever.</p>
+          <button className="us-practice-unlock-btn" onClick={handleUnlock}>Request Access</button>
+        </div>
+      ) : (
+        <div className="us-practice-questions">
+          {sampleQuestions.map((q, i) => (
+            <USPracticeQuestion key={i} question={q} index={i} />
+          ))}
+          <p className="us-pq-more-note">More questions per domain coming soon. Ask your tutor to quiz you in chat anytime.</p>
+        </div>
+      )}
+
+      {showPopup && (
+        <div className="us-unlock-overlay" onClick={handlePopupClose}>
+          <div className="us-unlock-modal" onClick={e => e.stopPropagation()}>
+            <div className="us-unlock-emoji">🎉</div>
+            <h3 className="us-unlock-title">You're all set!</h3>
+            <p className="us-unlock-body">Practice questions are now active for your {examData.certName} prep. Use them to test your recall between study sessions - they're modeled on the real exam format.</p>
+            <p className="us-unlock-sub">Good luck. You've got this.</p>
+            <button className="us-unlock-confirm-btn" onClick={handlePopupClose}>Start Practising</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function CareerSelectView({ student, currentCareerId, onSelect, onBack }) {
   const imgs = useImgs();
@@ -3451,7 +4091,8 @@ function CareerMapView({ student, careerProfile, onBack, onChangePath, onStudy }
 
 // ── Community Map ──────────────────────────────────────────────────────────
 
-const INDIA_TOPO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
+const WORLD_TOPO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
+const INDIA_TOPO_URL = WORLD_TOPO_URL; // kept for any legacy refs
 
 const STATE_CENTROIDS = {
   'Andhra Pradesh':[79.74,15.91],'Arunachal Pradesh':[94.73,28.22],'Assam':[92.94,26.20],
@@ -3495,6 +4136,35 @@ const CITY_COORDS = {
   'Tirupati':[79.42,13.63],'Secunderabad':[78.50,17.44],'Davanagere':[75.92,14.47],
   'Nagercoil':[77.43,8.18],'Bijapur':[75.72,16.83],'Vijayapura':[75.72,16.83],
   'Ghaziabad':[77.43,28.67],'Nedumkandam':[77.02,9.65],'Perambalur':[78.88,11.23],
+  // US cities
+  'New York':[-74.00,40.71],'New York City':[-74.00,40.71],'NYC':[-74.00,40.71],
+  'Los Angeles':[-118.24,34.05],'San Francisco':[-122.42,37.77],'Chicago':[-87.63,41.88],
+  'Boston':[-71.06,42.36],'Washington':[-77.04,38.91],'Washington DC':[-77.04,38.91],
+  'Seattle':[-122.33,47.61],'San Diego':[-117.16,32.72],'Dallas':[-96.80,32.78],
+  'Houston':[-95.37,29.76],'Austin':[-97.74,30.27],'Denver':[-104.99,39.74],
+  'Atlanta':[-84.39,33.75],'Miami':[-80.19,25.77],'Philadelphia':[-75.17,39.95],
+  'Phoenix':[-112.07,33.45],'Minneapolis':[-93.27,44.98],'Detroit':[-83.05,42.33],
+  'Portland':[-122.68,45.52],'Raleigh':[-78.64,35.78],'Research Triangle':[-78.94,35.90],
+  'Durham':[-78.90,35.99],'Chapel Hill':[-79.06,35.91],'Nashville':[-86.78,36.17],
+  'Baltimore':[-76.61,39.29],'Cleveland':[-81.69,41.50],'Pittsburgh':[-79.99,40.44],
+  'Salt Lake City':[-111.89,40.76],'Las Vegas':[-115.14,36.17],'Indianapolis':[-86.16,39.77],
+  'Columbus':[-82.99,39.96],'Charlotte':[-80.84,35.23],'Tampa':[-82.46,27.95],
+  'Orlando':[-81.38,28.54],'San Jose':[-121.89,37.34],'Sacramento':[-121.49,38.58],
+  'Kansas City':[-94.58,39.10],'St. Louis':[-90.20,38.63],'Richmond':[-77.46,37.54],
+  'New Haven':[-72.93,41.31],'Hartford':[-72.68,41.76],'Princeton':[-74.65,40.36],
+  // European cities
+  'London':[-0.13,51.51],'Manchester':[-2.24,53.48],'Edinburgh':[-3.19,55.95],
+  'Birmingham':[-1.90,52.48],'Bristol':[-2.59,51.45],'Leeds':[-1.55,53.80],
+  'Paris':[2.35,48.85],'Lyon':[4.83,45.76],'Marseille':[5.37,43.30],'Toulouse':[1.44,43.60],
+  'Berlin':[13.40,52.52],'Munich':[11.58,48.14],'Frankfurt':[8.68,50.11],'Hamburg':[9.99,53.55],
+  'Amsterdam':[4.90,52.37],'Rotterdam':[4.48,51.92],'Utrecht':[5.12,52.09],
+  'Zurich':[8.55,47.37],'Geneva':[6.14,46.20],'Basel':[7.59,47.56],
+  'Dublin':[-6.26,53.33],'Cork':[-8.47,51.90],
+  'Stockholm':[18.07,59.33],'Copenhagen':[12.57,55.68],'Oslo':[10.75,59.91],
+  'Brussels':[4.35,50.85],'Ghent':[3.72,51.05],'Antwerp':[4.40,51.22],
+  'Madrid':[-3.70,40.42],'Barcelona':[2.17,41.39],'Milan':[9.19,45.46],'Rome':[12.50,41.90],
+  'Warsaw':[21.01,52.23],'Prague':[14.42,50.09],'Vienna':[16.37,48.21],
+  'Lisbon':[-9.14,38.72],'Athens':[23.73,37.98],'Helsinki':[24.94,60.17],
 };
 
 function getLearnerCoords(learner, index) {
@@ -3676,10 +4346,12 @@ function CommunityMapView({ student, onAddLocation }) {
       .catch(() => setLoading(false));
   }, []);
 
-  const stateSet    = new Set(learners.map(l => l.state).filter(Boolean));
-  const totalStates = stateSet.size;
+  const cityCount   = new Set(learners.map(l => l.city).filter(Boolean)).size;
   const myDotIndex  = learners.findIndex(l => l.student_id === student.id);
   const iAmOnMap    = myDotIndex !== -1;
+
+  const HIGHLIGHT_COUNTRIES = new Set(['356','840','826','276','250','528','756','372','752','208','578','056','724','380','620','300','246','040','616','203','705','703','642','348','191','233','428','440','233']);
+
 
   const markersWithCoords = learners.map((l, i) => ({ ...l, coords: getLearnerCoords(l, i), index: i }))
     .filter(l => l.coords !== null);
@@ -3700,7 +4372,7 @@ function CommunityMapView({ student, onAddLocation }) {
               ? 'No learners on the map yet. Be the very first! Add your city in your profile.'
               : learners.length === 1 && iAmOnMap
               ? "You're the first learner on the map. Share Bversity and get more people on here!"
-              : `${learners.length} learner${learners.length !== 1 ? 's' : ''} · ${totalStates} state${totalStates !== 1 ? 's' : ''} · growing every week`}
+              : `${learners.length} learner${learners.length !== 1 ? 's' : ''} · ${cityCount} cit${cityCount !== 1 ? 'ies' : 'y'} · US, Europe & India`}
           </p>
         </div>
         {!iAmOnMap && (
@@ -3714,24 +4386,24 @@ function CommunityMapView({ student, onAddLocation }) {
         <div className="community-map-glass" ref={mapRef} onMouseLeave={() => setHovered(null)}>
           <ComposableMap
             projection="geoMercator"
-            projectionConfig={{ center: [82.5, 22], scale: 1050 }}
-            width={800}
-            height={700}
+            projectionConfig={{ center: [20, 30], scale: 145 }}
+            width={900}
+            height={500}
             style={{ width: '100%', height: 'auto', display: 'block' }}
           >
-            <Geographies geography={INDIA_TOPO_URL}>
+            <Geographies geography={WORLD_TOPO_URL}>
               {({ geographies }) => geographies.map(geo => {
-                const isIndia = geo.id === '356';
+                const isHighlight = HIGHLIGHT_COUNTRIES.has(geo.id);
                 return (
                   <Geography
                     key={geo.rsmKey}
                     geography={geo}
-                    fill={isIndia ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.02)'}
-                    stroke={isIndia ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.05)'}
-                    strokeWidth={isIndia ? 0.7 : 0.3}
+                    fill={isHighlight ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.02)'}
+                    stroke={isHighlight ? 'rgba(255,255,255,0.2)' : 'rgba(255,255,255,0.04)'}
+                    strokeWidth={isHighlight ? 0.6 : 0.3}
                     style={{
                       default: { outline: 'none' },
-                      hover:   { outline: 'none', fill: isIndia ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.03)', cursor: 'default' },
+                      hover:   { outline: 'none', fill: isHighlight ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.03)', cursor: 'default' },
                       pressed: { outline: 'none' },
                     }}
                   />
@@ -4215,13 +4887,13 @@ function FreeTrialModal({ onClose }) {
         <div className="freetrial-badge">Free Trial</div>
         <h2 className="freetrial-title">You're on a 7-day free trial</h2>
         <p className="freetrial-body">
-          We've given you full access to explore Bversity — every subject, every AI tutor, every concept session.
+          We've given you full access to explore Bversity  -  every {ACTIVE_REGION === 'us' ? 'certification, every AI tutor, every exam-prep session' : 'subject, every AI tutor, every concept session'}.
           This trial runs for <strong>7–10 days</strong>, and we're using it to understand how the platform is being used
           and what's adding the most value.
         </p>
         <p className="freetrial-body">
           If Bversity is helping you grow and you'd like to continue beyond the trial,
-          reach out to Sudharsan for paid access at <strong>₹299/month</strong>.
+          reach out to Sudharsan for paid access at <strong>{ACTIVE_REGION === 'us' ? '$29/month' : '₹299/month'}</strong>.
         </p>
         <a className="freetrial-contact-link" href="mailto:sudharsan@bversity.io?subject=Paid Access Request">
           sudharsan@bversity.io
@@ -4938,7 +5610,7 @@ function AdminView({ onBack }) {
       </div>
       <div className="admin-main">
 
-      {/* Health bar — always visible */}
+      {/* Health bar  -  always visible */}
       {health && (
         <div className="admin-health-bar">
           <div className={`admin-health-dot ${health.status === 'ok' ? 'green' : 'red'}`} />
@@ -5146,7 +5818,7 @@ function AdminView({ onBack }) {
             </div>
           </div>
 
-          <div className="admin-ov-section-title" style={{ marginTop: '28px' }}>All Learners — Usage</div>
+          <div className="admin-ov-section-title" style={{ marginTop: '28px' }}>All Learners  -  Usage</div>
           <div className="admin-engage-table">
             <div className="admin-et-header">
               <span>Learner</span>
@@ -5182,11 +5854,11 @@ function AdminView({ onBack }) {
                         <span className="admin-et-days-num">{s.days_active}</span>
                         <span className="admin-et-days-label"> day{s.days_active !== 1 ? 's' : ''}</span>
                       </>
-                    ) : '—'}
+                    ) : ' - '}
                   </div>
-                  <div className="admin-et-msgs">{s.message_count > 0 ? s.message_count : '—'}</div>
+                  <div className="admin-et-msgs">{s.message_count > 0 ? s.message_count : ' - '}</div>
                   <div className="admin-et-last">
-                    {s.created_at ? new Date(s.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+                    {s.created_at ? new Date(s.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : ' - '}
                   </div>
                 </div>
               );
@@ -5693,7 +6365,7 @@ function AdminView({ onBack }) {
                 <div style={{ flex: 1 }}>
                   <div className="email-auto-title">Weekly progress report</div>
                   <div className="email-auto-desc">
-                    Sends a personalised AI-written report to every active student —
+                    Sends a personalised AI-written report to every active student  - 
                     sessions, concepts covered, coaching note, and what to focus on next week.
                   </div>
                   {weeklyResult && (
@@ -6273,7 +6945,7 @@ function AdminView({ onBack }) {
       {tab === 'images' && (
         <div className="admin-content">
           <h3 className="access-title">Image Library</h3>
-          <p className="access-subtitle">Manage every image used across the platform. Paste any public image URL (Unsplash, your CDN, Google Drive public link) and hit Save — updates take effect immediately on next page load.</p>
+          <p className="access-subtitle">Manage every image used across the platform. Paste any public image URL (Unsplash, your CDN, Google Drive public link) and hit Save  -  updates take effect immediately on next page load.</p>
           {!imageConfig ? (
             <div className="img-lib-loading">Loading image config…</div>
           ) : (
@@ -6354,7 +7026,7 @@ function AdminView({ onBack }) {
                     <span className="sys-gauge-pct">{pct}% used</span>
                     {note && <span className="sys-gauge-note">{note}</span>}
                   </div>
-                  {atSoft && <div className="sys-gauge-warn">⚠ Approaching limit — consider upgrading</div>}
+                  {atSoft && <div className="sys-gauge-warn">⚠ Approaching limit  -  consider upgrading</div>}
                 </div>
               );
             }
@@ -6378,7 +7050,7 @@ function AdminView({ onBack }) {
                   <div className="sys-section-title">Students</div>
                   <Gauge label="Total registered" used={students.total} total={students.hard_limit} unit=""
                     softLimit={Math.round(students.soft_limit / students.hard_limit * 100)}
-                    note="SQLite handles ~500 well. Above 1,000 — migrate to Postgres." />
+                    note="SQLite handles ~500 well. Above 1,000  -  migrate to Postgres." />
                   <div className="sys-stat-row">
                     <span className="sys-stat-label">Active today</span>
                     <span className="sys-stat-val">{students.active_today}</span>
@@ -6669,7 +7341,7 @@ function ConceptLibraryView({ student }) {
     .filter(sid => filterSubject === 'all' || sid === filterSubject)
     .map(sid => ({
       sid,
-      subject: SUBJECTS[sid],
+      subject: SUBJECTS_BY_ID[sid],
       items: filtered.filter(c => c.subject_id === sid),
     }))
     .filter(g => g.items.length > 0);
@@ -6696,7 +7368,7 @@ function ConceptLibraryView({ student }) {
           <select className="lib-filter" value={filterSubject} onChange={e => setFilterSubject(e.target.value)}>
             <option value="all">All subjects</option>
             {subjectIds.map(sid => (
-              <option key={sid} value={sid}>{SUBJECTS[sid]?.name || sid}</option>
+              <option key={sid} value={sid}>{SUBJECTS_BY_ID[sid]?.name || sid}</option>
             ))}
           </select>
         </div>
@@ -6867,7 +7539,7 @@ function FounderContactModal({ student, onClose }) {
               <p className="founder-field-label">Your message</p>
               <textarea
                 className="founder-textarea"
-                placeholder="Write anything — there's no wrong way to say it."
+                placeholder="Write anything  -  there's no wrong way to say it."
                 value={message}
                 onChange={e => setMessage(e.target.value)}
                 rows={4}
@@ -7377,7 +8049,7 @@ function WeeklyReportSampleModal({ onClose }) {
         <div className="sample-report-body">
           <div className="sample-report-greeting">Week of 28 Apr – 4 May</div>
           <div className="sample-report-coaching">
-            You're putting in real depth — your Tuesday evening sessions averaged 34 minutes, which is where the retention actually happens. You've mastered Sequence Alignment and BLAST this week, which puts you exactly on track for your Bioinformatics Scientist goal. Next week, push into Phylogenetics before moving to the next subject.
+            You're putting in real depth  -  your Tuesday evening sessions averaged 34 minutes, which is where the retention actually happens. You've mastered Sequence Alignment and BLAST this week, which puts you exactly on track for your Bioinformatics Scientist goal. Next week, push into Phylogenetics before moving to the next subject.
           </div>
           <div className="sample-report-stats">
             <div className="sample-stat-box">
@@ -7405,7 +8077,7 @@ function WeeklyReportSampleModal({ onClose }) {
               <span className="sample-focus-pill">Protein Structure</span>
             </div>
           </div>
-          <p className="sample-report-note">This report is generated by AI using your actual learning data — sessions, concepts, quiz scores, and career goal — and lands in your inbox every Monday.</p>
+          <p className="sample-report-note">This report is generated by AI using your actual learning data  -  sessions, concepts, quiz scores, and career goal  -  and lands in your inbox every Monday.</p>
         </div>
       </div>
     </div>
@@ -7485,7 +8157,7 @@ function JourneySection({ data }) {
         </svg>
       ),
       title: 'Weekly Report',
-      desc: 'Every Monday, a personalised AI progress report lands in your inbox — sessions, concepts mastered, and what to focus on next.',
+      desc: 'Every Monday, a personalised AI progress report lands in your inbox  -  sessions, concepts mastered, and what to focus on next.',
       active: true,
       cta: 'View sample report',
       onCta: () => setShowReport(true),
@@ -7498,7 +8170,7 @@ function JourneySection({ data }) {
         </svg>
       ),
       title: 'Capstone Project',
-      desc: 'Complete a subject and unlock a real-world capstone project — a graded assignment reviewed and marked by faculty.',
+      desc: 'Complete a subject and unlock a real-world capstone project  -  a graded assignment reviewed and marked by faculty.',
       active: hasCapstone,
       cta: null,
     },
@@ -7506,7 +8178,7 @@ function JourneySection({ data }) {
       num: '03',
       icon: <IcoCertificate />,
       title: 'Verified Certificate',
-      desc: 'Pass your capstone and earn a verified Bversity certificate — with your name, subject, credential ID, and faculty signatures.',
+      desc: 'Pass your capstone and earn a verified Bversity certificate  -  with your name, subject, credential ID, and faculty signatures.',
       active: hasCert,
       cta: 'View sample certificate',
       onCta: () => setShowCert(true),
@@ -7536,7 +8208,139 @@ function JourneySection({ data }) {
   );
 }
 
-function DashboardView({ student, onStudy, onCapstone, onCertificate }) {
+function USDashboardView({ student, careerProfile, onStudy }) {
+  const certId = careerProfile?.career_id;
+  const certSubject = US_SUBJECTS.find(s => s.id === certId);
+  const examData = US_EXAM_DOMAINS[certId];
+  const [conceptProgress, setConceptProgress] = useState(null);
+
+  useEffect(() => {
+    if (student?.id && certId) {
+      fetch(`/api/progress/${student.id}/${certId}`)
+        .then(r => r.json())
+        .then(setConceptProgress)
+        .catch(() => {});
+    }
+  }, [student?.id, certId]);
+
+  if (!certSubject || !examData) {
+    return (
+      <div className="us-dashboard">
+        <p style={{ padding: '2rem', color: 'var(--text-muted)' }}>No certification selected. Go to Courses to choose your cert.</p>
+      </div>
+    );
+  }
+
+  const conceptMap = {};
+  (conceptProgress?.concepts || []).forEach(c => { conceptMap[c.id] = c; });
+  const coveredSet  = new Set(Object.values(conceptMap).filter(c => c.covered).map(c => c.id));
+  const masteredSet = new Set(Object.values(conceptMap).filter(c => c.mastered).map(c => c.id));
+
+  const totalConcepts   = examData.domains.reduce((sum, d) => sum + d.concepts.length, 0);
+  const coveredCount    = examData.domains.reduce((sum, d) => sum + d.concepts.filter(c => coveredSet.has(c.id)).length, 0);
+  const masteredCount   = examData.domains.reduce((sum, d) => sum + d.concepts.filter(c => masteredSet.has(c.id)).length, 0);
+  const readinessPct    = totalConcepts > 0 ? Math.round((coveredCount / totalConcepts) * 100) : 0;
+  const domainsStarted  = examData.domains.filter(d => d.concepts.some(c => coveredSet.has(c.id))).length;
+  const domainsLeft     = examData.domains.length - examData.domains.filter(d => d.concepts.every(c => coveredSet.has(c.id))).length;
+
+  const nextConcept = examData.domains.flatMap(d => d.concepts).find(c => !coveredSet.has(c.id));
+
+  const circumference = 2 * Math.PI * 52;
+  const dash = (readinessPct / 100) * circumference;
+
+  return (
+    <div className="us-dashboard">
+
+      {/* ── Stats row ── */}
+      <div className="us-dash-stats">
+        <div className="us-dash-stat-card">
+          <div className="us-dash-stat-num">{coveredCount}</div>
+          <div className="us-dash-stat-label">CONCEPTS COVERED</div>
+        </div>
+        <div className="us-dash-stat-card">
+          <div className="us-dash-stat-num">{masteredCount}</div>
+          <div className="us-dash-stat-label">CONCEPTS MASTERED</div>
+        </div>
+        <div className="us-dash-stat-card">
+          <div className="us-dash-stat-num">{totalConcepts}</div>
+          <div className="us-dash-stat-label">TOTAL CURRICULUM</div>
+        </div>
+      </div>
+
+      {/* ── Readiness + Domain breakdown ── */}
+      <div className="us-dash-main-row">
+
+        {/* Left: readiness card */}
+        <div className="us-dash-readiness-card">
+          <div className="us-dash-readiness-label">EXAM READINESS</div>
+          <div className="us-dash-ring-wrap">
+            <svg viewBox="0 0 120 120" className="us-dash-ring-svg">
+              <circle cx="60" cy="60" r="52" fill="none" stroke="#e5e7eb" strokeWidth="10"/>
+              <circle cx="60" cy="60" r="52" fill="none" stroke="#00A896" strokeWidth="10"
+                strokeDasharray={`${dash} ${circumference}`}
+                strokeDashoffset={circumference * 0.25}
+                strokeLinecap="round"
+                style={{ transition: 'stroke-dasharray 0.8s ease' }}
+              />
+            </svg>
+            <div className="us-dash-ring-inner">
+              <div className="us-dash-ring-pct">{readinessPct}%</div>
+              <div className="us-dash-ring-sub">READY</div>
+            </div>
+          </div>
+          <div className="us-dash-readiness-cert">{examData.certName}</div>
+          <div className="us-dash-readiness-detail">
+            {domainsLeft > 0
+              ? `${domainsLeft} domain${domainsLeft > 1 ? 's' : ''} left to complete`
+              : 'All domains covered'}
+          </div>
+          <button className="us-dash-study-btn" onClick={() => onStudy(certSubject)}>
+            {coveredCount === 0 ? 'Start your prep →' : 'Continue prep →'}
+          </button>
+        </div>
+
+        {/* Right: domain breakdown */}
+        <div className="us-dash-domains-panel">
+          <div className="us-dash-domains-title">Domain Progress</div>
+          {examData.domains.map(domain => {
+            const covered = domain.concepts.filter(c => coveredSet.has(c.id)).length;
+            const total   = domain.concepts.length;
+            const pct     = total > 0 ? Math.round((covered / total) * 100) : 0;
+            const next    = domain.concepts.find(c => !coveredSet.has(c.id));
+            const done    = covered === total;
+            return (
+              <div key={domain.name} className={`us-dash-domain-row${done ? ' done' : ''}`}>
+                <div className="us-dash-domain-top">
+                  <span className="us-dash-domain-name">{domain.name}</span>
+                  <span className="us-dash-domain-count">{covered}/{total}</span>
+                </div>
+                <div className="us-dash-domain-bar-track">
+                  <div className="us-dash-domain-bar-fill" style={{ width: `${pct}%` }} />
+                </div>
+                {next && (
+                  <div className="us-dash-domain-next">
+                    <span className="us-dash-next-label">Next up</span>
+                    <span className="us-dash-next-concept">{next.name}</span>
+                    <button className="us-dash-next-btn" onClick={() => onStudy(certSubject)}>Study →</button>
+                  </div>
+                )}
+                {done && (
+                  <div className="us-dash-domain-done">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    Domain complete
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+    </div>
+  );
+}
+
+function DashboardView({ student, careerProfile, onStudy, onCapstone, onCertificate }) {
   const [data, setData]             = useState(null);
   const [loading, setLoading]       = useState(true);
   const [allVideos, setAllVideos]   = useState({});
@@ -7575,12 +8379,15 @@ function DashboardView({ student, onStudy, onCapstone, onCertificate }) {
     return dd < new Date(today.toDateString()) && !d.concepts.every(c => c.covered);
   });
 
+  const selectedUsCert = ACTIVE_REGION === 'us' ? US_SUBJECTS.find(s => s.id === careerProfile?.career_id) : null;
+  const examData = selectedUsCert ? US_EXAM_DOMAINS[selectedUsCert.id] : null;
+
   return (
     <div className="dashboard">
       <div className="dashboard-hero">
         <h1>
           <span className="dashboard-hero-name">{student.name.split(' ')[0]}'s</span>
-          <span className="dashboard-hero-sub"> Learning Map</span>
+          <span className="dashboard-hero-sub"> {selectedUsCert ? `${examData?.certName ?? selectedUsCert.name} Progress` : 'Learning Map'}</span>
         </h1>
         <div className="hero-mastery">
           <div className="hero-mastery-bar-track">
@@ -7638,6 +8445,21 @@ function DashboardView({ student, onStudy, onCapstone, onCertificate }) {
         />
       )}
 
+      {selectedUsCert && examData && (
+        <div className="dash-us-cert-banner">
+          <div className="dash-us-cert-banner-left">
+            <div className="dash-us-cert-badge">{examData.certBody}</div>
+            <div className="dash-us-cert-name">{examData.certName}</div>
+            <div className="dash-us-cert-meta">{selectedUsCert.tutor} · {selectedUsCert.org}</div>
+          </div>
+          <div className="dash-us-cert-banner-right">
+            <div className="dash-us-cert-stat"><strong>{examData.examQuestions}</strong><span>questions</span></div>
+            <div className="dash-us-cert-stat"><strong>{examData.passScore}</strong><span>to pass</span></div>
+            <div className="dash-us-cert-stat"><strong>{examData.domains.length}</strong><span>domains</span></div>
+          </div>
+        </div>
+      )}
+
       <div className="dashboard-subjects">
         {SUBJECTS.map((subject) => {
           const prog = (data.subjects || {})[subject.id];
@@ -7687,7 +8509,7 @@ function DashboardView({ student, onStudy, onCapstone, onCertificate }) {
                     const allMastered = subs.every(c => c.mastered);
                     const anyCovered  = subs.some(c => c.covered);
                     const displayName = subs.length > 1
-                      ? subs[0].name.split(':')[0].split('—')[0].trim()
+                      ? subs[0].name.split(':')[0].split(' - ')[0].trim()
                       : subs[0].name;
                     const videoEntry  = subs.map(c => subjectVideos[c.id]).find(Boolean);
                     return (
@@ -8437,7 +9259,7 @@ function generateShareCard({ name, careerTitle, score, completed, total, streak 
   ctx.font = '16px system-ui,-apple-system,sans-serif';
   ctx.fillText('university.bversity.io', LX, H - 44);
 
-  // ── RIGHT COLUMN — emblem ────────────────────────────────
+  // ── RIGHT COLUMN  -  emblem ────────────────────────────────
   const cx = 980, cy = 280;
 
   // Outer glow ring
@@ -8609,7 +9431,77 @@ function CareerReadinessScore({ careerProfile, progress, onViewPath, onShare }) 
   );
 }
 
-function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, onPauseSubject }) {
+function USPrepAtAGlanceCard({ student, certSubject, examData, onStudy }) {
+  const [progress, setProgress] = useState(null);
+
+  useEffect(() => {
+    fetch(`/api/progress/${student.id}/${certSubject.id}`)
+      .then(r => r.json())
+      .then(setProgress)
+      .catch(() => {});
+  }, [student.id, certSubject.id]);
+
+  const coveredSet = new Set((progress?.concepts || []).filter(c => c.covered).map(c => c.id));
+  const total      = examData.domains.reduce((sum, d) => sum + d.concepts.length, 0);
+  const covered    = examData.domains.reduce((sum, d) => sum + d.concepts.filter(c => coveredSet.has(c.id)).length, 0);
+  const pct        = total > 0 ? Math.round((covered / total) * 100) : 0;
+  const nextConcept = examData.domains.flatMap(d => d.concepts).find(c => !coveredSet.has(c.id));
+  const nextDomain  = examData.domains.find(d => d.concepts.some(c => !coveredSet.has(c.id)));
+
+  const circumference = 2 * Math.PI * 34;
+  const dash = (pct / 100) * circumference;
+
+  return (
+    <div className="us-glance-card">
+      <div className="us-glance-top">
+        <div className="us-glance-ring-wrap">
+          <svg viewBox="0 0 80 80" className="us-glance-ring">
+            <circle cx="40" cy="40" r="34" fill="none" stroke="#e5e7eb" strokeWidth="7"/>
+            <circle cx="40" cy="40" r="34" fill="none" stroke="#00A896" strokeWidth="7"
+              strokeDasharray={`${dash} ${circumference}`}
+              strokeDashoffset={circumference * 0.25}
+              strokeLinecap="round"
+              style={{ transition: 'stroke-dasharray 0.6s ease' }}
+            />
+          </svg>
+          <div className="us-glance-ring-inner">
+            <span className="us-glance-pct">{pct}%</span>
+          </div>
+        </div>
+        <div className="us-glance-summary">
+          <div className="us-glance-label">EXAM READINESS</div>
+          <div className="us-glance-cert">{examData.certName}</div>
+          <div className="us-glance-counts">
+            <span><strong>{covered}</strong> / {total} concepts covered</span>
+          </div>
+          <div className="us-glance-tutor">{certSubject.tutor} · {certSubject.org}</div>
+        </div>
+      </div>
+
+      {nextConcept && (
+        <div className="us-glance-next">
+          <div className="us-glance-next-label">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Next up · {nextDomain?.name}
+          </div>
+          <div className="us-glance-next-concept">{nextConcept.name}</div>
+          <button className="us-glance-study-btn" onClick={() => onStudy(certSubject)}>
+            {covered === 0 ? 'Start studying →' : 'Continue studying →'}
+          </button>
+        </div>
+      )}
+
+      {!nextConcept && covered > 0 && (
+        <div className="us-glance-complete">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Full curriculum covered — practice questions next
+        </div>
+      )}
+    </div>
+  );
+}
+
+function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, onPauseSubject, onCareerUpdate }) {
   const [progress, setProgress]   = useState({});
   const [statuses, setStatuses]   = useState({});
   const [unlocking, setUnlocking] = useState(null); // { subject, mode: 'unlock'|'resume'|'at_cap' }
@@ -8626,9 +9518,10 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
   }, [student.id]);
 
   const career         = careerProfile?.career;
+  const selectedUsCert = ACTIVE_REGION === 'us' ? US_SUBJECTS.find(s => s.id === careerProfile?.career_id) : null;
   const recommendedIds = new Set(career?.relevant_subjects || []);
   const totalCoveredConcepts = Object.values(progress || {}).reduce((sum, p) => sum + (p.covered_count ?? 0), 0);
-  const showCareerNudge = !career && totalCoveredConcepts >= 5 && careerProfile?.motivation === 'stay_ahead' && !nudgeDismissed;
+  const showCareerNudge = !career && !selectedUsCert && totalCoveredConcepts >= 5 && careerProfile?.motivation === 'stay_ahead' && !nudgeDismissed;
   const activeCount    = Object.values(statuses || {}).filter(s => s.status === 'active').length;
   const careerSubjects = career
     ? (career.relevant_subjects || []).map(id => SUBJECTS.find(s => s.id === id)).filter(Boolean)
@@ -8637,14 +9530,53 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
     ? SUBJECTS.filter(s => !recommendedIds.has(s.id))
     : SUBJECTS;
 
+  const [certSaving, setCertSaving] = useState(false);
+  const [switchPrompt, setSwitchPrompt] = useState(null); // cert object
+
+  async function handleUsCertSelect(cert) {
+    setCertSaving(cert.id);
+    try {
+      const res = await fetch(`/api/profile/${student.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ career_id: cert.id }),
+      });
+      const data = await res.json();
+      onCareerUpdate(data);
+    } catch { /* silent */ } finally { setCertSaving(false); }
+  }
+
+  function handleOtherCertClick(cert) {
+    setSwitchPrompt(cert);
+  }
+
+  async function confirmCertSwitch() {
+    const cert = switchPrompt;
+    setSwitchPrompt(null);
+    await handleUsCertSelect(cert);
+  }
+
+  async function handleUsAutoUnlock(subject) {
+    const st = statuses[subject.id]?.status;
+    if (st === 'active') { onSelect(subject); return; }
+    if (st === 'paused') { setUnlocking({ subject, mode: 'resume' }); return; }
+    try {
+      const res = await fetch(`/api/subjects/unlock/${student.id}/${subject.id}`, { method: 'POST' });
+      if (res.ok) {
+        setStatuses(prev => ({ ...prev, [subject.id]: { status: 'active' } }));
+        onSelect(subject);
+      }
+    } catch {}
+  }
+
   function handleCardClick(subject) {
+    if (ACTIVE_REGION === 'us') { handleUsAutoUnlock(subject); return; }
     const st = statuses[subject.id]?.status;
     if (st === 'active') {
       onSelect(subject);
     } else if (st === 'paused') {
       setUnlocking({ subject, mode: 'resume' });
     } else {
-      // locked / no status
       if (activeCount >= 2) {
         setUnlocking({ subject, mode: 'at_cap' });
       } else {
@@ -8670,7 +9602,7 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
         {isFirstTime ? (
           <>
             <h1>Welcome to Bversity, <span>{student.name.split(' ')[0]}</span></h1>
-            <p>Your AI industry experts will guide you through a structured curriculum adapted to you. Pick a subject to begin.</p>
+            <p>{ACTIVE_REGION === 'us' ? 'Your AI tutors are ready to help you prep. Pick a certification subject to begin.' : 'Your AI industry experts will guide you through a structured curriculum adapted to you. Pick a subject to begin.'}</p>
           </>
         ) : (
           <>
@@ -8684,10 +9616,17 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
                 </div>
               )}
             </div>
-            <p>Your experts remember where you left off. Pick a subject to continue.</p>
+            <p>{ACTIVE_REGION === 'us' ? 'Your tutors remember where you left off. Pick a subject to continue your prep.' : 'Your experts remember where you left off. Pick a subject to continue.'}</p>
           </>
         )}
-        {career ? (
+        {selectedUsCert ? (
+          <div className="career-path-badge" style={{ '--career-color': selectedUsCert.color }}>
+            <div className="cpb-text">
+              <div className="cpb-title">{selectedUsCert.name}</div>
+              <div className="cpb-sub">{selectedUsCert.certification} · {selectedUsCert.certBody} · your certification target</div>
+            </div>
+          </div>
+        ) : career ? (
           <div className="career-path-badge" onClick={onViewPath} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && onViewPath()}>
             <span className="cpb-icon">{CAREER_ICONS[career.id]}</span>
             <div className="cpb-text">
@@ -8700,18 +9639,19 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
             <div className="cpsn-body">
               <span className="cpsn-icon"><IcoTarget /></span>
               <div className="cpsn-text">
-                <div className="cpsn-title">You've covered {totalCoveredConcepts} concepts. Ready to pick a destination?</div>
-                <div className="cpsn-sub">Adding a career goal lets your experts personalise every lesson from here on.</div>
+                <div className="cpsn-title">You've covered {totalCoveredConcepts} concepts. {ACTIVE_REGION === 'us' ? 'Ready to lock in your certification target?' : 'Ready to pick a destination?'}</div>
+                <div className="cpsn-sub">{ACTIVE_REGION === 'us' ? 'Pick a certification and your tutors will focus every session on what matters for that exam.' : 'Adding a career goal lets your experts personalise every lesson from here on.'}</div>
               </div>
             </div>
             <div className="cpsn-actions">
-              <button className="cpsn-btn-primary" onClick={onViewPath}>Pick a career path</button>
+              <button className="cpsn-btn-primary" onClick={onViewPath}>{ACTIVE_REGION === 'us' ? 'Pick a certification' : 'Pick a career path'}</button>
               <button className="cpsn-btn-dismiss" onClick={() => setNudgeDismissed(true)}>Maybe later</button>
             </div>
           </div>
         ) : (
           <div className="career-path-nudge" onClick={onViewPath} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && onViewPath()}>
-            <span className="career-path-nudge-icon"><IcoTarget /></span> Set your career destination. Your experts will personalise your learning path
+            <span className="career-path-nudge-icon"><IcoTarget /></span>
+            {ACTIVE_REGION === 'us' ? 'Pick your certification target. Your tutors will focus every session around it.' : 'Set your career destination. Your experts will personalise your learning path'}
           </div>
         )}
         {activeCount > 0 && (
@@ -8756,6 +9696,79 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
                     isRecommended={false}
                     activeCount={activeCount}
                     onClick={() => handleCardClick(s)}
+                    onPause={() => onPauseSubject(s)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      ) : ACTIVE_REGION === 'us' ? (
+        <>
+          {selectedUsCert ? (
+            <>
+              <div className="subjects-section">
+                <div className="subjects-section-header">
+                  <h2 className="subjects-section-title">My certification prep</h2>
+                  <p className="subjects-section-sub">You are preparing for the {US_EXAM_DOMAINS[selectedUsCert.id]?.certName} · {US_EXAM_DOMAINS[selectedUsCert.id]?.certBody}</p>
+                </div>
+                <div className="us-cert-hero-row">
+                  <SubjectCard
+                    subject={selectedUsCert}
+                    progress={progress[selectedUsCert.id]}
+                    status={statuses[selectedUsCert.id]?.status}
+                    isRecommended={true}
+                    activeCount={activeCount}
+                    onClick={() => handleCardClick(selectedUsCert)}
+                    onPause={() => onPauseSubject(selectedUsCert)}
+                  />
+                  <USPrepAtAGlanceCard
+                    student={student}
+                    certSubject={selectedUsCert}
+                    examData={US_EXAM_DOMAINS[selectedUsCert.id]}
+                    onStudy={onSelect}
+                  />
+                </div>
+              </div>
+              {SUBJECTS.filter(s => s.id !== selectedUsCert.id).length > 0 && (
+                <div className="subjects-section subjects-section--explore">
+                  <div className="subjects-section-header">
+                    <h2 className="subjects-section-title">Other Certifications</h2>
+                    <p className="subjects-section-sub">Explore other clinical research certifications available on Bversity.</p>
+                  </div>
+                  <div className="subjects-grid">
+                    {SUBJECTS.filter(s => s.id !== selectedUsCert.id).map(s => (
+                      <SubjectCard
+                        key={s.id}
+                        subject={s}
+                        progress={progress[s.id]}
+                        status={statuses[s.id]?.status}
+                        isRecommended={false}
+                        activeCount={activeCount}
+                        onClick={() => handleOtherCertClick(s)}
+                        onPause={() => onPauseSubject(s)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="subjects-section">
+              <div className="subjects-section-header">
+                <h2 className="subjects-section-title">Choose Your Certification</h2>
+                <p className="subjects-section-sub">Select the certification you're preparing for and your AI tutor will guide you through the full exam curriculum.</p>
+              </div>
+              <div className="subjects-grid">
+                {SUBJECTS.map(s => (
+                  <SubjectCard
+                    key={s.id}
+                    subject={s}
+                    progress={progress[s.id]}
+                    status={statuses[s.id]?.status}
+                    isRecommended={false}
+                    activeCount={activeCount}
+                    onClick={() => handleUsCertSelect(s)}
                     onPause={() => onPauseSubject(s)}
                   />
                 ))}
@@ -8808,6 +9821,35 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
           careerProfile={careerProfile}
           onClose={() => setShowShare(false)}
         />
+      )}
+
+      {switchPrompt && (
+        <div className="us-switch-overlay" onClick={() => setSwitchPrompt(null)}>
+          <div className="us-switch-modal" onClick={e => e.stopPropagation()}>
+            <div className="us-switch-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3M3 16v3a2 2 0 002 2h3m10 0h3a2 2 0 002-2v-3"/></svg>
+            </div>
+            <h3 className="us-switch-title">Switching to {switchPrompt.name}?</h3>
+            <p className="us-switch-body">Before we update your active certification, just checking — what's brought you here?</p>
+            <div className="us-switch-options">
+              <button className="us-switch-opt us-switch-opt--mistake" onClick={() => setSwitchPrompt(null)}>
+                <span className="us-switch-opt-icon">👆</span>
+                <div>
+                  <div className="us-switch-opt-label">I clicked by mistake</div>
+                  <div className="us-switch-opt-sub">Take me back to my current prep</div>
+                </div>
+              </button>
+              <button className="us-switch-opt us-switch-opt--switch" onClick={confirmCertSwitch}>
+                <span className="us-switch-opt-icon">🎯</span>
+                <div>
+                  <div className="us-switch-opt-label">I want to switch to {switchPrompt.certification}</div>
+                  <div className="us-switch-opt-sub">Update my active certification — my progress stays</div>
+                </div>
+              </button>
+            </div>
+            <p className="us-switch-note">Your study progress for any certification is never lost when you switch.</p>
+          </div>
+        </div>
       )}
       </div>
     </div>
@@ -9476,7 +10518,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         setConceptResources(await resourcesRes.json());
         setQuizStatus(await quizRes.json());
 
-        // Check recall warmup — only if no other auto-trigger and not seen today
+        // Check recall warmup  -  only if no other auto-trigger and not seen today
         const recallKey = `bv_recall_${student.id}_${subject.id}`;
         if (!revisionModule && !autoStart && !sessionStorage.getItem(recallKey)) {
           try {
@@ -9599,7 +10641,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
       }
       const data = await res.json();
       setIsMock(data.mock);
-      const replyContent = data.reply || "I'm here — go ahead and ask me anything, or tell me what you'd like to learn today.";
+      const replyContent = data.reply || "I'm here  -  go ahead and ask me anything, or tell me what you'd like to learn today.";
       const newMsgs = [{ role: 'bot', content: replyContent, quiz: isQuiz }];
       if (data.newly_covered?.length > 0) {
         data.newly_covered.forEach(cid => {
@@ -9936,7 +10978,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
                         </div>
                         <div className="card-hint-text">
-                          <strong>This is a Concept Card</strong> — a summary of what you just learned. Click it to expand, or save it to revisit from your sidebar anytime.
+                          <strong>This is a Concept Card</strong>  -  a summary of what you just learned. Click it to expand, or save it to revisit from your sidebar anytime.
                         </div>
                         <button className="card-hint-dismiss" onClick={() => { localStorage.setItem('bv_card_hint_seen', '1'); setCardHintSeen(true); }}>Got it</button>
                       </div>
@@ -10292,7 +11334,9 @@ export default function App() {
   }
 
   function handleCareerPath() {
-    if (careerProfile?.career_id) {
+    if (ACTIVE_REGION === 'us') {
+      setView('career-map');
+    } else if (careerProfile?.career_id) {
       setView('career-map');
     } else {
       setView('career-select');
@@ -10438,12 +11482,21 @@ export default function App() {
           onOpenLabs={() => setView('labs')}
         />
       ) : view === 'dashboard' ? (
-        <DashboardView
-          student={student}
-          onStudy={(subject, mod) => { setSelectedSubject(subject); setRevisionModule(mod || null); setView('chat'); }}
-          onCapstone={handleViewCapstone}
-          onCertificate={handleViewCertificate}
-        />
+        ACTIVE_REGION === 'us' ? (
+          <USDashboardView
+            student={student}
+            careerProfile={careerProfile}
+            onStudy={(subject) => { setSelectedSubject(subject); setView('chat'); }}
+          />
+        ) : (
+          <DashboardView
+            student={student}
+            careerProfile={careerProfile}
+            onStudy={(subject, mod) => { setSelectedSubject(subject); setRevisionModule(mod || null); setView('chat'); }}
+            onCapstone={handleViewCapstone}
+            onCertificate={handleViewCertificate}
+          />
+        )
       ) : view === 'certificate' && certificateSubject ? (
         <CertificateView
           student={student}
@@ -10497,13 +11550,21 @@ export default function App() {
           onBack={() => setView('home')}
         />
       ) : view === 'career-map' ? (
-        <CareerMapView
-          student={student}
-          careerProfile={careerProfile}
-          onBack={() => setView('home')}
-          onChangePath={() => setView('career-change')}
-          onStudy={handleSelectSubject}
-        />
+        ACTIVE_REGION === 'us' ? (
+          <USExamBlueprintView
+            student={student}
+            careerProfile={careerProfile}
+            onBack={() => setView('home')}
+          />
+        ) : (
+          <CareerMapView
+            student={student}
+            careerProfile={careerProfile}
+            onBack={() => setView('home')}
+            onChangePath={() => setView('career-change')}
+            onStudy={handleSelectSubject}
+          />
+        )
       ) : view === 'career-change' ? (
         <CareerChangeView
           student={student}
@@ -10520,6 +11581,7 @@ export default function App() {
           onSelect={handleSelectSubject}
           onViewPath={handleCareerPath}
           onPauseSubject={handlePauseSubject}
+          onCareerUpdate={handleCareerSelected}
         />
       )}
       </ErrorBoundary>

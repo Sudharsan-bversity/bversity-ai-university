@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forte — From the makers of Bversity</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: #050a12;
+      color: #f0f4f8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Video background ── */
+    .bg-video {
+      position: fixed;
+      inset: 0;
+      width: 100%; height: 100%;
+      object-fit: cover;
+      opacity: 0.18;
+      z-index: 0;
+    }
+    .bg-overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(5,10,18,0.6) 0%, rgba(5,10,18,0.85) 100%);
+      z-index: 1;
+    }
+
+    /* ── Layout ── */
+    .page {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    header {
+      padding: 2rem 2.5rem;
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+    }
+    .forte-logo {
+      font-size: 1.9rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #ffffff;
+    }
+    .forte-byline {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.45);
+      font-weight: 400;
+      letter-spacing: 0.01em;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    .hero-tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.4);
+      margin-bottom: 1.4rem;
+    }
+
+    .hero-title {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      text-align: center;
+      line-height: 1.15;
+      margin-bottom: 1rem;
+      max-width: 680px;
+    }
+    .hero-title span {
+      background: linear-gradient(135deg, #00d4b8 0%, #0077ff 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.5);
+      text-align: center;
+      max-width: 480px;
+      line-height: 1.6;
+      margin-bottom: 3.5rem;
+    }
+
+    /* ── Cards ── */
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    @media (max-width: 640px) {
+      .cards { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 18px;
+      padding: 2rem 2rem 1.75rem;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      transition: border-color 0.2s, background 0.2s, transform 0.18s;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 18px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .card-us::before  { background: linear-gradient(135deg, rgba(0,119,255,0.08), rgba(0,212,184,0.06)); }
+    .card-in::before  { background: linear-gradient(135deg, rgba(107,63,160,0.1), rgba(224,92,0,0.07)); }
+
+    .card:hover {
+      border-color: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.07);
+      transform: translateY(-3px);
+    }
+    .card:hover::before { opacity: 1; }
+
+    .card-icon {
+      font-size: 1.9rem;
+      line-height: 1;
+    }
+
+    .card-eyebrow {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+      color: #ffffff;
+    }
+
+    .card-desc {
+      font-size: 0.88rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    .card-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      margin-top: 0.5rem;
+      transition: gap 0.15s;
+    }
+    .card-us .card-cta { color: #38bdf8; }
+    .card-in .card-cta { color: #a78bfa; }
+    .card:hover .card-cta { gap: 0.65rem; }
+
+    .card-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.25rem;
+    }
+    .pill {
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.5);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    footer {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.22);
+    }
+  </style>
+</head>
+<body>
+
+  <video class="bg-video" autoplay muted loop playsinline>
+    <source src="https://university.bversity.io/hero-video.mp4" type="video/mp4" />
+  </video>
+  <div class="bg-overlay"></div>
+
+  <div class="page">
+    <header>
+      <div class="forte-logo">Forte</div>
+      <div class="forte-byline">From the makers of Bversity</div>
+    </header>
+
+    <main>
+      <div class="hero-tag">AI-Powered Learning · Life Sciences</div>
+      <h1 class="hero-title">Where are you on your<br /><span>life sciences journey?</span></h1>
+      <p class="hero-sub">Choose your path. Your AI expert is already waiting.</p>
+
+      <div class="cards">
+
+        <!-- US Certifications -->
+        <a class="card card-us" href="https://us.bversity.io">
+          <div class="card-icon">🎓</div>
+          <div class="card-eyebrow">US &amp; Europe</div>
+          <div class="card-title">I'm a working professional preparing for a certification</div>
+          <div class="card-desc">
+            Preparing for CCRA, CCRP, RAC, CPVC, BCMAS or CCDM?
+            AI-powered exam prep built around the US and European life sciences curriculum.
+          </div>
+          <div class="card-pills">
+            <span class="pill">CCRA</span>
+            <span class="pill">CCRP</span>
+            <span class="pill">RAC</span>
+            <span class="pill">CPVC</span>
+            <span class="pill">BCMAS</span>
+            <span class="pill">CCDM</span>
+          </div>
+          <div class="card-cta">Get started →</div>
+        </a>
+
+        <!-- Career Pathways -->
+        <a class="card card-in" href="https://university.bversity.io">
+          <div class="card-icon">🧬</div>
+          <div class="card-eyebrow">Biotech &amp; Life Sciences</div>
+          <div class="card-title">I'm a student exploring a career in biotech</div>
+          <div class="card-desc">
+            From career discovery to industry readiness — learn one-on-one with AI experts
+            from Genentech, Illumina, Moderna, AstraZeneca and more.
+          </div>
+          <div class="card-pills">
+            <span class="pill">Bioinformatics</span>
+            <span class="pill">Drug Discovery</span>
+            <span class="pill">Genomics</span>
+            <span class="pill">RNA Therapeutics</span>
+          </div>
+          <div class="card-cta">Explore careers →</div>
+        </a>
+
+      </div>
+    </main>
+
+    <footer>Powered by Anthropic Claude · Forte by Bversity · 2025</footer>
+  </div>
+
+</body>
+</html>

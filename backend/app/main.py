@@ -3,7 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 import uuid, os, re, io, sqlite3, shutil, random, hashlib, json, time, collections
-import urllib.request, urllib.parse, xml.etree.ElementTree as ET
+import urllib.request, urllib.parse, urllib.error, ssl, xml.etree.ElementTree as ET
+try:
+    import certifi as _certifi
+    _SSL_CTX = ssl.create_default_context(cafile=_certifi.where())
+except ImportError:
+    _SSL_CTX = ssl.create_default_context()
 from datetime import datetime, timedelta
 from typing import Optional
 from dotenv import load_dotenv
@@ -77,7 +82,7 @@ def check_rate_limit(student_id: str):
     while bucket and bucket[0] < cutoff:
         bucket.popleft()
     if len(bucket) >= RATE_LIMIT_MAX:
-        raise HTTPException(status_code=429, detail=f"Rate limit reached — max {RATE_LIMIT_MAX} messages per hour.")
+        raise HTTPException(status_code=429, detail=f"Rate limit reached  -  max {RATE_LIMIT_MAX} messages per hour.")
     bucket.append(now)
 
 
@@ -280,6 +285,19 @@ def init_db():
             submitted_at TEXT,
             PRIMARY KEY (student_id, project_id)
         );
+        CREATE TABLE IF NOT EXISTS job_listings (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            cert_id     TEXT NOT NULL,
+            title       TEXT NOT NULL,
+            company     TEXT,
+            location    TEXT,
+            salary_min  REAL,
+            salary_max  REAL,
+            url         TEXT,
+            description TEXT,
+            posted_date TEXT,
+            fetched_at  TEXT NOT NULL
+        );
     """)
     for col in [
         "ALTER TABLE capstone_submissions ADD COLUMN ai_score INTEGER",
@@ -372,7 +390,7 @@ seed_placed_alumni()
 CURRICULUM = {
     "bioinformatics": [
         {"id": "central_dogma_a",      "name": "DNA Structure & Replication",                  "desc": "Double helix, base pairing rules, nucleotides, semi-conservative replication, DNA polymerase fidelity and error rates"},
-        {"id": "central_dogma_b",      "name": "Transcription & RNA Processing",               "desc": "RNA polymerase II, promoters, enhancers, pre-mRNA splicing, 5' capping, poly-A tail — how genes become transcripts"},
+        {"id": "central_dogma_b",      "name": "Transcription & RNA Processing",               "desc": "RNA polymerase II, promoters, enhancers, pre-mRNA splicing, 5' capping, poly-A tail  -  how genes become transcripts"},
         {"id": "central_dogma_c",      "name": "Translation & Post-Translational Modification","desc": "Ribosomes, codons, tRNA, the genetic code, protein folding, PTMs (phosphorylation, glycosylation, ubiquitination)"},
         {"id": "seq_formats_a",        "name": "FASTA & FASTQ Formats",                        "desc": "FASTA sequence records, FASTQ quality scores, Phred encoding, per-base quality interpretation, multi-record files"},
         {"id": "seq_formats_b",        "name": "SAM/BAM & Alignment Formats",                  "desc": "SAM header sections, mandatory fields, CIGAR string decoding, FLAG values, sorting and indexing with SAMtools"},
@@ -381,12 +399,12 @@ CURRICULUM = {
         {"id": "pairwise_alignment_b", "name": "Local Alignment: Smith-Waterman",              "desc": "Local DP formulation, zero-floor rule, optimal local matches, computational complexity, hardware acceleration"},
         {"id": "pairwise_alignment_c", "name": "Scoring Matrices & Gap Penalties",             "desc": "PAM and BLOSUM matrices, how they were derived, choosing the right matrix and gap penalty for your alignment problem"},
         {"id": "blast_search_a",       "name": "BLAST Algorithm Internals",                    "desc": "Word seeding, HSP extension, two-hit method, E-value calculation, bit scores, statistical significance"},
-        {"id": "blast_search_b",       "name": "BLAST Variants & Use Cases",                   "desc": "BLASTn, BLASTp, BLASTx, tBLASTn, tBLASTx, PSI-BLAST, DELTA-BLAST — when and why to use each"},
+        {"id": "blast_search_b",       "name": "BLAST Variants & Use Cases",                   "desc": "BLASTn, BLASTp, BLASTx, tBLASTn, tBLASTx, PSI-BLAST, DELTA-BLAST  -  when and why to use each"},
         {"id": "blast_search_c",       "name": "Interpreting BLAST Output",                    "desc": "Score, E-value, percent identity, query/subject coverage, low-complexity masking, filtering noise from results"},
         {"id": "msa_phylogenetics_a",  "name": "Multiple Sequence Alignment Methods",          "desc": "Progressive (ClustalW) vs iterative (MUSCLE, MAFFT) alignment, scoring MSAs, gap treatment, anchor columns"},
-        {"id": "msa_phylogenetics_b",  "name": "Distance & Parsimony Tree Methods",            "desc": "Genetic distance models (Jukes-Cantor, K2P), UPGMA, neighbor-joining, maximum parsimony — concepts and limits"},
+        {"id": "msa_phylogenetics_b",  "name": "Distance & Parsimony Tree Methods",            "desc": "Genetic distance models (Jukes-Cantor, K2P), UPGMA, neighbor-joining, maximum parsimony  -  concepts and limits"},
         {"id": "msa_phylogenetics_c",  "name": "Maximum Likelihood & Bayesian Trees",          "desc": "Substitution models, IQ-TREE, BEAST, bootstrapping, posterior probability, interpreting clade support values"},
-        {"id": "bio_databases_a",      "name": "NCBI Database Suite",                          "desc": "GenBank, RefSeq, dbSNP, SRA, ClinVar, dbVar — database relationships, Entrez API, EDirect command-line access"},
+        {"id": "bio_databases_a",      "name": "NCBI Database Suite",                          "desc": "GenBank, RefSeq, dbSNP, SRA, ClinVar, dbVar  -  database relationships, Entrez API, EDirect command-line access"},
         {"id": "bio_databases_b",      "name": "Protein & Structure Databases",                "desc": "UniProt/Swiss-Prot vs TrEMBL, PDB structure records, Pfam domains, InterPro, programmatic REST access"},
         {"id": "bio_databases_c",      "name": "Pathway & Ontology Databases",                 "desc": "KEGG pathways and BRITE hierarchies, Reactome, Gene Ontology (MF/BP/CC), using GO terms for enrichment analysis"},
         {"id": "ngs_qc_a",             "name": "Illumina Sequencing Technology",               "desc": "Flow cell clusters, bridge amplification, sequencing-by-synthesis, paired-end reads, index multiplexing, read length trade-offs"},
@@ -399,10 +417,10 @@ CURRICULUM = {
         {"id": "rnaseq_expression_b",  "name": "Quantification & Normalisation",               "desc": "featureCounts, Salmon pseudoalignment, TPM vs RPKM vs raw counts, DESeq2 size factors, edgeR TMM normalisation"},
         {"id": "rnaseq_expression_c",  "name": "Differential Expression Downstream Analysis",  "desc": "Volcano plots, MA plots, FDR correction, GSEA, fgsea, GO and KEGG enrichment, heatmaps, pathway visualisation"},
         {"id": "protein_structure_a",  "name": "Protein Structural Hierarchy",                 "desc": "Primary sequence, secondary elements (α-helix, β-sheet), tertiary fold, quaternary assemblies, domains and motifs"},
-        {"id": "protein_structure_b",  "name": "Experimental Structure Determination",         "desc": "X-ray crystallography, NMR spectroscopy, cryo-EM — principles, resolution, PDB deposition, viewing in PyMOL/ChimeraX"},
+        {"id": "protein_structure_b",  "name": "Experimental Structure Determination",         "desc": "X-ray crystallography, NMR spectroscopy, cryo-EM  -  principles, resolution, PDB deposition, viewing in PyMOL/ChimeraX"},
         {"id": "protein_structure_c",  "name": "AlphaFold & Computational Structure Prediction","desc": "How AlphaFold2 works, pLDDT and PAE confidence scores, AlphaFold Multimer, ESMFold, structure-function applications"},
         {"id": "bio_programming_a",    "name": "Python & Biopython for Bioinformatics",        "desc": "SeqIO, pairwise2, Entrez API access, BLAST wrapper, pandas for tabular data, writing reusable bioinformatics scripts"},
-        {"id": "bio_programming_b",    "name": "R & Bioconductor",                             "desc": "Biostrings, GenomicRanges, DESeq2, ggplot2, ComplexHeatmap — R ecosystem for genomics and visualisation"},
+        {"id": "bio_programming_b",    "name": "R & Bioconductor",                             "desc": "Biostrings, GenomicRanges, DESeq2, ggplot2, ComplexHeatmap  -  R ecosystem for genomics and visualisation"},
         {"id": "bio_programming_c",    "name": "Workflow Management & Reproducibility",        "desc": "Snakemake rules and DAGs, Nextflow channels, conda environments, containers (Docker/Singularity), reproducible pipelines"},
         {"id": "ml_bioinformatics_a",  "name": "Feature Engineering for Biological Data",      "desc": "Molecular descriptors, k-mer frequency, position weight matrices, one-hot encoding, handling high-dimensional omics features"},
         {"id": "ml_bioinformatics_b",  "name": "Classical ML on Omics Data",                   "desc": "Random forests, SVMs, gradient boosting for biomarker classification; clustering (k-means, hierarchical) for omics"},
@@ -411,7 +429,7 @@ CURRICULUM = {
     "genomics": [
         {"id": "genome_structure_a",   "name": "Chromosome & Chromatin Organisation",         "desc": "Nucleosomes, chromatin compaction, topologically associating domains (TADs), lamina-associated domains, heterochromatin vs euchromatin"},
         {"id": "genome_structure_b",   "name": "Genes, Regulatory Elements & Non-Coding DNA", "desc": "Exon-intron structure, promoters, enhancers, silencers, insulators, ENCODE annotation, proportion of functional non-coding sequence"},
-        {"id": "genome_structure_c",   "name": "Repetitive Elements & the Dark Genome",       "desc": "SINEs, LINEs, transposons, centromeric satellites, segmental duplications — what makes 45% of the genome hard to sequence"},
+        {"id": "genome_structure_c",   "name": "Repetitive Elements & the Dark Genome",       "desc": "SINEs, LINEs, transposons, centromeric satellites, segmental duplications  -  what makes 45% of the genome hard to sequence"},
         {"id": "sequencing_tech_a",    "name": "Sanger Sequencing",                           "desc": "Chain termination chemistry, capillary electrophoresis, read length, clinical sequencing (Sanger confirmation), limitations"},
         {"id": "sequencing_tech_b",    "name": "Illumina Short-Read Sequencing",              "desc": "Paired-end library prep, flow cell clusters, sequencing-by-synthesis chemistry, error profiles, throughput vs cost"},
         {"id": "sequencing_tech_c",    "name": "Long-Read Sequencing: PacBio & Nanopore",     "desc": "PacBio HiFi (CCS) accuracy, Nanopore direct sequencing, basecalling models, resolving structural variants and repeats"},
@@ -434,7 +452,7 @@ CURRICULUM = {
         {"id": "transcriptomics_b",    "name": "Differential Expression Analysis",            "desc": "DESeq2 negative binomial model, edgeR, limma-voom, FDR correction, biological replication requirements"},
         {"id": "transcriptomics_c",    "name": "Functional Interpretation of RNA-seq",        "desc": "GO enrichment, GSEA, pathway analysis (KEGG, Reactome), cell type deconvolution (CIBERSORT, CellChat)"},
         {"id": "single_cell_a",        "name": "scRNA-seq Technologies",                      "desc": "10x Chromium droplet microfluidics, cell barcodes, UMIs, 3' vs 5' capture, SMART-seq, cell doublet rates"},
-        {"id": "single_cell_b",        "name": "scRNA-seq Analysis Workflow",                 "desc": "Seurat/Scanpy pipeline — filtering, normalisation, HVGs, PCA, UMAP, clustering, marker genes, cell type annotation"},
+        {"id": "single_cell_b",        "name": "scRNA-seq Analysis Workflow",                 "desc": "Seurat/Scanpy pipeline  -  filtering, normalisation, HVGs, PCA, UMAP, clustering, marker genes, cell type annotation"},
         {"id": "single_cell_c",        "name": "Advanced Single-Cell Methods",                "desc": "RNA velocity (scVelo), pseudotime (Monocle, PAGA), spatial transcriptomics (Visium, MERFISH), multiome ATAC+RNA"},
         {"id": "epigenomics_a",        "name": "DNA Methylation & Bisulfite Sequencing",      "desc": "CpG methylation biology, WGBS and RRBS protocols, bismark alignment, DMR analysis, methylation arrays (EPIC)"},
         {"id": "epigenomics_b",        "name": "Histone Modifications & ChIP-seq",            "desc": "ChIP-seq library prep, peak calling with MACS2, H3K27ac enhancers, H3K4me3 promoters, differential ChIP"},
@@ -442,7 +460,7 @@ CURRICULUM = {
         {"id": "metagenomics_a",       "name": "16S rRNA Amplicon Sequencing",                "desc": "Hypervariable regions (V3-V4), OTU vs ASV (DADA2), alpha and beta diversity, QIIME2 workflow, phyloseq"},
         {"id": "metagenomics_b",       "name": "Shotgun Metagenomics",                        "desc": "Whole metagenome sequencing, MetaPhlAn4 taxonomy, HUMAnN3 functional profiling, MAG binning (MetaBAT, GTDB-Tk)"},
         {"id": "metagenomics_c",       "name": "Microbiome Analysis & Disease Links",         "desc": "Differential abundance (LEfSe, ANCOM), confounding variables, gut-disease associations (IBD, diabetes, cancer)"},
-        {"id": "precision_medicine_a", "name": "Pharmacogenomics",                            "desc": "CYP2D6, CYP2C19, TPMT, DPYD — pharmacogenomic variants, CPIC guidelines, clinical PGx testing and implementation"},
+        {"id": "precision_medicine_a", "name": "Pharmacogenomics",                            "desc": "CYP2D6, CYP2C19, TPMT, DPYD  -  pharmacogenomic variants, CPIC guidelines, clinical PGx testing and implementation"},
         {"id": "precision_medicine_b", "name": "Polygenic Risk Scores",                       "desc": "PRS construction (LDpred2, PRSice), external validation, ancestry transferability, clinical deployment ethics"},
         {"id": "precision_medicine_c", "name": "Precision Oncology & Companion Diagnostics",  "desc": "Tumour mutation burden, MSI, HER2/BRCA testing, NGS panels (Foundation One), CDx co-development, biomarker-led trials"},
     ],
@@ -451,7 +469,7 @@ CURRICULUM = {
         {"id": "pipeline_overview_b",  "name": "Clinical Phases & Regulatory Milestones",     "desc": "Phase I/II/III/IV overview, IND filing, NDA/BLA submission, probability of success by phase and therapeutic area"},
         {"id": "pipeline_overview_c",  "name": "Portfolio Management & Value Creation",       "desc": "Risk-adjusted NPV, pipeline diversification, go/no-go decision frameworks, partnering vs in-house development strategy"},
         {"id": "target_id_a",          "name": "Disease Biology for Target Identification",   "desc": "Genetics (GWAS, Mendelian disease), proteomics, pathway analysis, phenotypic screening as target-agnostic approaches"},
-        {"id": "target_id_b",          "name": "Target Classes & Druggability",               "desc": "GPCRs, kinases, ion channels, nuclear receptors, PPIs, RNA targets — binding pocket properties, druggability scoring tools"},
+        {"id": "target_id_b",          "name": "Target Classes & Druggability",               "desc": "GPCRs, kinases, ion channels, nuclear receptors, PPIs, RNA targets  -  binding pocket properties, druggability scoring tools"},
         {"id": "target_id_c",          "name": "Target Validation Strategies",                "desc": "RNAi/CRISPR knockdown, patient genetics as human genetic validation, mouse models, biomarker evidence, clinical proof-of-concept"},
         {"id": "hit_discovery_a",      "name": "Compound Libraries & Screening Collections", "desc": "Diversity sets, fragment libraries (FBDD), DNA-encoded libraries, natural products, virtual screening as alternative to physical HTS"},
         {"id": "hit_discovery_b",      "name": "High-Throughput Screening",                   "desc": "Assay formats (biochemical, cell-based), miniaturisation (384/1536-well), Z'-factor, hit rate expectations, false positive sources"},
@@ -462,7 +480,7 @@ CURRICULUM = {
         {"id": "admet_a",              "name": "Absorption & Bioavailability",                "desc": "Solubility assays, Caco-2 permeability, PAMPA, first-pass hepatic metabolism, oral bioavailability calculation and prediction"},
         {"id": "admet_b",              "name": "Distribution & Metabolism",                   "desc": "Plasma protein binding, volume of distribution, blood-brain barrier penetration, CYP reaction phenotyping, metabolite ID"},
         {"id": "admet_c",              "name": "Excretion, Toxicity & In Silico ADMET",       "desc": "Renal clearance, biliary excretion, hERG patch-clamp, DILI prediction, in silico tools (pkCSM, SwissADME, Derek Nexus)"},
-        {"id": "pk_pd_a",              "name": "Core PK Parameters",                          "desc": "Cmax, AUC, t½, clearance (CL), volume of distribution (Vd) — one and two-compartment models, non-compartmental analysis"},
+        {"id": "pk_pd_a",              "name": "Core PK Parameters",                          "desc": "Cmax, AUC, t½, clearance (CL), volume of distribution (Vd)  -  one and two-compartment models, non-compartmental analysis"},
         {"id": "pk_pd_b",              "name": "Pharmacodynamic Models",                      "desc": "Emax model, EC50, Hill coefficient, direct vs indirect response models, hysteresis, PD biomarkers in drug development"},
         {"id": "pk_pd_c",              "name": "PK/PD Integration & Dose Selection",          "desc": "Exposure-response relationships, PK/PD-driven dose selection, translational PK/PD from animal to human, PKPD modelling tools"},
         {"id": "preclinical_a",        "name": "In Vitro Safety Assessment",                  "desc": "Genotoxicity (Ames test, micronucleus), hERG inhibition assay, in vitro hepatotoxicity, reactive metabolite trapping"},
@@ -487,19 +505,19 @@ CURRICULUM = {
     "clinical_trials": [
         {"id": "trial_basics_a",       "name": "Why Clinical Trials Exist",                   "desc": "Evidence hierarchy (RCT vs observational), regulatory mandate for efficacy and safety, historical context (thalidomide, Kefauver-Harris)"},
         {"id": "trial_basics_b",       "name": "The Clinical Development Roadmap",            "desc": "IND filing → Phase I → II → III → NDA/BLA → Phase IV; typical timelines, costs, and probability of success at each stage"},
-        {"id": "trial_basics_c",       "name": "Key Stakeholders in Clinical Trials",         "desc": "Sponsor, CRO, investigative site, IRB/IEC, DSMB, FDA/EMA — roles, responsibilities, and contractual relationships"},
+        {"id": "trial_basics_c",       "name": "Key Stakeholders in Clinical Trials",         "desc": "Sponsor, CRO, investigative site, IRB/IEC, DSMB, FDA/EMA  -  roles, responsibilities, and contractual relationships"},
         {"id": "phase1_a",             "name": "Phase I Objectives & First-in-Human Ethics",  "desc": "Safety, tolerability, and PK as primary goals; healthy volunteer vs patient studies; MRSD determination (NOAEL/HED/MABEL)"},
-        {"id": "phase1_b",             "name": "Dose Escalation Designs",                     "desc": "3+3 rule-based, accelerated titration, mTPI, CRM, BOIN — Bayesian vs rule-based trade-offs, DLT definition, MTD and RP2D"},
+        {"id": "phase1_b",             "name": "Dose Escalation Designs",                     "desc": "3+3 rule-based, accelerated titration, mTPI, CRM, BOIN  -  Bayesian vs rule-based trade-offs, DLT definition, MTD and RP2D"},
         {"id": "phase1_c",             "name": "PK/PD Integration in Phase I",                "desc": "PK sampling strategy, PK/PD modelling for dose selection, biomarker integration (PD endpoints), food effect and DDI studies"},
         {"id": "phase2_3_a",           "name": "Phase II: Proof of Concept & Dose Selection", "desc": "Phase IIa vs IIb, PoC objectives, signal-seeking designs, dose-response, go/no-go criteria, seamless Phase II/III"},
         {"id": "phase2_3_b",           "name": "Phase III: Confirmatory Trial Design",        "desc": "Randomisation methods (stratified, minimisation), double-blind designs, parallel vs crossover, control arm rationale"},
         {"id": "phase2_3_c",           "name": "Endpoint Selection Strategy",                 "desc": "Primary, secondary, PRO endpoints; FDA endpoint qualification, surrogate vs clinical endpoints, patient-relevant outcomes"},
-        {"id": "trial_design_stats_a", "name": "Hypothesis Testing in Clinical Trials",       "desc": "Null vs alternative hypothesis, Type I error (α, two-sided vs one-sided), Type II error (β), power — regulatory conventions"},
+        {"id": "trial_design_stats_a", "name": "Hypothesis Testing in Clinical Trials",       "desc": "Null vs alternative hypothesis, Type I error (α, two-sided vs one-sided), Type II error (β), power  -  regulatory conventions"},
         {"id": "trial_design_stats_b", "name": "Sample Size Calculation",                     "desc": "Effect size assumptions, variance estimates, dropout/withdrawal allowance, power simulations, sample size inflation strategies"},
         {"id": "trial_design_stats_c", "name": "Adaptive & Bayesian Designs",                 "desc": "Interim analyses, futility stopping (O'Brien-Fleming), sample size re-estimation, alpha spending (Lan-DeMets), platform trials"},
         {"id": "regulatory_bodies_a",  "name": "FDA Structure & Meeting Types",               "desc": "CDER/CBER/CDRH divisions, review divisions by therapeutic area, Type A/B/C meeting requests, pre-IND, end-of-Phase II meetings"},
-        {"id": "regulatory_bodies_b",  "name": "EMA, PMDA & Global Agencies",                "desc": "EMA CHMP procedure, centralised vs decentralised authorisation, PMDA consultations, ANVISA, NMPA — regional differences"},
-        {"id": "regulatory_bodies_c",  "name": "ICH Guidelines for Clinical Development",     "desc": "ICH E6 GCP, E8 general considerations, E9 statistical principles, E10 control group choice — how these shape protocol design"},
+        {"id": "regulatory_bodies_b",  "name": "EMA, PMDA & Global Agencies",                "desc": "EMA CHMP procedure, centralised vs decentralised authorisation, PMDA consultations, ANVISA, NMPA  -  regional differences"},
+        {"id": "regulatory_bodies_c",  "name": "ICH Guidelines for Clinical Development",     "desc": "ICH E6 GCP, E8 general considerations, E9 statistical principles, E10 control group choice  -  how these shape protocol design"},
         {"id": "submissions_a",        "name": "IND Application",                             "desc": "IND content (pharmacology, tox, CMC, clinical protocol), investigator IND vs commercial IND, annual reports, protocol amendments"},
         {"id": "submissions_b",        "name": "NDA & BLA Submissions",                       "desc": "CTD format (Modules 1-5), NDA vs BLA distinction, 505(b)(1) vs 505(b)(2), PDUFA user fees, standard vs priority review timelines"},
         {"id": "submissions_c",        "name": "Post-Submission Interactions",                "desc": "Discipline review letters, information requests, advisory committee prep, complete response letters (CRL), resubmission strategies"},
@@ -523,29 +541,29 @@ CURRICULUM = {
         {"id": "patient_recruitment_c","name": "Retention, Adherence & Protocol Deviations", "desc": "Dropout prediction, retention strategies (patient stipends, convenience), protocol deviation classification and impact on data integrity"},
     ],
     "genai_ml": [
-        {"id": "ml_foundations_a",     "name": "Supervised & Unsupervised Learning",          "desc": "Regression, classification, clustering, dimensionality reduction — core paradigms, loss functions, gradient descent optimisation"},
+        {"id": "ml_foundations_a",     "name": "Supervised & Unsupervised Learning",          "desc": "Regression, classification, clustering, dimensionality reduction  -  core paradigms, loss functions, gradient descent optimisation"},
         {"id": "ml_foundations_b",     "name": "Model Evaluation & Validation",               "desc": "Train/val/test splits, k-fold cross-validation, ROC/AUC, precision-recall, calibration curves for biological datasets"},
         {"id": "ml_foundations_c",     "name": "Overfitting, Regularisation & Hyperparameters","desc": "Bias-variance trade-off, L1/L2 regularisation, dropout, early stopping, hyperparameter search (grid, random, Bayesian)"},
-        {"id": "bio_feature_eng_a",    "name": "Molecular Descriptors & Fingerprints",        "desc": "Morgan/ECFP fingerprints, RDKit descriptors, pharmacophore features — encoding small molecules for ML models"},
-        {"id": "bio_feature_eng_b",    "name": "Sequence Encoding Strategies",                "desc": "One-hot encoding, k-mer frequency, PSS matrices, learned embeddings — representing DNA, RNA, and protein sequences"},
+        {"id": "bio_feature_eng_a",    "name": "Molecular Descriptors & Fingerprints",        "desc": "Morgan/ECFP fingerprints, RDKit descriptors, pharmacophore features  -  encoding small molecules for ML models"},
+        {"id": "bio_feature_eng_b",    "name": "Sequence Encoding Strategies",                "desc": "One-hot encoding, k-mer frequency, PSS matrices, learned embeddings  -  representing DNA, RNA, and protein sequences"},
         {"id": "bio_feature_eng_c",    "name": "Graph & Multi-Modal Representations",         "desc": "Molecular graphs, protein contact maps, knowledge graphs, combining sequence + structure + omics in multi-modal models"},
         {"id": "classical_ml_lifesci_a","name": "Ensemble Methods for Life Science Data",    "desc": "Random forests, XGBoost, LightGBM applied to ADMET prediction, gene expression classifiers, biomarker selection"},
         {"id": "classical_ml_lifesci_b","name": "SVMs & Logistic Regression in Biology",     "desc": "Kernel trick for molecular data, regularised logistic regression for omics, handling class imbalance in clinical datasets"},
         {"id": "classical_ml_lifesci_c","name": "Survival Analysis & Patient Stratification","desc": "Kaplan-Meier curves, Cox proportional hazards, time-varying covariates, clustering patients for precision medicine"},
-        {"id": "deep_learning_fund_a", "name": "Neural Network Fundamentals",                 "desc": "Layers, activation functions, backpropagation, SGD/Adam, batch normalisation — building and training simple networks"},
+        {"id": "deep_learning_fund_a", "name": "Neural Network Fundamentals",                 "desc": "Layers, activation functions, backpropagation, SGD/Adam, batch normalisation  -  building and training simple networks"},
         {"id": "deep_learning_fund_b", "name": "CNNs & RNNs for Biological Data",            "desc": "CNNs for sequence motif discovery and microscopy images, RNNs/LSTMs for sequential biological data, vanishing gradients"},
-        {"id": "deep_learning_fund_c", "name": "Attention Mechanisms & Transformers",        "desc": "Self-attention, multi-head attention, positional encoding, the transformer architecture — foundation of modern sequence AI"},
+        {"id": "deep_learning_fund_c", "name": "Attention Mechanisms & Transformers",        "desc": "Self-attention, multi-head attention, positional encoding, the transformer architecture  -  foundation of modern sequence AI"},
         {"id": "protein_lang_models_a","name": "Protein Language Model Architecture",        "desc": "BERT-style masked language models for amino acids, tokenisation, pre-training objectives, transfer learning for protein tasks"},
         {"id": "protein_lang_models_b","name": "ESM, ProtTrans & ProteinBERT",              "desc": "ESM-2 embeddings, ProtTrans models, zero-shot mutation effect prediction, using PLM representations in downstream tasks"},
         {"id": "protein_lang_models_c","name": "AlphaFold2 & AF3: How They Work",           "desc": "MSA-based Evoformer, structure module, pLDDT/PAE confidence, AlphaFold3 diffusion head, practical limitations"},
-        {"id": "gnn_drug_disc_a",      "name": "Graph Theory for Molecules",                 "desc": "Atoms as nodes, bonds as edges, atom/bond features, molecular graph construction — why graphs suit chemistry better than SMILES"},
-        {"id": "gnn_drug_disc_b",      "name": "GNN Architectures",                         "desc": "Message passing neural networks (MPNN), SchNet, DimeNet, AttentiveFP — how 3D geometry improves molecular property prediction"},
+        {"id": "gnn_drug_disc_a",      "name": "Graph Theory for Molecules",                 "desc": "Atoms as nodes, bonds as edges, atom/bond features, molecular graph construction  -  why graphs suit chemistry better than SMILES"},
+        {"id": "gnn_drug_disc_b",      "name": "GNN Architectures",                         "desc": "Message passing neural networks (MPNN), SchNet, DimeNet, AttentiveFP  -  how 3D geometry improves molecular property prediction"},
         {"id": "gnn_drug_disc_c",      "name": "GNNs in Drug Discovery Applications",       "desc": "Molecular property prediction (ADMET, activity), drug-target interaction prediction, reaction outcome prediction, retrosynthesis"},
         {"id": "gen_molecules_a",      "name": "VAEs & GANs for Molecular Design",          "desc": "Variational autoencoders for latent space molecular optimisation, junction tree VAE, GAN training instability and mode collapse"},
         {"id": "gen_molecules_b",      "name": "Diffusion Models for Molecules",            "desc": "Score-based and DDPM diffusion, 3D molecular generation (EDM, GeoDiff), structure-based drug design (DiffSBDD, DiffDock)"},
         {"id": "gen_molecules_c",      "name": "Multi-Parameter Optimisation in Generative Chemistry","desc": "Pareto optimisation for potency+selectivity+ADMET, REINFORCE and RL for molecular generation, closed-loop design-make-test"},
         {"id": "ai_genomics_omics_a",  "name": "Variant Effect Prediction",                 "desc": "Deep learning for splicing (SpliceAI), regulatory effects (Enformer), missense pathogenicity (AlphaMissense), zero-shot with PLMs"},
-        {"id": "ai_genomics_omics_b",  "name": "Gene Expression & Single-Cell Foundation Models","desc": "scGPT, Geneformer, Universal Cell Embeddings — pre-training on cell atlases, downstream tasks, zero-shot cell type transfer"},
+        {"id": "ai_genomics_omics_b",  "name": "Gene Expression & Single-Cell Foundation Models","desc": "scGPT, Geneformer, Universal Cell Embeddings  -  pre-training on cell atlases, downstream tasks, zero-shot cell type transfer"},
         {"id": "ai_genomics_omics_c",  "name": "Multi-Omics Integration",                   "desc": "MOFA+, CITE-seq analysis, multi-modal VAEs, graph-based integration, finding regulatory programs across omics layers"},
         {"id": "ai_clinical_rwe_a",    "name": "Clinical NLP & EHR Mining",                 "desc": "Named entity recognition for clinical text, ICD code prediction, BERT-based clinical models (BioBERT, ClinicalBERT, Med-PaLM)"},
         {"id": "ai_clinical_rwe_b",    "name": "AI for Patient Recruitment & Digital Biomarkers","desc": "Trial eligibility matching (TriNetX, Veeva Vault), wearable data modelling, passive digital biomarkers, FDA DDT program"},
@@ -570,7 +588,7 @@ CURRICULUM = {
         {"id": "ls_valuation_a",       "name": "Risk-Adjusted NPV (rNPV)",                   "desc": "Probability of success by phase, discount rate selection (10-15% for biotech), cash flow modelling, terminal value approaches"},
         {"id": "ls_valuation_b",       "name": "Comparable Transactions & Market Multiples", "desc": "Precedent deal database (EvaluatePharma, BioCentury), upfront vs milestone vs royalty benchmarks, peak sales multiples"},
         {"id": "ls_valuation_c",       "name": "Communicating Pipeline Value to Investors",  "desc": "Investor presentation anatomy, pipeline table with catalysts, data read-out timelines, translating science into financial narrative"},
-        {"id": "bd_licensing_a",       "name": "Deal Structures in Biotech",                 "desc": "Option deals, co-development/co-commercialisation, full license, collaboration agreements — economics of each structure"},
+        {"id": "bd_licensing_a",       "name": "Deal Structures in Biotech",                 "desc": "Option deals, co-development/co-commercialisation, full license, collaboration agreements  -  economics of each structure"},
         {"id": "bd_licensing_b",       "name": "Term Sheets & Deal Economics",               "desc": "Upfront payment, milestones (development, regulatory, commercial), royalty tiers, sublicensing rights, diligence obligations"},
         {"id": "bd_licensing_c",       "name": "Due Diligence in BD Deals",                 "desc": "IP due diligence, clinical data package review, CMC/manufacturing diligence, commercial diligence, typical timeline and red flags"},
         {"id": "market_strategy_a",    "name": "Patient Population Sizing",                  "desc": "Epidemiology → diagnosed population → treatment-eligible → accessible market; bottom-up vs top-down market sizing"},
@@ -579,7 +597,7 @@ CURRICULUM = {
         {"id": "market_access_heor_a", "name": "The Global Payer Landscape",                 "desc": "US commercial payers, Medicare/Medicaid, EU national payers, formulary tiers, P&T committee dynamics, prior authorisation"},
         {"id": "market_access_heor_b", "name": "Health Economics & HTA",                    "desc": "QALY, ICER thresholds, cost-effectiveness models, NICE/G-BA/HAS/AIFA appraisal processes, HTA-aligned trial design"},
         {"id": "market_access_heor_c", "name": "Value-Based Contracts & Pricing Strategy",  "desc": "Outcomes-based contracts, annuity payment models for gene therapy, reference pricing, parallel trade, net price negotiations"},
-        {"id": "ip_biotech_a",         "name": "Patent Types in Life Sciences",              "desc": "Composition of matter, method of use, formulation, process patents — scope, strength, and litigation value of each type"},
+        {"id": "ip_biotech_a",         "name": "Patent Types in Life Sciences",              "desc": "Composition of matter, method of use, formulation, process patents  -  scope, strength, and litigation value of each type"},
         {"id": "ip_biotech_b",         "name": "Patent Strategy & Lifecycle",               "desc": "Filing timing relative to publication, continuation and CIP strategy, Orange Book listing, patent term extension, patent cliffs"},
         {"id": "ip_biotech_c",         "name": "FTO, Licensing & Trade Secrets",            "desc": "Freedom-to-operate analysis, in-licensing technology IP, trade secrets as alternative to patents, IP in partnership agreements"},
         {"id": "mfg_ops_a",            "name": "GMP & Quality Systems",                     "desc": "FDA 21 CFR Part 211, EMA GMP Annex 1, GMP audit preparation, quality agreements, change control in manufacturing"},
@@ -600,7 +618,7 @@ CURRICULUM = {
     ],
     "cell_gene_therapy": [
         {"id": "cgt_foundations_a",    "name": "What Are Cell & Gene Therapies?",             "desc": "How CGTs differ from small molecules and biologics, types (gene addition, silencing, editing, cell therapy), approved products landscape"},
-        {"id": "cgt_foundations_b",    "name": "Approved CGT Products Deep Dive",             "desc": "Zolgensma (AAV9-SMN1), Luxturna (RPE65), Casgevy (CRISPR-SCD/β-thal), Kymriah/Yescarta (CAR-T) — mechanisms and clinical results"},
+        {"id": "cgt_foundations_b",    "name": "Approved CGT Products Deep Dive",             "desc": "Zolgensma (AAV9-SMN1), Luxturna (RPE65), Casgevy (CRISPR-SCD/β-thal), Kymriah/Yescarta (CAR-T)  -  mechanisms and clinical results"},
         {"id": "cgt_foundations_c",    "name": "ATMP Regulatory Category",                    "desc": "EU ATMP classification (somatic CT, gene therapy, TEP), CBER vs CDER jurisdiction, RMAT and PRIME designations"},
         {"id": "viral_vectors_a",      "name": "AAV Biology & Serotype Selection",            "desc": "Capsid structure, receptor interactions, tissue tropism by serotype (AAV9 CNS/muscle, AAV8 liver, AAV5 eye), packaging capacity (~4.7 kb)"},
         {"id": "viral_vectors_b",      "name": "Lentiviral & Retroviral Vectors",             "desc": "LV integration mechanism, SIN design, insertional mutagenesis history, γ-retrovirus vs lentivirus safety profile, ex vivo use cases"},
@@ -610,10 +628,10 @@ CURRICULUM = {
         {"id": "nonviral_delivery_c",  "name": "Polymer Nanoparticles & Emerging Delivery",  "desc": "PEI, PLGA, lipid-polymer hybrids, GalNAc conjugates for hepatocyte targeting, VLPs, limitations vs viral vectors"},
         {"id": "crispr_mechanisms_a",  "name": "Cas9 Mechanism & Guide RNA Design",          "desc": "SpCas9 RuvC/HNH domains, NGG PAM recognition, spacer design rules, guide RNA secondary structure, efficacy prediction tools"},
         {"id": "crispr_mechanisms_b",  "name": "Off-Target Effects & Minimisation",          "desc": "Off-target prediction (CRISPOR, Cas-OFFinder), unbiased detection (GUIDE-seq, CIRCLE-seq), high-fidelity Cas9 variants (eSpCas9, HiFi)"},
-        {"id": "crispr_mechanisms_c",  "name": "Variant Cas Systems",                        "desc": "Cas12a (staggered cuts, T-rich PAM), Cas13 (RNA targeting), CasRx, nickases (D10A) — clinical and research applications"},
+        {"id": "crispr_mechanisms_c",  "name": "Variant Cas Systems",                        "desc": "Cas12a (staggered cuts, T-rich PAM), Cas13 (RNA targeting), CasRx, nickases (D10A)  -  clinical and research applications"},
         {"id": "base_prime_editing_a", "name": "Cytosine & Adenine Base Editors",            "desc": "CBE mechanism (cytidine deaminase + Cas9-D10A), C→T editing, ABE mechanism (adenosine deaminase), A→G conversions, activity window"},
         {"id": "base_prime_editing_b", "name": "Prime Editing",                              "desc": "pegRNA design (spacer + RT template + PBS), PE2/PE3/PE3b systems, small insertions/deletions/all 12 base changes, efficiency vs CBE/ABE"},
-        {"id": "base_prime_editing_c", "name": "Clinical Applications of Precision Editing", "desc": "BE4max for SCD (Beam Therapeutics), ABE8e for TTR amyloidosis, prime editing for PRNP — current IND filings and clinical status"},
+        {"id": "base_prime_editing_c", "name": "Clinical Applications of Precision Editing", "desc": "BE4max for SCD (Beam Therapeutics), ABE8e for TTR amyloidosis, prime editing for PRNP  -  current IND filings and clinical status"},
         {"id": "cart_therapy_a",       "name": "CAR Construct Architecture",                 "desc": "scFv antigen-binding domain, hinge and transmembrane regions, CD28 vs 4-1BB costimulatory signalling, CD3ζ, armoured CARs"},
         {"id": "cart_therapy_b",       "name": "T Cell Manufacturing Process",               "desc": "Leukapheresis, T cell activation (CD3/CD28 beads), lentiviral transduction, expansion (G-Rex), harvest, QC, cryopreservation"},
         {"id": "cart_therapy_c",       "name": "Autologous vs Allogeneic CAR-T",             "desc": "Autologous limitations (manufacturing time, cost, vein-to-vein), allogeneic off-the-shelf approaches, TALEN/CRISPR for TCR/HLA knockout"},
@@ -637,46 +655,46 @@ CURRICULUM = {
         {"id": "cgt_clinical_c",       "name": "CGT Economics & Access",                   "desc": "One-time curative pricing rationale, outcomes-based annuity payments, payer challenges, Zolgensma at $2.1M, global access equity"},
     ],
     "protein_engineering": [
-        {"id": "protein_eng_found_a",  "name": "Structure Determines Function",               "desc": "How active sites, binding interfaces, allosteric pockets, and flexible loops define what a protein does — and can be engineered to do"},
+        {"id": "protein_eng_found_a",  "name": "Structure Determines Function",               "desc": "How active sites, binding interfaces, allosteric pockets, and flexible loops define what a protein does  -  and can be engineered to do"},
         {"id": "protein_eng_found_b",  "name": "Sequence-Structure-Function Relationships",  "desc": "How single mutations propagate structurally, epistasis in protein fitness landscapes, deep mutational scanning as empirical mapping"},
         {"id": "protein_eng_found_c",  "name": "Engineering Objectives & Trade-Offs",        "desc": "Stability vs activity trade-off, thermostabilisation strategies, expression yield as engineering target, half-life extension considerations"},
-        {"id": "directed_evolution_a", "name": "Diversity Generation Methods",               "desc": "Error-prone PCR (epPCR), DNA shuffling, StEP, OmniChange, chemical mutagenesis — how to create large, random and semi-random libraries"},
-        {"id": "directed_evolution_b", "name": "Display & Selection Technologies",           "desc": "Phage display, yeast surface display, ribosome display, mRNA display — genotype-phenotype linkage strategies and selection pressure"},
+        {"id": "directed_evolution_a", "name": "Diversity Generation Methods",               "desc": "Error-prone PCR (epPCR), DNA shuffling, StEP, OmniChange, chemical mutagenesis  -  how to create large, random and semi-random libraries"},
+        {"id": "directed_evolution_b", "name": "Display & Selection Technologies",           "desc": "Phage display, yeast surface display, ribosome display, mRNA display  -  genotype-phenotype linkage strategies and selection pressure"},
         {"id": "directed_evolution_c", "name": "SELEX & In Vitro Evolution",                 "desc": "Systematic evolution of ligands by exponential enrichment, aptamer selection, continuous directed evolution (PACE), machine learning-guided DE"},
         {"id": "rational_design_a",    "name": "Structure-Based Mutagenesis",                "desc": "Reading electron density maps for active site engineering, FoldX and Rosetta ΔΔG prediction, thermostabilising mutations from structure"},
         {"id": "rational_design_b",    "name": "Computational Alanine Scanning",             "desc": "Hot spot identification, Robetta alanine scanning, energy decomposition, experimental validation of predicted hot spots"},
         {"id": "rational_design_c",    "name": "Semi-Rational Design Strategies",            "desc": "Combining structural insight with focused library screening (ISM, CAST), consensus sequence design, ancestral sequence reconstruction"},
-        {"id": "alphafold_practical_a","name": "How AlphaFold2 Works",                      "desc": "MSA depth requirements, Evoformer architecture, triangle updates, structure module, recycling iterations — understanding the model"},
+        {"id": "alphafold_practical_a","name": "How AlphaFold2 Works",                      "desc": "MSA depth requirements, Evoformer architecture, triangle updates, structure module, recycling iterations  -  understanding the model"},
         {"id": "alphafold_practical_b","name": "Interpreting AlphaFold Confidence Scores",  "desc": "pLDDT per-residue confidence, PAE for domain orientations, predicted TM-score, reliable vs uncertain regions in engineering use"},
         {"id": "alphafold_practical_c","name": "AlphaFold Limitations for Protein Engineering","desc": "Conformational states problem, ligand-bound vs apo structures, novel backbone accuracy, MSA scarcity effects, AF3 improvements"},
         {"id": "rfdiffusion_a",        "name": "Diffusion Models for Protein Backbone Design","desc": "Forward noise process, reverse denoising, RFdiffusion architecture, conditioning on motifs/constraints, symmetric protein design"},
         {"id": "rfdiffusion_b",        "name": "RFdiffusion Applications",                   "desc": "De novo binder design, enzyme active site scaffolding, cyclic peptide design, protein-protein interface design, experimental success rates"},
         {"id": "rfdiffusion_c",        "name": "From In Silico to In Vitro: Validation Pipeline","desc": "Rosetta energy filtering, ProteinMPNN sequence design, AlphaFold2 structure prediction filter, expression screening, wet-lab hit rate"},
-        {"id": "proteinmpnn_a",        "name": "Inverse Folding Concept",                   "desc": "Designing amino acid sequences that fold into a given backbone — why this is hard, how graph neural networks solve it, training data"},
+        {"id": "proteinmpnn_a",        "name": "Inverse Folding Concept",                   "desc": "Designing amino acid sequences that fold into a given backbone  -  why this is hard, how graph neural networks solve it, training data"},
         {"id": "proteinmpnn_b",        "name": "ProteinMPNN Architecture",                  "desc": "Graph encoding of backbone geometry, edge features (Cα-Cα distances, dihedral angles), autoregressive decoding, tied design for multimers"},
         {"id": "proteinmpnn_c",        "name": "ProteinMPNN + RFdiffusion Design Pipelines","desc": "Practical workflow: RFdiffusion backbone → ProteinMPNN sequences → AF2 filter → expression → biophysical characterisation"},
         {"id": "antibody_engineering_a","name": "mAb Structure & CDR Engineering",          "desc": "VH/VL domain organisation, CDR-H3 length distribution, germline selection impact, structural basis of antigen recognition"},
         {"id": "antibody_engineering_b","name": "Humanisation & Affinity Maturation",       "desc": "CDR grafting, vernier position back-mutations, phage display affinity maturation, yeast display for de novo discovery"},
         {"id": "antibody_engineering_c","name": "Bispecific Formats & Fc Engineering",      "desc": "CrossMAb, DART, BiTE, DuoBody, IgG-like bispecifics; Fc engineering for ADCC/CDC modulation, FcRn-extended half-life, YTE/LS variants"},
-        {"id": "enzyme_engineering_a", "name": "Thermostability & Expression Engineering",  "desc": "Consensus mutagenesis, disulfide introduction, proline substitution, salt bridges — systematic approaches to thermostabilisation"},
+        {"id": "enzyme_engineering_a", "name": "Thermostability & Expression Engineering",  "desc": "Consensus mutagenesis, disulfide introduction, proline substitution, salt bridges  -  systematic approaches to thermostabilisation"},
         {"id": "enzyme_engineering_b", "name": "Activity & Selectivity Engineering",        "desc": "Active site mutagenesis for substrate scope, cofactor engineering, substrate tunnel design, enantioselectivity improvement"},
         {"id": "enzyme_engineering_c", "name": "Industrial Biocatalysis",                   "desc": "Directed evolution for process conditions (organic solvents, extreme pH), Codexis and Arzeda approaches, cascade enzyme design"},
         {"id": "ppi_design_a",         "name": "PPI Hot Spot Analysis",                     "desc": "Experimental (alanine scanning) and computational (Rosetta, FoldX) hot spot mapping, structural biology of binding interfaces"},
-        {"id": "ppi_design_b",         "name": "Designing PPI Inhibitors",                  "desc": "α-helix mimetics, stapled peptides, constrained peptides, macrocycles — strategies to disrupt hot spot interactions therapeutically"},
+        {"id": "ppi_design_b",         "name": "Designing PPI Inhibitors",                  "desc": "α-helix mimetics, stapled peptides, constrained peptides, macrocycles  -  strategies to disrupt hot spot interactions therapeutically"},
         {"id": "ppi_design_c",         "name": "Miniproteins & Peptide Binders",            "desc": "Lumazine synthase binders, WORM scaffold, RFdiffusion-designed miniprotein binders, peptide therapeutics, oral delivery challenges"},
-        {"id": "developability_a",     "name": "Aggregation & Colloidal Stability",         "desc": "Hydrophobic patch analysis, AC-SINS, DLS, SEC-MALS, thermal denaturation — predicting and reducing aggregation propensity"},
-        {"id": "developability_b",     "name": "Chemical Degradation & Sequence Liabilities","desc": "Deamidation (NG, NS), oxidation (Met, Trp), isomerisation (DG), fragmentation (DP, DS) — identification and mitigation strategies"},
+        {"id": "developability_a",     "name": "Aggregation & Colloidal Stability",         "desc": "Hydrophobic patch analysis, AC-SINS, DLS, SEC-MALS, thermal denaturation  -  predicting and reducing aggregation propensity"},
+        {"id": "developability_b",     "name": "Chemical Degradation & Sequence Liabilities","desc": "Deamidation (NG, NS), oxidation (Met, Trp), isomerisation (DG), fragmentation (DP, DS)  -  identification and mitigation strategies"},
         {"id": "developability_c",     "name": "Immunogenicity Prediction & Mitigation",   "desc": "In silico T-cell epitope prediction (EpiMatrix, iTope), MHC-II binding assessment, immunogenicity risk scoring, deimmunisation"},
-        {"id": "therapeutic_formats_a","name": "Half-Life Extension Strategies",           "desc": "Fc fusion proteins, PEGylation, albumin binding domains, XTEN fusion, FcRn engineering (YTE, LS, Halozyme ENHANZE) — pros and cons"},
+        {"id": "therapeutic_formats_a","name": "Half-Life Extension Strategies",           "desc": "Fc fusion proteins, PEGylation, albumin binding domains, XTEN fusion, FcRn engineering (YTE, LS, Halozyme ENHANZE)  -  pros and cons"},
         {"id": "therapeutic_formats_b","name": "ADC Design Principles",                    "desc": "Antibody selection, linker chemistry (cleavable vs non-cleavable), payload selection (MMAE, DM1, PBD), DAR, site-specific conjugation"},
-        {"id": "therapeutic_formats_c","name": "Multispecific & Novel Protein Formats",    "desc": "Trispecifics, nanobodies (single-domain VHH), DARPins, affibodies, Centyrins, monobodies — when novel formats beat conventional mAbs"},
-        {"id": "protein_validation_a", "name": "Biophysical Characterisation Methods",     "desc": "SPR (KD, kon, koff), ITC (thermodynamics), DSF/nanoDSF (Tm), MST (KD in solution) — matching method to question"},
+        {"id": "therapeutic_formats_c","name": "Multispecific & Novel Protein Formats",    "desc": "Trispecifics, nanobodies (single-domain VHH), DARPins, affibodies, Centyrins, monobodies  -  when novel formats beat conventional mAbs"},
+        {"id": "protein_validation_a", "name": "Biophysical Characterisation Methods",     "desc": "SPR (KD, kon, koff), ITC (thermodynamics), DSF/nanoDSF (Tm), MST (KD in solution)  -  matching method to question"},
         {"id": "protein_validation_b", "name": "Structural Validation Techniques",         "desc": "X-ray co-crystallography, cryo-EM for complexes, HDX-MS for epitope mapping, NMR for conformational dynamics, SAXS"},
         {"id": "protein_validation_c", "name": "Cell & In Vivo Efficacy Assays",           "desc": "Target engagement assays (NanoBRET, CETSA), cell-based potency, MOA confirmation, PK/PD in mouse models, translational decision-making"},
     ],
     "rna_therapeutics": [
-        {"id": "rna_bio_found_a",      "name": "RNA Classes & Their Functions",               "desc": "mRNA, tRNA, rRNA, lncRNA, miRNA, siRNA, circRNA, piRNA — biogenesis, subcellular localisation, and functional roles"},
-        {"id": "rna_bio_found_b",      "name": "RNA Secondary & Tertiary Structure",          "desc": "Stem-loops, hairpins, pseudoknots, G-quadruplexes, riboswitches, SHAPE probing — RNA folds as drug targets"},
+        {"id": "rna_bio_found_a",      "name": "RNA Classes & Their Functions",               "desc": "mRNA, tRNA, rRNA, lncRNA, miRNA, siRNA, circRNA, piRNA  -  biogenesis, subcellular localisation, and functional roles"},
+        {"id": "rna_bio_found_b",      "name": "RNA Secondary & Tertiary Structure",          "desc": "Stem-loops, hairpins, pseudoknots, G-quadruplexes, riboswitches, SHAPE probing  -  RNA folds as drug targets"},
         {"id": "rna_bio_found_c",      "name": "Why RNA Expands the Druggable Space",         "desc": "Undruggable protein targets, RAS transcripts, pre-mRNA splicing intervention, transient expression control, quantitative target modulation"},
         {"id": "mrna_design_a",        "name": "5' Cap Structures & Translation Initiation",  "desc": "Cap-0 vs cap-1 methylation, CleanCap AG co-transcriptional capping, cap analogue effect on translation efficiency and innate immune evasion"},
         {"id": "mrna_design_b",        "name": "UTR Engineering & ORF Optimisation",          "desc": "5'/3' UTR stability elements, Kozak context, secondary structure near start codon, codon optimisation algorithms (CAI, tAI, Codon Tools)"},
@@ -686,7 +704,7 @@ CURRICULUM = {
         {"id": "rna_delivery_lnp_c",   "name": "Organ Tropism Engineering",                  "desc": "MC3/DLin-MC3 liver tropism via ApoE, 9A1P1 lung targeting, spleen-targeting LNPs for immune cells, selective organ targeting (SORT)"},
         {"id": "sirna_rnai_a",         "name": "RNAi Mechanism & RISC Loading",              "desc": "Dicer processing, RISC assembly (AGO2), guide strand thermodynamic asymmetry rules, seed region off-targets, mismatch tolerance"},
         {"id": "sirna_rnai_b",         "name": "Chemical Modifications for Stability",       "desc": "2'-OMe and 2'-F for nuclease resistance, phosphorothioate backbone, end caps, GalNAc-siRNA conjugates for hepatocyte targeting"},
-        {"id": "sirna_rnai_c",         "name": "Approved siRNA Drugs",                       "desc": "Onpattro (LNP-siRNA, TTR), Givlaari (GalNAc-siRNA, AHP), Inclisiran (PCSK9, twice-yearly dosing), Vutrisiran — mechanism and clinical data"},
+        {"id": "sirna_rnai_c",         "name": "Approved siRNA Drugs",                       "desc": "Onpattro (LNP-siRNA, TTR), Givlaari (GalNAc-siRNA, AHP), Inclisiran (PCSK9, twice-yearly dosing), Vutrisiran  -  mechanism and clinical data"},
         {"id": "aso_therapeutics_a",   "name": "RNase H Gapmers",                           "desc": "DNA gap flanked by 2'-modified wings (2'-MOE, LNA, cEt), RNase H recruitment mechanism, hepatic accumulation, naked ASO delivery"},
         {"id": "aso_therapeutics_b",   "name": "Steric-Block & Splice-Switching ASOs",      "desc": "Exon skipping for DMD (eteplirsen, golodirsen), SMN2 exon inclusion (nusinersen), exon exclusion for progeria (lonafarnib comparison)"},
         {"id": "aso_therapeutics_c",   "name": "CNS Delivery & Clinical Success Stories",   "desc": "Intrathecal delivery (nusinersen, tofersen for SOD1-ALS), CSF distribution, repeat dosing by LP, Huntingtin-targeting ASOs in trials"},
@@ -702,15 +720,15 @@ CURRICULUM = {
         {"id": "circular_sarna_a",     "name": "Circular RNA Therapeutics",                "desc": "Back-splicing mechanism, PIE strategy for production, IRES-driven translation, exonuclease resistance, Orna Therapeutics, Laronde Obi platform"},
         {"id": "circular_sarna_b",     "name": "Self-Amplifying RNA",                      "desc": "Alphavirus replicon design, nsP1-4 replicase, sub-genomic promoter for antigen, saRNA dose-sparing, LUNAR LNP delivery, clinical data"},
         {"id": "circular_sarna_c",     "name": "Next-Generation mRNA Platforms",           "desc": "trans-amplifying RNA, circular-saRNA hybrids, in vivo base editing mRNA, mRNA-encoded gene editors, Laronde eRNA technology"},
-        {"id": "rna_immunostim_a",     "name": "Innate Immune Sensing of RNA",             "desc": "TLR3 (dsRNA), TLR7/8 (ssRNA), RIG-I (5'-triphosphate RNA), MDA5 (long dsRNA) — how different RNA features trigger immune activation"},
+        {"id": "rna_immunostim_a",     "name": "Innate Immune Sensing of RNA",             "desc": "TLR3 (dsRNA), TLR7/8 (ssRNA), RIG-I (5'-triphosphate RNA), MDA5 (long dsRNA)  -  how different RNA features trigger immune activation"},
         {"id": "rna_immunostim_b",     "name": "Suppressing Immunogenicity for Therapeutics","desc": "Modified nucleosides, sequence engineering (AU-rich element removal), dsRNA removal by HPLC, innate sensing and IFN response control"},
         {"id": "rna_immunostim_c",     "name": "Leveraging Immunostimulation for Vaccines","desc": "Adjuvant-free mRNA vaccines, self-adjuvanting saRNA, innate immune activation as an asset for immunisation, mucosal mRNA delivery"},
         {"id": "rna_clinical_dev_a",   "name": "Phase I Design for RNA Therapeutics",      "desc": "Dose escalation in oligonucleotide trials, tissue accumulation and hepatotoxicity monitoring, renal accumulation of ASOs, PK sampling"},
-        {"id": "rna_clinical_dev_b",   "name": "Extrahepatic Delivery Challenges",         "desc": "CNS, lung, muscle, tumour — delivery bottlenecks beyond liver, conjugate strategies (GalNAc, folate, antibody), progress in each tissue"},
-        {"id": "rna_clinical_dev_c",   "name": "Regulatory Precedents in RNA Drugs",       "desc": "Alnylam NDA (Onpattro), Ionis NDA (nusinersen), Moderna BLA (mRNA-1273) — CMC, clinical, and regulatory novelty each had to resolve"},
+        {"id": "rna_clinical_dev_b",   "name": "Extrahepatic Delivery Challenges",         "desc": "CNS, lung, muscle, tumour  -  delivery bottlenecks beyond liver, conjugate strategies (GalNAc, folate, antibody), progress in each tissue"},
+        {"id": "rna_clinical_dev_c",   "name": "Regulatory Precedents in RNA Drugs",       "desc": "Alnylam NDA (Onpattro), Ionis NDA (nusinersen), Moderna BLA (mRNA-1273)  -  CMC, clinical, and regulatory novelty each had to resolve"},
         {"id": "rna_platforms_a",      "name": "Moderna: Platform Breadth & Strategy",     "desc": "Investigational mRNA pipeline (personalised cancer vaccines, CMV, HIV), manufacturing platform, LNP technology, revenue diversification"},
         {"id": "rna_platforms_b",      "name": "Alnylam & Ionis: GalNAc & ASO Platforms", "desc": "Alnylam GalNAc-siRNA franchise (ATTR, PH1, hATTR), Ionis CNS-focused ASO pipeline, business models and delivery differentiation"},
-        {"id": "rna_platforms_c",      "name": "Emerging RNA Platform Companies",          "desc": "Arrowhead (AREG), Silence Therapeutics (mRNAi GOLD), Laronde (eRNA), Orna Therapeutics (oRNA), Wave Life Sciences — differentiation"},
+        {"id": "rna_platforms_c",      "name": "Emerging RNA Platform Companies",          "desc": "Arrowhead (AREG), Silence Therapeutics (mRNAi GOLD), Laronde (eRNA), Orna Therapeutics (oRNA), Wave Life Sciences  -  differentiation"},
     ],
     "biomanufacturing": [
         {"id": "biomanuf_intro_a",     "name": "The Biologics Manufacturing Landscape",       "desc": "Biologics product types (mAbs, enzymes, vaccines, CGTs), market size, global manufacturing capacity, the biologics supply chain"},
@@ -719,23 +737,23 @@ CURRICULUM = {
         {"id": "cell_line_dev_a",      "name": "Host Cell Selection",                        "desc": "CHO (glycosylation, productivity), HEK293 (transient expression, viral vectors), E. coli (no glycosylation, IBs), yeast (P. pastoris, secretion)"},
         {"id": "cell_line_dev_b",      "name": "Stable Cell Line Generation",               "desc": "Stable transfection (linearised plasmid, PiggyBac), selection (MTX amplification, GS system), single-cell cloning by FACS or limiting dilution"},
         {"id": "cell_line_dev_c",      "name": "Clone Screening & Cell Bank Establishment", "desc": "High-throughput mini-bioreactor screening, product quality analytics (CIEX, SEC), MCB/WCB establishment, ICH Q5B characterisation"},
-        {"id": "upstream_biopro_a",    "name": "Bioreactor Modes & Selection",              "desc": "Batch vs fed-batch vs perfusion (TFF, ATF) — volumetric productivity, product quality trade-offs, single-use vs stainless steel"},
-        {"id": "upstream_biopro_b",    "name": "Critical Process Parameters",               "desc": "Dissolved oxygen (kLa), pH, temperature, agitation, dissolved CO2 — setpoints, control strategies, sensitivity to process conditions"},
+        {"id": "upstream_biopro_a",    "name": "Bioreactor Modes & Selection",              "desc": "Batch vs fed-batch vs perfusion (TFF, ATF)  -  volumetric productivity, product quality trade-offs, single-use vs stainless steel"},
+        {"id": "upstream_biopro_b",    "name": "Critical Process Parameters",               "desc": "Dissolved oxygen (kLa), pH, temperature, agitation, dissolved CO2  -  setpoints, control strategies, sensitivity to process conditions"},
         {"id": "upstream_biopro_c",    "name": "Metabolic Monitoring & Scale-Up",           "desc": "Online metabolite monitoring (glucose, lactate, amino acids), metabolic shift, off-gas analysis, geometric similarity rules for scale-up"},
         {"id": "media_feed_a",         "name": "Chemically Defined Media Development",      "desc": "CDM components, supplier qualification, hydrolysate vs CDM trade-offs, DOE-driven media development, proprietary media platforms"},
         {"id": "media_feed_b",         "name": "Fed-Batch Feeding Strategies",              "desc": "Glucose-controlled feeding (exponential, constant, feedback), amino acid bolus vs continuous feeds, cell-specific consumption rates"},
         {"id": "media_feed_c",         "name": "Metabolic Profiling & Quality Trade-Offs",  "desc": "Lactate accumulation and pH effects, ammonia toxicity, galactose-shifted feeding for glycosylation control, titer vs product quality optimisation"},
         {"id": "downstream_proc_a",    "name": "Protein A Affinity Capture",               "desc": "Protein A resin selection (MabSelect, Eshmuno A), loading, wash, low-pH elution, CIP with NaOH, resin lifetime qualification"},
-        {"id": "downstream_proc_b",    "name": "Polishing Chromatography Steps",           "desc": "AEX flow-through for HCPs and DNA, CEX for charge variants, HIC for aggregates and variants — bind-and-elute vs flow-through modes"},
+        {"id": "downstream_proc_b",    "name": "Polishing Chromatography Steps",           "desc": "AEX flow-through for HCPs and DNA, CEX for charge variants, HIC for aggregates and variants  -  bind-and-elute vs flow-through modes"},
         {"id": "downstream_proc_c",    "name": "Viral Clearance & Final Filtration",       "desc": "Low-pH viral inactivation (≥60 min, pH 3.5), nanofiltration (Planova 20N), UF/DF for buffer exchange and concentration, sterile filtration"},
-        {"id": "analytical_qc_a",      "name": "Critical Quality Attributes for mAbs",     "desc": "Glycosylation (G0F, G1F, afucosylation), aggregation (HMWS), charge variants (acidic/basic species), potency — ICH Q6B specs"},
+        {"id": "analytical_qc_a",      "name": "Critical Quality Attributes for mAbs",     "desc": "Glycosylation (G0F, G1F, afucosylation), aggregation (HMWS), charge variants (acidic/basic species), potency  -  ICH Q6B specs"},
         {"id": "analytical_qc_b",      "name": "Analytical Method Development & Validation","desc": "CIEX for charge variants, SEC for aggregation, CEX-MS for intact mass, potency bioassay design, ICH Q2(R1) validation parameters"},
         {"id": "analytical_qc_c",      "name": "Comparability Testing Principles",         "desc": "When comparability is needed (process changes, scale-up, site transfer), extended characterisation panel, clinical bridging decision criteria"},
         {"id": "gmp_quality_a",        "name": "Quality Management System Elements",       "desc": "Change control (CCF, RCC), deviation management (minor, major, critical), CAPA effectiveness, document control, batch record review"},
         {"id": "gmp_quality_b",        "name": "Quality by Design",                        "desc": "ICH Q8 design space, ICH Q9 risk assessment (FMEA, Ishikawa), ICH Q10 PQS, control strategy linking CQAs to CPPs/CMAs"},
         {"id": "gmp_quality_c",        "name": "Regulatory Inspections & Warning Letters", "desc": "FDA PAI/EIR process, EMA inspection, 483 observations vs warning letters, data integrity (Alcoa+), remediation and CAPA commitments"},
-        {"id": "scaleup_transfer_a",   "name": "Engineering Challenges in Scale-Up",       "desc": "Mixing time, impeller tip speed, oxygen transfer coefficient (kLa), CO2 stripping, shear stress on cells — 1L to 2,000L engineering principles"},
-        {"id": "scaleup_transfer_b",   "name": "Process Validation Stages",               "desc": "Stage 1 (process design), Stage 2 (process qualification — PPQ), Stage 3 (continued process verification) — FDA process validation guidance"},
+        {"id": "scaleup_transfer_a",   "name": "Engineering Challenges in Scale-Up",       "desc": "Mixing time, impeller tip speed, oxygen transfer coefficient (kLa), CO2 stripping, shear stress on cells  -  1L to 2,000L engineering principles"},
+        {"id": "scaleup_transfer_b",   "name": "Process Validation Stages",               "desc": "Stage 1 (process design), Stage 2 (process qualification  -  PPQ), Stage 3 (continued process verification)  -  FDA process validation guidance"},
         {"id": "scaleup_transfer_c",   "name": "Technology Transfer to CMOs",             "desc": "Tech transfer package content, QAA scope, comparability protocol design, tech transfer batch outcomes, oversight of CMO quality systems"},
         {"id": "cell_therapy_mfg_a",   "name": "Autologous Cell Therapy Workflow",        "desc": "Scheduled leukapheresis, fresh vs cryopreserved starting material, vein-to-vein time, product variability, manufacturing slot scheduling"},
         {"id": "cell_therapy_mfg_b",   "name": "Allogeneic Cell Therapy Manufacturing",   "desc": "Donor bank strategy, master cell bank, editing steps, large-scale T cell or NK cell expansion, inventory management, QC release testing"},
@@ -752,17 +770,17 @@ CURRICULUM = {
     ],
     "longevity_science": [
         {"id": "hallmarks_aging_a",    "name": "Primary Hallmarks of Aging",                  "desc": "Genomic instability (DSB accumulation, somatic mutations), telomere attrition (replicative senescence trigger), epigenetic alterations (methylation drift, chromatin remodelling)"},
-        {"id": "hallmarks_aging_b",    "name": "Integrative & Antagonistic Hallmarks",        "desc": "Mitochondrial dysfunction, cellular senescence, stem cell exhaustion, altered intercellular communication — how these amplify each other"},
-        {"id": "hallmarks_aging_c",    "name": "Enabling Hallmarks & Systems View",           "desc": "Disabled macroautophagy, deregulated nutrient sensing, dysbiosis, chronic inflammation — the López-Otín 2023 updated framework"},
+        {"id": "hallmarks_aging_b",    "name": "Integrative & Antagonistic Hallmarks",        "desc": "Mitochondrial dysfunction, cellular senescence, stem cell exhaustion, altered intercellular communication  -  how these amplify each other"},
+        {"id": "hallmarks_aging_c",    "name": "Enabling Hallmarks & Systems View",           "desc": "Disabled macroautophagy, deregulated nutrient sensing, dysbiosis, chronic inflammation  -  the López-Otín 2023 updated framework"},
         {"id": "senescence_senolytics_a","name": "Cellular Senescence Biology",               "desc": "p16INK4a and p21CIP1 CDK inhibitor upregulation, SASP components (IL-6, IL-8, MMPs), triggers (replicative, oncogene-induced, stress-induced)"},
-        {"id": "senescence_senolytics_b","name": "Senolytic Drug Development",                "desc": "Dasatinib + quercetin (D+Q) mechanism, navitoclax (BCL-2/XL inhibitor), ABT-263, UBX0101 — target rationale and safety considerations"},
+        {"id": "senescence_senolytics_b","name": "Senolytic Drug Development",                "desc": "Dasatinib + quercetin (D+Q) mechanism, navitoclax (BCL-2/XL inhibitor), ABT-263, UBX0101  -  target rationale and safety considerations"},
         {"id": "senescence_senolytics_c","name": "Clinical Trials of Senolytics",             "desc": "UNITY Biotechnology (UBX0101 Phase II failure, UBX1325 eye trial), D+Q in IPF and frailty studies, senescent cell burden measurement challenges"},
-        {"id": "epigenetic_aging_a",   "name": "Epigenetic Clocks",                          "desc": "Horvath (multi-tissue), Hannum (blood), GrimAge (mortality predictor), DunedinPACE (pace of aging) — how clocks are built and validated"},
+        {"id": "epigenetic_aging_a",   "name": "Epigenetic Clocks",                          "desc": "Horvath (multi-tissue), Hannum (blood), GrimAge (mortality predictor), DunedinPACE (pace of aging)  -  how clocks are built and validated"},
         {"id": "epigenetic_aging_b",   "name": "Epigenetic Drift as an Aging Driver",        "desc": "Loss of methylation at CpG shores, gain at bivalent gene promoters, heterochromatin dissolution, H3K27me3 and H3K9me3 changes with age"},
-        {"id": "epigenetic_aging_c",   "name": "Partial Epigenetic Reprogramming",           "desc": "Yamanaka factors (OSKM) risks, cyclic vs partial expression, Altos Labs, NewLimit, AgeX Therapeutics — in vivo reprogramming evidence and safety"},
+        {"id": "epigenetic_aging_c",   "name": "Partial Epigenetic Reprogramming",           "desc": "Yamanaka factors (OSKM) risks, cyclic vs partial expression, Altos Labs, NewLimit, AgeX Therapeutics  -  in vivo reprogramming evidence and safety"},
         {"id": "telomere_biology_a",   "name": "Telomere Structure & Shortening",            "desc": "TTAGGG repeats, shelterin complex (TRF1/TRF2/POT1), T-loop structure, end-replication problem, telomere attrition as mitotic clock"},
         {"id": "telomere_biology_b",   "name": "Telomerase & ALT Pathway",                  "desc": "TERT/TERC complex, telomerase expression in stem cells vs somatic cells, alternative lengthening of telomeres (ALT) in 10-15% of cancers"},
-        {"id": "telomere_biology_c",   "name": "Telomere Therapeutics & Progeroid Syndromes","desc": "Werner syndrome, Hutchinson-Gilford progeria (HGPS), dyskeratosis congenita — telomere biology as model; lonafarnib, imetelstat"},
+        {"id": "telomere_biology_c",   "name": "Telomere Therapeutics & Progeroid Syndromes","desc": "Werner syndrome, Hutchinson-Gilford progeria (HGPS), dyskeratosis congenita  -  telomere biology as model; lonafarnib, imetelstat"},
         {"id": "mitochondria_aging_a", "name": "Mitochondrial Dysfunction with Age",         "desc": "ETC complex I/IV decline, mtDNA somatic mutation accumulation, mitochondrial network fragmentation, ROS production vs antioxidant defence"},
         {"id": "mitochondria_aging_b", "name": "Mitophagy & Biogenesis",                    "desc": "PINK1/Parkin pathway for damaged mitochondrial clearance, PGC-1α for biogenesis, mitophagy decline with age, exercise as activator"},
         {"id": "mitochondria_aging_c", "name": "NAD+ Metabolism & Supplementation",         "desc": "NAD+ biosynthesis (NAMPT bottleneck), salvage pathway, decline with age, NMN vs NR absorption and efficacy, clinical trial evidence (ELYSIUM, Metro)"},
@@ -784,9 +802,117 @@ CURRICULUM = {
         {"id": "longevity_clinical_a", "name": "TAME Trial & FDA Geroscience Pilot",        "desc": "TAME trial design (3,000 participants, 6 sites, composite endpoint), metformin as geroprotective drug, FDA's position on aging as indication"},
         {"id": "longevity_clinical_b", "name": "Senolytic & Reprogramming Clinical Trials", "desc": "UNITY Biotechnology trial outcomes, D+Q in IPF/frailty, first partial reprogramming IND status, clinical readiness of longevity interventions"},
         {"id": "longevity_clinical_c", "name": "Ethics & Access in Longevity Medicine",    "desc": "Compassionate use in longevity, DIY biohackers (Bryan Johnson, Josiah Zayner), equity in life extension, regulatory uncertainty and hype cycle"},
-        {"id": "longevity_industry_a", "name": "The Longevity Company Landscape",          "desc": "Calico (Google), Unity Biotechnology, Altos Labs ($3B AstraZeneca/Bezos), NewLimit (Andreessen), Retro Biosciences (Altman) — science and status"},
+        {"id": "longevity_industry_a", "name": "The Longevity Company Landscape",          "desc": "Calico (Google), Unity Biotechnology, Altos Labs ($3B AstraZeneca/Bezos), NewLimit (Andreessen), Retro Biosciences (Altman)  -  science and status"},
         {"id": "longevity_industry_b", "name": "VC Capital & the Hype Cycle",              "desc": "Longevity VC wave ($5B+ deployed), investor expectations vs clinical timelines, failure of Unity's first senolytic (UBX0101), managing the hype cycle"},
-        {"id": "longevity_industry_c", "name": "Which Hallmarks Are Closest to Clinical Translation","desc": "Evidence quality by hallmark — senolytics, NAD+ augmentation, mTOR inhibition, epigenetic reprogramming — realistic translation timelines"},
+        {"id": "longevity_industry_c", "name": "Which Hallmarks Are Closest to Clinical Translation","desc": "Evidence quality by hallmark  -  senolytics, NAD+ augmentation, mTOR inhibition, epigenetic reprogramming  -  realistic translation timelines"},
+    ],
+
+    # ── US Certifications ────────────────────────────────────────────────────
+
+    "us_cra": [
+        {"id": "cra_gcp_a",   "name": "GCP Principles and ICH E6(R2)",         "desc": "The 13 GCP principles, ICH E6(R2) vs R3 changes, sponsor vs investigator obligations, what GCP is actually protecting"},
+        {"id": "cra_gcp_b",   "name": "Protocol Structure and Deviations",      "desc": "Protocol anatomy, mandatory sections, deviation vs violation, reportability criteria, documenting and CAPAs"},
+        {"id": "cra_gcp_c",   "name": "Investigator Brochure and IP Regs",      "desc": "IB components and update triggers, investigational product labelling, accountability records, temperature excursions"},
+        {"id": "cra_ethics_a","name": "Informed Consent Process",               "desc": "8 required elements, re-consent triggers, LAR consent, assent for minors, consent in emergency research"},
+        {"id": "cra_ethics_b","name": "IRB and IEC Roles",                      "desc": "IRB composition requirements, initial vs continuing review, expedited review categories, IRB vs sponsor jurisdiction"},
+        {"id": "cra_ethics_c","name": "AE and SAE Identification",              "desc": "AE vs SAE definitions, seriousness criteria (SUSAR), causality assessment, 7-day vs 15-day reporting timelines"},
+        {"id": "cra_reg_a",   "name": "FDA Regulatory Framework",               "desc": "21 CFR Parts 11, 50, 54, 56, 312 - what each covers, IND types (commercial, research), FDA meeting types"},
+        {"id": "cra_reg_b",   "name": "Sponsor and Investigator Obligations",   "desc": "Sponsor oversight responsibilities, investigator qualifications (1572), sub-investigator delegation, multi-site coordination"},
+        {"id": "cra_ops_a",   "name": "Monitoring Visit Conduct",               "desc": "Pre-study, initiation, routine, and closeout visit objectives, source document verification (SDV) vs source data review (SDR)"},
+        {"id": "cra_ops_b",   "name": "Site Qualification and Selection",       "desc": "Feasibility questionnaire, site qualification visit checklist, patient population assessment, site staff evaluation"},
+        {"id": "cra_ops_c",   "name": "TMF and Essential Documents",            "desc": "ICH E6 essential documents before/during/after trial, TMF structure (DIA reference model), sponsor vs site TMF split"},
+        {"id": "cra_ops_d",   "name": "Issue Escalation and CAPA",              "desc": "Escalation triggers, written communication hierarchy, formal warning letters, corrective vs preventive action plans"},
+        {"id": "cra_data_a",  "name": "CRF Completion and EDC",                 "desc": "CRF design principles, eCRF vs paper, edit checks, query generation and resolution, audit trail requirements"},
+        {"id": "cra_data_b",  "name": "Data Quality and Database Lock",         "desc": "Data cleaning workflow, outstanding query management, database lock checklist, blind review, unblinding procedures"},
+        {"id": "cra_mgmt_a",  "name": "Site Staff and Delegation Logs",         "desc": "Delegation of authority log requirements, training documentation, staff change procedures, CV and medical licence currency"},
+        {"id": "cra_mgmt_b",  "name": "Budget and Contract Management",         "desc": "Clinical trial agreement components, budget negotiation elements, payment milestones, budget amendments, pass-through costs"},
+    ],
+
+    "us_ccrp": [
+        {"id": "ccrp_startup_a", "name": "Protocol Feasibility Assessment",     "desc": "Feasibility questionnaire components, patient population sizing, site infrastructure review, competing trial conflicts"},
+        {"id": "ccrp_startup_b", "name": "IRB Submission and Approval",         "desc": "Initial IRB application components, expedited vs full board review, approval conditions, continuing review timelines"},
+        {"id": "ccrp_startup_c", "name": "Informed Consent Document Creation",  "desc": "Lay language standards, reading level requirements, required elements, optional elements, template vs site-specific ICF"},
+        {"id": "ccrp_startup_d", "name": "Essential Document Preparation",      "desc": "Investigator Site File (ISF) vs Sponsor Master File (SMF) contents, regulatory binder setup, required at site initiation"},
+        {"id": "ccrp_startup_e", "name": "Staff Training and Delegation",       "desc": "GCP training requirements, protocol-specific training, delegation log completion, training record maintenance"},
+        {"id": "ccrp_impl_a",    "name": "Subject Screening and Enrollment",    "desc": "Eligibility criteria application, screen failure documentation, enrollment logs, randomisation procedures, stratification"},
+        {"id": "ccrp_impl_b",    "name": "Protocol Execution and Compliance",   "desc": "Visit window management, protocol adherence monitoring, deviation documentation, waiver requests, compliance tracking"},
+        {"id": "ccrp_impl_c",    "name": "Investigational Product Management",  "desc": "IP receipt, storage requirements, dispensing logs, return/destruction, reconciliation at closeout, blinding maintenance"},
+        {"id": "ccrp_impl_d",    "name": "AE Documentation and Reporting",      "desc": "AE grading (CTCAE), SAE narrative writing, expedited report timelines, follow-up reporting, safety data flow to sponsor"},
+        {"id": "ccrp_impl_e",    "name": "Data Entry and Source Documentation", "desc": "Source document definition, what constitutes a source document, transcription accuracy, corrections procedure (single line)"},
+        {"id": "ccrp_impl_f",    "name": "Regulatory Communication",            "desc": "Sponsor communication requirements, FDA inspection readiness, IRB continuing review submissions, protocol amendment submissions"},
+        {"id": "ccrp_close_a",   "name": "Closeout Visit Conduct",              "desc": "Closeout visit checklist, outstanding data resolution, IP reconciliation and return/destruction, staff notification"},
+        {"id": "ccrp_close_b",   "name": "Record Archiving Requirements",       "desc": "Retention periods (2 years post-NDA, minimum 15 years), electronic vs paper archiving, archive access controls"},
+        {"id": "ccrp_close_c",   "name": "Final Data Reconciliation",           "desc": "Query resolution at closeout, database lock participation, final safety reconciliation, CSR data contribution"},
+    ],
+
+    "us_regulatory": [
+        {"id": "rac_strategy_a", "name": "FDA Organizational Structure",        "desc": "CDER vs CBER vs CDRH jurisdictions, OND review divisions, PDUFA user fees, FDA meeting types (A/B/C) and timelines"},
+        {"id": "rac_strategy_b", "name": "Risk-Benefit Analysis",               "desc": "FDA benefit-risk framework, structured approach (CDER), patient perspective integration, regulatory decision-making criteria"},
+        {"id": "rac_strategy_c", "name": "Regulatory Strategy Development",     "desc": "Early regulatory planning, adaptive pathway strategies, accelerated approval programs, global parallel strategy"},
+        {"id": "rac_pre_a",      "name": "IND Application Requirements",        "desc": "IND content (21 CFR 312.23), pharmacology/toxicology section, clinical protocols, investigator information, IND amendments"},
+        {"id": "rac_pre_b",      "name": "NDA and BLA Compilation",             "desc": "NDA structure (21 CFR 314), CTD format (eCTD), Module 1-5 content, rolling submissions, priority review designation"},
+        {"id": "rac_pre_c",      "name": "ICH E-Series Clinical Guidelines",    "desc": "E6 GCP, E8 general clinical considerations, E9 statistical principles, E10 choice of control, E11 pediatric studies"},
+        {"id": "rac_pre_d",      "name": "ICH S-Series Nonclinical Guidelines", "desc": "S1 carcinogenicity, S2 genotoxicity, S6 biotech products, S9 oncology, ICH M3(R2) timing of nonclinical studies"},
+        {"id": "rac_pre_e",      "name": "Special Designations",                "desc": "Fast Track, Breakthrough Therapy, Accelerated Approval, Priority Review - criteria, benefits, and application process"},
+        {"id": "rac_post_a",     "name": "Labeling Requirements",               "desc": "Prescribing information format (PLR), Highlights section, boxed warnings, REMS integration, labeling negotiations"},
+        {"id": "rac_post_b",     "name": "Post-Approval Changes and Supplements","desc": "Prior approval vs CBE-30 vs CBE-0 supplements, manufacturing changes (21 CFR 314.70), annual reports"},
+        {"id": "rac_post_c",     "name": "PSUR and PBRER Reporting",            "desc": "Periodic Safety Update Report structure, data lock point, reference information, benefit-risk evaluation sections"},
+        {"id": "rac_post_d",     "name": "REMS Programs",                       "desc": "REMS triggers, component types (medication guide, ETASU, communication plan), REMS assessments, burden considerations"},
+        {"id": "rac_interface_a","name": "Regulatory Meeting Preparation",      "desc": "Pre-IND meeting request, meeting package content, meeting minutes, FDA response timelines, dispute resolution"},
+        {"id": "rac_interface_b","name": "EU and ICH Global Alignment",         "desc": "EMA centralised procedure, MAA vs NDA differences, ICH harmonisation, MRP/DCP in EU, PIC/S GMP alignment"},
+        {"id": "rac_interface_c","name": "CMC Regulatory Requirements",         "desc": "Drug substance vs drug product CTD sections, analytical method validation, stability study requirements, container closure systems"},
+    ],
+
+    "us_pharmacovigilance": [
+        {"id": "pv_icsr_a",   "name": "ICSR Processing and Triage",             "desc": "Valid ICSR minimum criteria (4 elements), case receipt sources, triage workflow, serious vs non-serious classification"},
+        {"id": "pv_icsr_b",   "name": "MedDRA Coding",                          "desc": "MedDRA hierarchy (SOC, HLGT, HLT, PT, LLT), primary SOC assignment, coding conventions, SMQ searches"},
+        {"id": "pv_icsr_c",   "name": "Expedited Reporting Timelines",          "desc": "7-day fatal/life-threatening SUSARs, 15-day expedited reports, IND safety reports (21 CFR 312.32), EMA reporting"},
+        {"id": "pv_icsr_d",   "name": "Narrative Writing",                      "desc": "CIOMS narrative structure, conciseness vs completeness, temporal relationships, causality language, follow-up narrative updates"},
+        {"id": "pv_signal_a", "name": "Signal Detection Methods",               "desc": "Qualitative signal review, disproportionality analysis (PRR, ROR), EBGM, FAERS database mining, VigiBase access"},
+        {"id": "pv_signal_b", "name": "Signal Lifecycle Management",            "desc": "Signal identification, validation, prioritisation, assessment, recommendation, PRAC signal workflow, signal closure"},
+        {"id": "pv_signal_c", "name": "Benefit-Risk Evaluation",                "desc": "BR methodology (BRAT framework), structured quantitative frameworks, patient perspective in BR assessment"},
+        {"id": "pv_reg_a",    "name": "FDA PV Regulations",                     "desc": "21 CFR 314.80 post-marketing reporting, MedWatch form 3500A, 15-day alert reports, periodic adverse drug experience reports"},
+        {"id": "pv_reg_b",    "name": "EMA GVP Modules",                        "desc": "GVP Module I (PV systems), Module V (risk management), Module VI (collection/reporting), Module IX (signal management)"},
+        {"id": "pv_reg_c",    "name": "ICH E2 Guidelines",                      "desc": "E2A (expedited reporting), E2B(R3) (ICSR transmission), E2C (PSUR), E2D (post-approval reporting), E2E (PV planning)"},
+        {"id": "pv_aggregate_a","name": "PSUR and PBRER Structure",             "desc": "PBRER sections (1-19), data lock point, worldwide marketing exposure, benefit-risk conclusions, summary bridging report"},
+        {"id": "pv_aggregate_b","name": "DSUR Preparation",                     "desc": "Development Safety Update Report vs PSUR, IND annual report relationship, investigator notification, DSUR timeline"},
+        {"id": "pv_systems_a", "name": "Safety Database Operations",            "desc": "Oracle Argus Safety workflow, case routing, medical coding integration, bulk processing, reconciliation with clinical database"},
+        {"id": "pv_systems_b", "name": "QPPV and PV System Governance",         "desc": "QPPV responsibilities (EU), PSMF contents, PV audits, SOPs for case processing, quality metrics and KPIs"},
+    ],
+
+    "us_msl": [
+        {"id": "msl_industry_a","name": "Pharma Industry Structure",            "desc": "Drug development stages, medical affairs vs commercial distinction, medical affairs org chart, MSL vs sales boundary"},
+        {"id": "msl_industry_b","name": "Drug Development Stages",              "desc": "Phase I-IV trial design, IND to NDA timeline, regulatory milestones, lifecycle management, pipeline strategy"},
+        {"id": "msl_industry_c","name": "Real-World Evidence and RWE Studies",  "desc": "RWE vs RCT, retrospective and prospective RWE designs, data sources (claims, EHR, registries), RWE in label negotiations"},
+        {"id": "msl_reg_a",    "name": "Good Promotion Practices",              "desc": "OPDP requirements, fair balance, off-label communication rules, reactive vs proactive MSL activities, digital governance"},
+        {"id": "msl_reg_b",    "name": "Compliant Off-Label Communication",     "desc": "Legal framework for scientific exchange, unsolicited vs solicited requests, documentation requirements, safe harbour rules"},
+        {"id": "msl_reg_c",    "name": "AI and Digital Compliance in MA",       "desc": "Digital medical content governance, social media policies, AI-assisted medical information, GDPR and HIPAA in MA"},
+        {"id": "msl_kol_a",    "name": "KOL Identification and Mapping",        "desc": "KOL tiers (national, regional, local), influence mapping tools, publication and trial participation analysis, engagement planning"},
+        {"id": "msl_kol_b",    "name": "Scientific Exchange Skills",            "desc": "Reactive vs proactive exchange, needs assessment, tailored scientific presentation, handling pushback, follow-up documentation"},
+        {"id": "msl_kol_c",    "name": "Congress and Advisory Board Engagement","desc": "Congress planning and booth support, advisory board design, facilitation techniques, charter requirements, insights capture"},
+        {"id": "msl_heor_a",   "name": "Health Economics Principles",           "desc": "Cost-effectiveness analysis, QALY concept, ICER thresholds, payer decision-making frameworks, formulary placement"},
+        {"id": "msl_heor_b",   "name": "Patient-Reported Outcomes",             "desc": "PRO instrument validation, FDA PRO guidance, HRQOL measures, using PRO data in scientific exchange with payers"},
+        {"id": "msl_heor_c",   "name": "Value Dossier and Payer Engagement",    "desc": "Value dossier structure, pharmacoeconomic data in MSL interactions, P&R environment, global payer archetypes"},
+        {"id": "msl_pubs_a",   "name": "Publication Planning",                  "desc": "GPP3 principles, authorship criteria (ICMJE), publication plan components, abstract vs manuscript vs poster sequencing"},
+        {"id": "msl_pubs_b",   "name": "MSL Field Insights and Reporting",      "desc": "Insight capture framework, CRM documentation, insight synthesis for medical strategy, competitive intelligence boundaries"},
+    ],
+
+    "us_cdm": [
+        {"id": "cdm_design_a",  "name": "CRF and eCRF Design",                 "desc": "CRF design principles, field types and validation rules, eCRF annotation, CRF completion guidelines, UAT process"},
+        {"id": "cdm_design_b",  "name": "CDISC Standards: CDASH",              "desc": "CDASH domains and controlled terminology, collection vs submission standard distinction, CDASH implementation guide"},
+        {"id": "cdm_design_c",  "name": "Data Management Plan",                "desc": "DMP required sections, version control, SAP alignment, database design specification, roles and responsibilities"},
+        {"id": "cdm_design_d",  "name": "Edit Check Specification",            "desc": "Edit check types (range, consistency, completeness), programmatic vs manual checks, check priority levels, UAT testing"},
+        {"id": "cdm_process_a", "name": "Query Management",                    "desc": "Query generation triggers, query text writing standards, query resolution workflow, query aging metrics, closure criteria"},
+        {"id": "cdm_process_b", "name": "External Data Reconciliation",        "desc": "Lab data reconciliation, ePRO and imaging data integration, central lab data transfer specifications, discrepancy handling"},
+        {"id": "cdm_process_c", "name": "SAE and AE Reconciliation",           "desc": "Safety-clinical database reconciliation process, SAE reconciliation log, timing and frequency, discrepancy resolution"},
+        {"id": "cdm_process_d", "name": "21 CFR Part 11 Compliance",           "desc": "Electronic records and signatures requirements, audit trail specifications, system validation requirements, access controls"},
+        {"id": "cdm_standards_a","name": "CDISC SDTM Standards",               "desc": "SDTM domains (DM, AE, CM, EX, LB, VS, DS), SDTM mapping from raw data, define.xml, submission dataset requirements"},
+        {"id": "cdm_standards_b","name": "CDISC ADaM Standards",               "desc": "ADaM datasets (ADSL, ADAE, ADLB, ADTTE), derivation algorithms, CDISC conformance checks, FDA ADaM expectations"},
+        {"id": "cdm_testing_a", "name": "UAT Planning and Execution",          "desc": "UAT test script development, test data creation, defect tracking and resolution, UAT sign-off criteria"},
+        {"id": "cdm_testing_b", "name": "System Validation",                   "desc": "Validation lifecycle (IQ/OQ/PQ), validation documentation package, EDC system validation, change control procedures"},
+        {"id": "cdm_mgmt_a",    "name": "Database Lock Process",               "desc": "Pre-lock activities checklist, blind review meeting, unblinding procedures, locked database change procedures, lock certificate"},
+        {"id": "cdm_mgmt_b",    "name": "Vendor Oversight",                    "desc": "EDC vendor selection criteria, vendor audit checklist, service level agreements, oversight during study conduct"},
+        {"id": "cdm_review_a",  "name": "SDTM Submission Package Review",      "desc": "FDA technical rejection criteria, define.xml validation, Pinnacle 21 validation rules, reviewer's guide requirements"},
     ],
 }
 
@@ -809,7 +935,7 @@ How you teach: you think out loud, build understanding piece by piece, use analo
         "tutor_name": "Dr. Marcus Webb", "tutor_role": "Director of Genomics Research", "tutor_org": "Illumina",
         "color": "#7B2D8B", "icon": "🔬",
         "description": "Genome structure, sequencing technologies, variant analysis, GWAS, single-cell, and precision medicine",
-        "system_prompt": """You are Dr. Marcus Webb, Director of Genomics Research at Illumina, and a faculty mentor at Bversity. Six years at Genomics England on the 100,000 Genomes Project — interpreting whole-genome sequences from rare disease and cancer patients in MDT meetings where genomic data changed treatment decisions. Now at Illumina developing clinical sequencing applications.
+        "system_prompt": """You are Dr. Marcus Webb, Director of Genomics Research at Illumina, and a faculty mentor at Bversity. Six years at Genomics England on the 100,000 Genomes Project  -  interpreting whole-genome sequences from rare disease and cancer patients in MDT meetings where genomic data changed treatment decisions. Now at Illumina developing clinical sequencing applications.
 
 Your knowledge: genome structure, Sanger to long-read Nanopore sequencing, genome assembly and annotation, SNPs/indels/CNVs/SVs, GATK variant calling, ACMG variant classification, population genetics and LD, GWAS, RNA-seq, single-cell genomics, epigenomics, metagenomics, and precision medicine/PGx.
 
@@ -820,11 +946,11 @@ How you teach: every concept gets grounded in a real disease story. When you exp
         "tutor_name": "Dr. Kavya Reddy", "tutor_role": "Principal Scientist, Drug Discovery", "tutor_org": "Genentech",
         "color": "#E05C00", "icon": "💊",
         "description": "Target identification, lead optimisation, ADMET, biologics, cell & gene therapy, and the full development pipeline",
-        "system_prompt": """You are Dr. Kavya Reddy, Principal Scientist in Drug Discovery at Genentech in South San Francisco, and a faculty mentor at Bversity. PhD in medicinal chemistry from Cambridge. Seven years at Genentech on small molecule oncology programs — two compounds you contributed to are currently in Phase II. You've watched drugs fail at every pipeline stage and know exactly why each step exists.
+        "system_prompt": """You are Dr. Kavya Reddy, Principal Scientist in Drug Discovery at Genentech in South San Francisco, and a faculty mentor at Bversity. PhD in medicinal chemistry from Cambridge. Seven years at Genentech on small molecule oncology programs  -  two compounds you contributed to are currently in Phase II. You've watched drugs fail at every pipeline stage and know exactly why each step exists.
 
 Your knowledge: the full pipeline from target ID to IND, HTS, medicinal chemistry and SAR, ADMET, PK/PD, preclinical development, mAbs and ADCs, CAR-T and CRISPR gene therapy, computational drug discovery including molecular docking and generative AI, biomarkers and companion diagnostics, CMC and formulation.
 
-How you teach: every concept gets a real drug. Imatinib for target ID, thalidomide for ADMET, trastuzumab for biologics. You explain why each pipeline stage exists — what catastrophe you'd invite by skipping it. You push back when students oversimplify.""",
+How you teach: every concept gets a real drug. Imatinib for target ID, thalidomide for ADMET, trastuzumab for biologics. You explain why each pipeline stage exists  -  what catastrophe you'd invite by skipping it. You push back when students oversimplify.""",
     },
     "clinical_trials": {
         "id": "clinical_trials", "name": "Clinical Trials & Regulatory Affairs",
@@ -846,14 +972,14 @@ How you teach: you help students inhabit the regulator's mindset. What does FDA 
 
 Your knowledge: supervised and unsupervised ML, deep learning (CNNs, RNNs, transformers, GNNs), generative models for molecules, protein language models (ESM, AlphaFold), AI for genomics and multi-omics, responsible AI in healthcare and FDA frameworks, and MLOps for regulated life sciences environments.
 
-How you teach: intuition before equations, always. Before explaining backpropagation, you make sure students understand what a neural network is actually trying to do. You are honest about where AI in life sciences is useful and where it is overhyped. You use specific examples — AlphaFold's proteome coverage, Recursion's phenomics platform, Insilico's first AI-designed compound in Phase II. You push students to think critically about model validation and the gap between benchmark performance and real-world utility.""",
+How you teach: intuition before equations, always. Before explaining backpropagation, you make sure students understand what a neural network is actually trying to do. You are honest about where AI in life sciences is useful and where it is overhyped. You use specific examples  -  AlphaFold's proteome coverage, Recursion's phenomics platform, Insilico's first AI-designed compound in Phase II. You push students to think critically about model validation and the gap between benchmark performance and real-world utility.""",
     },
     "biotech_business": {
         "id": "biotech_business", "name": "Biotech Business & Management",
         "tutor_name": "Rohan Mehta", "tutor_role": "VP of Corporate Strategy & Business Development", "tutor_org": "AstraZeneca",
         "color": "#B5451B", "icon": "💼",
         "description": "Biotech financing, valuation, BD & licensing, market access, IP strategy, and building a life sciences company",
-        "system_prompt": """You are Rohan Mehta, VP of Corporate Strategy and Business Development at AstraZeneca, and a faculty mentor at Bversity. BSc Biochemistry from King's College London, MBA from INSEAD. Six years at McKinsey's global pharma and medical products practice before joining AstraZeneca, where you have led due diligence on over fifteen licensing deals and M&A transactions. You deliberately don't have a PhD — most of what this subject covers is learned in boardrooms and deal rooms, not labs, and you want students to know that.
+        "system_prompt": """You are Rohan Mehta, VP of Corporate Strategy and Business Development at AstraZeneca, and a faculty mentor at Bversity. BSc Biochemistry from King's College London, MBA from INSEAD. Six years at McKinsey's global pharma and medical products practice before joining AstraZeneca, where you have led due diligence on over fifteen licensing deals and M&A transactions. You deliberately don't have a PhD  -  most of what this subject covers is learned in boardrooms and deal rooms, not labs, and you want students to know that.
 
 Your knowledge: biotech business models and capital structure, Series A through IPO financing, life sciences valuation (rNPV, comparables), BD and licensing deal structures, market access and HEOR, IP strategy, GMP manufacturing and supply chain, regulatory strategy as a business decision, and building a biotech from scratch.
 
@@ -864,22 +990,22 @@ How you teach: direct and practical. Theory that doesn't translate to a decision
         "tutor_name": "Dr. James Okonkwo", "tutor_role": "Director of Vector Development", "tutor_org": "bluebird bio",
         "color": "#0891B2", "icon": "✂️",
         "description": "Viral vectors, CRISPR genome editing, CAR-T, ex vivo and in vivo gene therapy, CGT manufacturing and regulatory pathways",
-        "system_prompt": """You are Dr. James Okonkwo, Director of Vector Development at bluebird bio, and a faculty mentor at Bversity. PhD in molecular virology from Johns Hopkins. You joined bluebird after a postdoc at the Children's Hospital of Philadelphia gene therapy programme — one of the places that built the modern field. You have been involved in three IND filings for AAV and lentiviral vector products, and have watched gene therapy go from theoretical to curative for diseases like SCD and beta-thalassaemia.
+        "system_prompt": """You are Dr. James Okonkwo, Director of Vector Development at bluebird bio, and a faculty mentor at Bversity. PhD in molecular virology from Johns Hopkins. You joined bluebird after a postdoc at the Children's Hospital of Philadelphia gene therapy programme  -  one of the places that built the modern field. You have been involved in three IND filings for AAV and lentiviral vector products, and have watched gene therapy go from theoretical to curative for diseases like SCD and beta-thalassaemia.
 
 Your knowledge: viral vector biology (AAV serotypes, lentivirus, adenovirus), CRISPR-Cas9 mechanisms and guide RNA design, base editing and prime editing, CAR-T cell engineering and manufacturing, ex vivo HSC correction, in vivo liver and CNS gene therapy, non-viral delivery (LNPs for gene therapy), immunogenicity and genotoxicity risk, GMP manufacturing of viral vectors and cell therapies, and the FDA/EMA regulatory framework for ATMPs.
 
-How you teach: you make the stakes visceral. A child with SMA getting a single AAV injection and meeting motor milestones for the first time. A sickle cell patient who hasn't had a pain crisis in two years. You explain the biology through the clinical story, and you do not hide the failures — Jesse Gelsinger, the early SCID-X1 insertional mutagenesis cases. Those failures built the safety framework we have today and students need to understand why every precaution exists.""",
+How you teach: you make the stakes visceral. A child with SMA getting a single AAV injection and meeting motor milestones for the first time. A sickle cell patient who hasn't had a pain crisis in two years. You explain the biology through the clinical story, and you do not hide the failures  -  Jesse Gelsinger, the early SCID-X1 insertional mutagenesis cases. Those failures built the safety framework we have today and students need to understand why every precaution exists.""",
     },
     "protein_engineering": {
         "id": "protein_engineering", "name": "Protein Engineering & Design",
         "tutor_name": "Dr. Sophie Laurent", "tutor_role": "Lead, Computational Protein Design", "tutor_org": "Genentech",
         "color": "#BE185D", "icon": "🔩",
         "description": "Directed evolution, rational design, AlphaFold, RFdiffusion, antibody engineering, and therapeutic protein formats",
-        "system_prompt": """You are Dr. Sophie Laurent, Lead of Computational Protein Design at Genentech in South San Francisco, and a faculty mentor at Bversity. PhD in structural biology from ETH Zurich, postdoc with the Baker lab at the University of Washington where you worked on early RFdiffusion projects before moving to industry. You sit at the exact intersection of computation and experiment — you design proteins on a computer on Monday and get binding data back by Friday.
+        "system_prompt": """You are Dr. Sophie Laurent, Lead of Computational Protein Design at Genentech in South San Francisco, and a faculty mentor at Bversity. PhD in structural biology from ETH Zurich, postdoc with the Baker lab at the University of Washington where you worked on early RFdiffusion projects before moving to industry. You sit at the exact intersection of computation and experiment  -  you design proteins on a computer on Monday and get binding data back by Friday.
 
 Your knowledge: protein structure (primary through quaternary), directed evolution methods (error-prone PCR, phage display, yeast display), rational design, AlphaFold2/3 practical use and limitations, RFdiffusion for de novo backbone design, ProteinMPNN for sequence design, antibody engineering and humanisation, bispecific formats, enzyme engineering, PPI design and miniproteins, developability assessment, therapeutic protein formats, and experimental validation methods (SPR, ITC, cryo-EM).
 
-How you teach: you build physical intuition. A protein isn't a 2D sequence — it's a three-dimensional machine shaped by billions of years of selection. Before students touch AlphaFold, they understand what a beta-sheet is and why hydrophobic cores fold inward. You are direct about the gap between computational predictions and experimental reality — the field is extraordinary but overhyped in some corners. You use your own work as examples when appropriate, and you push students to think about what validation they'd need before trusting a prediction.""",
+How you teach: you build physical intuition. A protein isn't a 2D sequence  -  it's a three-dimensional machine shaped by billions of years of selection. Before students touch AlphaFold, they understand what a beta-sheet is and why hydrophobic cores fold inward. You are direct about the gap between computational predictions and experimental reality  -  the field is extraordinary but overhyped in some corners. You use your own work as examples when appropriate, and you push students to think about what validation they'd need before trusting a prediction.""",
     },
     "rna_therapeutics": {
         "id": "rna_therapeutics", "name": "RNA Therapeutics",
@@ -890,18 +1016,18 @@ How you teach: you build physical intuition. A protein isn't a 2D sequence — i
 
 Your knowledge: RNA biology and secondary structure, mRNA therapeutic design (cap, UTR, codon optimisation, poly-A), LNP formulation and organ tropism, siRNA and the RISC pathway, ASO mechanisms (RNase H, steric block, splice-switching), miRNA therapeutics, mRNA vaccine design and immunology, chemical modifications (pseudouridine, m1Ψ, 2'-F, 2'-OMe), circular RNA and self-amplifying mRNA, innate immune sensing of RNA (TLR7/8, RIG-I), and the clinical development landscape for RNA drugs.
 
-How you teach: you start with 'why RNA?' every time, because if students don't feel the excitement of what was unlocked — every protein the human genome encodes now potentially reachable — they're just memorising chemistry. You use the COVID vaccine as a case study throughout the course because it's the most compressed drug development story in history and it touches almost everything in the curriculum. You are honest about what RNA still can't do well — CNS delivery, oral dosing, very large proteins — and you frame those as the open problems your students could one day solve.""",
+How you teach: you start with 'why RNA?' every time, because if students don't feel the excitement of what was unlocked  -  every protein the human genome encodes now potentially reachable  -  they're just memorising chemistry. You use the COVID vaccine as a case study throughout the course because it's the most compressed drug development story in history and it touches almost everything in the curriculum. You are honest about what RNA still can't do well  -  CNS delivery, oral dosing, very large proteins  -  and you frame those as the open problems your students could one day solve.""",
     },
     "biomanufacturing": {
         "id": "biomanufacturing", "name": "Biomanufacturing & Bioprocessing",
         "tutor_name": "Dr. Carlos Reyes", "tutor_role": "VP Bioprocess Development", "tutor_org": "Lonza",
         "color": "#047857", "icon": "⚗️",
         "description": "Upstream and downstream bioprocessing, GMP, cell line development, scale-up, cell therapy manufacturing, and biosimilars",
-        "system_prompt": """You are Dr. Carlos Reyes, VP of Bioprocess Development at Lonza in Basel, Switzerland, and a faculty mentor at Bversity. PhD in chemical engineering from MIT with a focus on bioreactor design. You have overseen the tech transfer and scale-up of eleven biologics programmes — six of which are now on the market. You manage teams running 2,000L stirred-tank bioreactors on three continents, and you have personally been on-site for three FDA pre-approval inspections.
+        "system_prompt": """You are Dr. Carlos Reyes, VP of Bioprocess Development at Lonza in Basel, Switzerland, and a faculty mentor at Bversity. PhD in chemical engineering from MIT with a focus on bioreactor design. You have overseen the tech transfer and scale-up of eleven biologics programmes  -  six of which are now on the market. You manage teams running 2,000L stirred-tank bioreactors on three continents, and you have personally been on-site for three FDA pre-approval inspections.
 
-Your knowledge: the full biomanufacturing value chain — cell line development (CHO, HEK293, microbial), upstream bioprocessing (fed-batch, perfusion, bioreactor engineering), media and feed development, downstream purification (Protein A, IEX, HIC, SEC, viral clearance), analytical characterisation and CQAs, GMP and quality systems (ICH Q7/Q10, QbD, FDA 21 CFR), scale-up and technology transfer, cell therapy manufacturing (autologous and allogeneic), mRNA and oligonucleotide manufacturing, PAT, and biosimilars.
+Your knowledge: the full biomanufacturing value chain  -  cell line development (CHO, HEK293, microbial), upstream bioprocessing (fed-batch, perfusion, bioreactor engineering), media and feed development, downstream purification (Protein A, IEX, HIC, SEC, viral clearance), analytical characterisation and CQAs, GMP and quality systems (ICH Q7/Q10, QbD, FDA 21 CFR), scale-up and technology transfer, cell therapy manufacturing (autologous and allogeneic), mRNA and oligonucleotide manufacturing, PAT, and biosimilars.
 
-How you teach: manufacturing is where science meets reality. A molecule that can't be manufactured consistently isn't a drug — it's a paper. You use specific failure modes as teaching moments: aggregation killing a programme in scale-up, a contamination event shutting down a plant, a comparability gap delaying a filing. You want students to respect manufacturing as a scientific discipline, not a downstream afterthought. And you always ask: what's the cost of goods, and does this business model make sense?""",
+How you teach: manufacturing is where science meets reality. A molecule that can't be manufactured consistently isn't a drug  -  it's a paper. You use specific failure modes as teaching moments: aggregation killing a programme in scale-up, a contamination event shutting down a plant, a comparability gap delaying a filing. You want students to respect manufacturing as a scientific discipline, not a downstream afterthought. And you always ask: what's the cost of goods, and does this business model make sense?""",
     },
     "longevity_science": {
         "id": "longevity_science", "name": "Longevity Science",
@@ -912,7 +1038,73 @@ How you teach: manufacturing is where science meets reality. A molecule that can
 
 Your knowledge: the 12 hallmarks of aging (López-Otín 2023 framework), cellular senescence and senolytics/senomorphics, epigenetic aging clocks (Horvath, DunedinPACE) and partial reprogramming with Yamanaka factors, telomere biology, mitochondrial dysfunction and NAD+ metabolism, longevity signalling pathways (mTOR, AMPK, sirtuins, IGF-1), proteostasis and autophagy, inflammaging and the SASP, stem cell exhaustion and parabiosis experiments, longevity biomarkers and multi-omic aging clocks, clinical trial design in geroscience (TAME trial), and the longevity industry landscape.
 
-How you teach: you hold the tension between scientific rigor and extraordinary possibility. Aging research has had a credibility problem — too much hype, too many supplements, too many claims not backed by human data. You help students distinguish what is mechanism (solid), what is correlation (interesting but uncertain), and what is intervention (where the real gaps are). You ground everything in data. You also convey genuine excitement — partial reprogramming experiments where old mice show regenerated tissues are some of the most striking biology of the last decade, and your students should feel that.""",
+How you teach: you hold the tension between scientific rigor and extraordinary possibility. Aging research has had a credibility problem  -  too much hype, too many supplements, too many claims not backed by human data. You help students distinguish what is mechanism (solid), what is correlation (interesting but uncertain), and what is intervention (where the real gaps are). You ground everything in data. You also convey genuine excitement  -  partial reprogramming experiments where old mice show regenerated tissues are some of the most striking biology of the last decade, and your students should feel that.""",
+    },
+    "us_cra": {
+        "id": "us_cra", "name": "CCRA Certification Prep",
+        "tutor_name": "Sarah Mitchell", "tutor_role": "Senior Clinical Research Associate", "tutor_org": "IQVIA",
+        "color": "#0066CC", "icon": "📋",
+        "description": "ACRP CCRA exam preparation covering GCP, ICH guidelines, site management, regulatory submissions, and clinical data integrity",
+        "system_prompt": """You are Sarah Mitchell, Senior CRA at IQVIA with 9 years of field monitoring experience across oncology, CNS, and rare disease studies, and a faculty mentor at Bversity. CCRA-certified since 2018, recertified 2021. You have monitored over 60 clinical sites across the US and Europe, written and reviewed hundreds of monitoring visit reports, and trained over 20 junior CRAs. You know the CCRA exam body of knowledge inside out because you lived it before it was a certification framework.
+
+Your knowledge for exam prep: ICH E6(R2) GCP in full detail, FDA 21 CFR Parts 11/50/54/56/312/314, study startup and site qualification, informed consent processes and documentation, protocol deviations and violations, source data verification and source document requirements, monitoring visit types and reporting, AE/SAE reporting timelines and regulatory requirements, investigational product accountability and chain of custody, CTMS and eTMF management, IRB/IEC submissions and amendments, sponsor-CRO oversight responsibilities, and CDISC data standards at the CRA level.
+
+How you teach for certification: you are direct and exam-focused. You know which topics ACRP weights most heavily (site management, GCP compliance, regulatory submissions) and you spend time accordingly. You use scenario-based questions constantly  -  "you arrive at a site and the PI has been signing consent forms retroactively, what do you do?" You connect every regulation to a real consequence: why 21 CFR 50 exists, what a Form FDA 483 means for a site. You help learners build the judgment the exam tests, not just recall the rules.""",
+    },
+    "us_ccrp": {
+        "id": "us_ccrp", "name": "CCRP Certification Prep",
+        "tutor_name": "Marcus Webb", "tutor_role": "Clinical Research Program Manager", "tutor_org": "Cleveland Clinic",
+        "color": "#7B2D8B", "icon": "🏥",
+        "description": "SOCRA CCRP exam preparation covering research coordinator responsibilities, regulatory compliance, human subject protections, and study operations",
+        "system_prompt": """You are Marcus Webb, Clinical Research Program Manager at Cleveland Clinic's Taussig Cancer Institute, and a faculty mentor at Bversity. CCRP-certified for 7 years, currently managing a team of 12 research coordinators across 30 active oncology trials. You started as a coordinator yourself on Phase I first-in-human studies, and you understand exactly what the role demands and where people fail the exam.
+
+Your knowledge for exam prep: ICH E6(R2) and FDA GCP regulations, human subject protections (Belmont Report, Common Rule 45 CFR 46, FDA 21 CFR 50/56), study startup from feasibility through site activation, coordinator responsibilities during enrollment and conduct, IND exemptions and IND-required studies, informed consent - elements, waiver criteria, and documentation, eligibility verification and screen failure management, protocol deviation classification and reporting, data entry and query resolution in EDC systems, AE/SAE identification and reporting workflow, investigational product receipt, storage, dispensing and accountability, study close-out procedures, and IRB continuing review requirements.
+
+How you teach for certification: you think like a coordinator who has made every mistake. You use real scenarios: what happens when a patient signs consent but doesn't date it? When a lab value comes back outside the eligibility range after enrollment? When the freezer temperature log has a gap? The CCRP exam tests judgment, not just rules, and you build both. You flag the high-weight domains (regulatory compliance, human subject protections, study management) and drill them systematically.""",
+    },
+    "us_regulatory": {
+        "id": "us_regulatory", "name": "RAC (Drugs) Certification Prep",
+        "tutor_name": "Dr. Robert Chen", "tutor_role": "VP Regulatory Affairs", "tutor_org": "Bristol Myers Squibb",
+        "color": "#E05C00", "icon": "📜",
+        "description": "RAPS RAC-Drugs exam preparation covering FDA drug regulations, IND/NDA/BLA submissions, labeling, post-market requirements, and global regulatory strategy",
+        "system_prompt": """You are Dr. Robert Chen, VP of Regulatory Affairs at Bristol Myers Squibb, and a faculty mentor at Bversity. RAC (US) certified since 2014. Former FDA reviewer at the Office of New Drugs for 6 years before joining industry. You have led regulatory strategy for 4 approved NDAs and 2 BLAs, including a Priority Review and a Breakthrough Therapy designation. You know the RAC exam from both sides  -  you've worked the regulations, not just studied them.
+
+Your knowledge for exam prep: FDA organisation and authority (FD&C Act, PHSA), drug development framework from IND through NDA/BLA approval, IND content requirements and phase-appropriate submissions, clinical hold criteria, NDA/BLA content and format (CTD, eCTD), review timelines and PDUFA commitments, special regulatory pathways (Breakthrough, Fast Track, Accelerated Approval, Priority Review, REMS), FDA meetings (pre-IND, end-of-phase, pre-NDA), labeling requirements (PI, Boxed Warning, MedGuide), post-approval obligations (PSUR, PADER, field alerts, supplements), 505(b)(2) pathway, biosimilar pathway (351(k)), and global submissions (ICH CTD, EMA, Health Canada).
+
+How you teach for certification: you think strategically. Regulatory affairs isn't rule-following  -  it's anticipating FDA's concerns before they raise them. You use case studies from real approvals and rejections: what made Keytruda's accelerated approval unusual, what a Complete Response Letter says about FDA's actual concern, why Aduhelm was controversial from a regulatory science perspective. You map the exam domains (US regulations, submissions, post-market) and cover them in order of exam weight. You push learners to understand the why behind every requirement.""",
+    },
+    "us_pharmacovigilance": {
+        "id": "us_pharmacovigilance", "name": "CPVC Certification Prep",
+        "tutor_name": "Dr. Anika Sharma", "tutor_role": "Head of Global Pharmacovigilance", "tutor_org": "AstraZeneca",
+        "color": "#BE185D", "icon": "🛡️",
+        "description": "CCRPS CPVC exam preparation covering ICSR processing, signal detection, regulatory reporting, aggregate safety reports, and global PV systems",
+        "system_prompt": """You are Dr. Anika Sharma, Head of Global Pharmacovigilance at AstraZeneca, and a faculty mentor at Bversity. CPVC-certified, with 12 years in drug safety spanning CRO, specialty pharma, and Big Pharma. You have led MAH responsibilities for marketed products in the US, EU, and Japan simultaneously, managed FDA audit preparation, and built a signal detection team from the ground up. You understand both the operational and the regulatory dimensions of PV.
+
+Your knowledge for exam prep: pharmacovigilance foundations (ICH E2A/E2B/E2C/E2D/E2E/E2F guidelines), Individual Case Safety Report (ICSR) processing - seriousness, expectedness, causality assessment, MedDRA coding, expedited reporting timelines (7-day and 15-day rules for FDA and EMA), FAERS and EudraVigilance database submissions, Periodic Safety Update Reports (PSUR/PBRER) and PADER, signal detection methods (disproportionality analysis, PRR, ROR), benefit-risk assessment frameworks, Risk Management Plans (RMP) and REMS, good pharmacovigilance practice (GVP modules), literature surveillance requirements, pregnancy registries, and aggregate safety report timelines and content.
+
+How you teach for certification: you are rigorous and scenario-driven. "You receive a report from a healthcare provider about a patient who died 30 days after last dose - walk me through your processing decision tree." You know that PV professionals fail the CPVC by confusing the overlapping timelines and definitions between FDA and EMA, so you drill those differences explicitly. You emphasise that PV is a patient safety discipline first  -  the regulations exist because people were harmed by drugs that were pulled too late. That framing helps learners remember the rules.""",
+    },
+    "us_msl": {
+        "id": "us_msl", "name": "BCMAS Certification Prep",
+        "tutor_name": "Dr. Lisa Park", "tutor_role": "Regional Medical Science Liaison Director", "tutor_org": "Genentech",
+        "color": "#047857", "icon": "🔬",
+        "description": "ACMA BCMAS exam preparation covering MSL role and competencies, medical affairs strategy, KOL engagement, HEOR, and compliant scientific exchange",
+        "system_prompt": """You are Dr. Lisa Park, Regional MSL Director at Genentech covering the Pacific Northwest, and a faculty mentor at Bversity. BCMAS-certified, PharmD with a residency in ambulatory care. You have been an MSL, a field MSL manager, and now lead a team of 8 MSLs across oncology and hematology. You understand the BCMAS exam because you helped develop internal training aligned to its competency framework.
+
+Your knowledge for exam prep: MSL role definition and distinction from sales (the firewall), medical affairs organisational structure and cross-functional collaboration, scientific exchange principles and fair balance requirements, OIG compliance guidelines and PhRMA/AdvaMed codes, KOL identification, mapping and engagement strategy, reactive vs proactive information exchange, clinical evidence communication and data presentation skills, advisory board organisation and compliance, HEOR fundamentals (pharmacoeconomics, real-world evidence, budget impact models), medical information request handling, congress strategy and scientific communications, publication planning, and MSL performance metrics and KPIs.
+
+How you teach for certification: you focus on the competencies the BCMAS exam actually tests - scientific knowledge, compliance behaviour, stakeholder engagement, and strategic thinking. You use role-play scenarios: how do you respond when a KOL asks you about an unapproved indication in a one-on-one meeting? How do you handle a request for medical information that falls outside your label? You are clear about the compliance lines that MSLs must not cross, and you explain why  -  because FDA warning letters to pharma companies often cite field force behaviour. You want learners who are confident, not just compliant.""",
+    },
+    "us_cdm": {
+        "id": "us_cdm", "name": "CCDM Certification Prep",
+        "tutor_name": "David Kim", "tutor_role": "Head of Clinical Data Management", "tutor_org": "Medidata",
+        "color": "#4338CA", "icon": "📊",
+        "description": "SCDM CCDM exam preparation covering clinical database design, data collection, CDISC standards, data cleaning, validation, and CDM regulations",
+        "system_prompt": """You are David Kim, Head of Clinical Data Management at Medidata Solutions in New York, and a faculty mentor at Bversity. CCDM-certified since 2016, recertified 2022. You have led CDM for over 40 Phase I-IV studies across oncology, rare disease, and immunology. You have built EDC systems in Rave, Veeva Vault, and Medidata's own platform, and you have presented at SCDM Annual Conference twice on CDISC implementation. You know the CCDM exam body of knowledge better than most people who wrote the questions.
+
+Your knowledge for exam prep: clinical data management foundations and regulatory framework (ICH E6, 21 CFR Part 11, FDA data integrity guidance), clinical database design principles, CRF design and annotation, edit check programming and validation logic, CDISC standards in depth (CDASH for data collection, SDTM for submission datasets, ADaM for analysis), data entry and double data entry, query management lifecycle, SAE reconciliation, lab data handling and reference ranges, coding dictionaries (MedDRA, WHO Drug), protocol deviation data capture, data transfer agreements and vendor oversight, database lock procedures, and regulatory submission package preparation.
+
+How you teach for certification: you are systematic and detail-oriented, because CDM is a detail-oriented field where errors have real consequences. You use the SCDM Good Clinical Data Management Practices (GCDMP) guidelines as your reference framework throughout. You drill the CDISC standards hard because they are high-weight on the exam and where most people lose points. You use practical examples: "here's a CRF design with three common errors  -  find them." You make sure learners understand not just what to do but why  -  because a CDM professional who understands the regulatory rationale for data integrity standards is far more valuable than one who just follows a checklist.""",
     },
 }
 
@@ -1182,7 +1374,7 @@ CAREERS = {
     "biotech_founder": {
         "id": "biotech_founder", "title": "Biotech Entrepreneur & Founder",
         "cluster": "Emerging & Hybrid", "icon": "🚀",
-        "description": "Start and build a biotech company — from scientific hypothesis to VC funding, IND filing, and clinical proof-of-concept.",
+        "description": "Start and build a biotech company  -  from scientific hypothesis to VC funding, IND filing, and clinical proof-of-concept.",
         "day_in_life": "Pitch investors, recruit a scientific board, design company strategy, manage burn rate, and keep a hand in the science.",
         "salary_range": "$0–$500K+ (equity-driven)",
         "salary_range_india": "₹0–₹2Cr+ (equity-driven)",
@@ -1216,7 +1408,7 @@ CAPSTONES = {
         "subject_id": "genomics",
         "title": "Clinical Variant Interpretation: A Patient Case Report",
         "problem_statement": "You are a genomics scientist at a clinical genomics laboratory. A patient has been referred with a suspected hereditary cancer syndrome. You have been provided with a set of genomic variants from a simulated whole-genome sequence, a family history, and a clinical summary. Your task is to classify each variant using ACMG/AMP guidelines, identify the most likely pathogenic finding, and write a clinical genomics report suitable for an MDT meeting.",
-        "instructions": "1. Download the patient case file (provided with this brief — synthetic data only).\n2. Look up each variant in ClinVar, OMIM, and gnomAD.\n3. Apply ACMG/AMP variant classification criteria to each variant (Pathogenic / Likely Pathogenic / VUS / Likely Benign / Benign).\n4. Identify the primary finding most likely explaining the patient's phenotype.\n5. Write a clinical genomics report following the structure used by NHS Genomic Medicine Service or a comparable lab: patient details (synthetic), variant summary table, clinical interpretation, recommendations.\n6. Include a one-page methods note describing your classification process.",
+        "instructions": "1. Download the patient case file (provided with this brief  -  synthetic data only).\n2. Look up each variant in ClinVar, OMIM, and gnomAD.\n3. Apply ACMG/AMP variant classification criteria to each variant (Pathogenic / Likely Pathogenic / VUS / Likely Benign / Benign).\n4. Identify the primary finding most likely explaining the patient's phenotype.\n5. Write a clinical genomics report following the structure used by NHS Genomic Medicine Service or a comparable lab: patient details (synthetic), variant summary table, clinical interpretation, recommendations.\n6. Include a one-page methods note describing your classification process.",
         "deliverable": "PDF report following the provided clinical report template. Max 20MB.",
         "rubric": [
             {"criterion": "ACMG/AMP variant classification accuracy", "marks": 30},
@@ -1230,13 +1422,13 @@ CAPSTONES = {
     "drug_discovery": {
         "subject_id": "drug_discovery",
         "title": "Drug Discovery Strategy Memo: Targeting an Unmet Need",
-        "problem_statement": "You are a drug discovery scientist presenting to Genentech's R&D strategy committee. Select a disease from the provided shortlist (ALS, Huntington's disease, triple-negative breast cancer, or idiopathic pulmonary fibrosis) and develop a complete drug discovery strategy memo — from target identification through to an IND-ready preclinical plan.",
-        "instructions": "1. Choose one disease from the shortlist and identify a validated biological target using OpenTargets, UniProt, and the published literature.\n2. Justify your target choice: mechanism of disease relevance, genetic validation evidence, druggability score.\n3. Propose a hit discovery strategy (HTS, fragment-based, virtual screening, or phenotypic — justify your choice).\n4. Run a basic in silico docking analysis using AutoDock Vina or SwissDock with a PDB structure for your target. Include at least one screenshot of your docking result with interpretation.\n5. Outline your lead optimisation priorities (key ADMET liabilities to address, selectivity concerns).\n6. Describe the minimum preclinical package needed to file an IND.\n7. Write the memo (2,000–2,500 words) plus docking results as appendices.",
+        "problem_statement": "You are a drug discovery scientist presenting to Genentech's R&D strategy committee. Select a disease from the provided shortlist (ALS, Huntington's disease, triple-negative breast cancer, or idiopathic pulmonary fibrosis) and develop a complete drug discovery strategy memo  -  from target identification through to an IND-ready preclinical plan.",
+        "instructions": "1. Choose one disease from the shortlist and identify a validated biological target using OpenTargets, UniProt, and the published literature.\n2. Justify your target choice: mechanism of disease relevance, genetic validation evidence, druggability score.\n3. Propose a hit discovery strategy (HTS, fragment-based, virtual screening, or phenotypic  -  justify your choice).\n4. Run a basic in silico docking analysis using AutoDock Vina or SwissDock with a PDB structure for your target. Include at least one screenshot of your docking result with interpretation.\n5. Outline your lead optimisation priorities (key ADMET liabilities to address, selectivity concerns).\n6. Describe the minimum preclinical package needed to file an IND.\n7. Write the memo (2,000–2,500 words) plus docking results as appendices.",
         "deliverable": "PDF memo (2,000–2,500 words) with docking screenshots and supporting data as appendices. Max 30MB.",
         "rubric": [
             {"criterion": "Target identification and validation quality", "marks": 25},
             {"criterion": "Hit discovery strategy justification", "marks": 20},
-            {"criterion": "In silico docking — execution and interpretation", "marks": 20},
+            {"criterion": "In silico docking  -  execution and interpretation", "marks": 20},
             {"criterion": "Lead optimisation and ADMET reasoning", "marks": 20},
             {"criterion": "Preclinical IND plan and overall scientific rigour", "marks": 15},
         ],
@@ -1246,7 +1438,7 @@ CAPSTONES = {
         "subject_id": "clinical_trials",
         "title": "Design a Phase II Trial & Regulatory Strategy",
         "problem_statement": "A novel small molecule kinase inhibitor has completed Phase I in patients with advanced solid tumours. It demonstrated acceptable tolerability at 200mg QD, with preliminary PK data showing t½ of 8 hours and dose-proportional exposure. One confirmed partial response was seen in a KRAS-mutant pancreatic cancer patient. Your task is to design the Phase II programme and regulatory strategy that will take this compound toward a potential NDA.",
-        "instructions": "1. Define your Phase II patient population, including biomarker selection strategy (KRAS-mutant enriched vs all-comers — justify).\n2. Choose your primary endpoint and justify why it is appropriate and acceptable to FDA/EMA.\n3. Design the trial: phase II design (single-arm, randomised, adaptive?), sample size calculation with assumptions stated, control arm if applicable.\n4. Write a two-page trial synopsis in ICH format.\n5. Write a one-page regulatory strategy memo: which pathway (standard, Breakthrough Therapy, Fast Track?), key FDA/EMA interactions needed, estimated timeline from Phase II start to NDA submission.\n6. Identify the three biggest regulatory risks and how you would mitigate them.",
+        "instructions": "1. Define your Phase II patient population, including biomarker selection strategy (KRAS-mutant enriched vs all-comers  -  justify).\n2. Choose your primary endpoint and justify why it is appropriate and acceptable to FDA/EMA.\n3. Design the trial: phase II design (single-arm, randomised, adaptive?), sample size calculation with assumptions stated, control arm if applicable.\n4. Write a two-page trial synopsis in ICH format.\n5. Write a one-page regulatory strategy memo: which pathway (standard, Breakthrough Therapy, Fast Track?), key FDA/EMA interactions needed, estimated timeline from Phase II start to NDA submission.\n6. Identify the three biggest regulatory risks and how you would mitigate them.",
         "deliverable": "PDF document comprising trial synopsis (2 pages) and regulatory strategy memo (1–2 pages). Total 2,500–3,000 words. Max 20MB.",
         "rubric": [
             {"criterion": "Patient population and biomarker strategy", "marks": 20},
@@ -1267,7 +1459,7 @@ CAPSTONES = {
             {"criterion": "Data curation and feature engineering", "marks": 20},
             {"criterion": "Model implementation and training", "marks": 20},
             {"criterion": "Evaluation rigour (test set discipline, metrics)", "marks": 25},
-            {"criterion": "Model card quality — limitations and regulatory thinking", "marks": 20},
+            {"criterion": "Model card quality  -  limitations and regulatory thinking", "marks": 20},
             {"criterion": "Code quality and reproducibility", "marks": 15},
         ],
         "total_marks": 100, "unlock_threshold": 24, "accepted_formats": ["zip"], "max_size_mb": 50,
@@ -1290,7 +1482,7 @@ CAPSTONES = {
     "cell_gene_therapy": {
         "subject_id": "cell_gene_therapy",
         "title": "Design a Gene Therapy Programme for a Monogenic Disease",
-        "problem_statement": "You are a gene therapy scientist at a clinical-stage biotech. Select one monogenic disease from the shortlist (sickle cell disease, haemophilia A, Duchenne muscular dystrophy, or a rare inherited retinal dystrophy) and design a complete gene therapy programme — from vector selection through to an IND-ready development plan.",
+        "problem_statement": "You are a gene therapy scientist at a clinical-stage biotech. Select one monogenic disease from the shortlist (sickle cell disease, haemophilia A, Duchenne muscular dystrophy, or a rare inherited retinal dystrophy) and design a complete gene therapy programme  -  from vector selection through to an IND-ready development plan.",
         "instructions": "1. Choose your disease and justify it: unmet need, patient population size, genetic target, and why gene therapy is the right modality.\n2. Select your therapeutic approach (AAV in vivo, lentiviral ex vivo HSC correction, CRISPR base editing, or other) and justify the choice over alternatives.\n3. Vector/edit design: serotype or vector selection, transgene cassette or guide RNA design, anticipated tropism, packaging capacity considerations.\n4. Safety assessment plan: immunogenicity mitigation strategy, genotoxicity monitoring plan (for integrating vectors), off-target analysis approach.\n5. Manufacturing strategy: production platform, scale, key analytical release assays, critical quality attributes.\n6. Regulatory pathway memo (1 page): which FDA/EMA pathway, RMAT or PRIME eligibility, key data packages needed for IND/CTA filing.\n7. Write the full programme document (2,500–3,000 words) plus a one-page regulatory memo.",
         "deliverable": "PDF document: programme plan (2,500–3,000 words) plus regulatory memo (1 page). Max 20MB.",
         "rubric": [
@@ -1450,46 +1642,46 @@ def build_system_prompt(subject: dict, student_name: str, is_first_visit: bool,
 ━━ TEACHING METHOD ━━
 You follow a strict 3-step loop for every concept. Never skip a step.
 
-STEP 1 — TEACH
-Keep your teaching response concise: 4–5 bullets maximum. One to two sentences per bullet. Do not write walls of text — the student learns by answering, not by reading. If you have more to say, say less now and bring it out through the questions.
+STEP 1  -  TEACH
+Keep your teaching response concise: 4–5 bullets maximum. One to two sentences per bullet. Do not write walls of text  -  the student learns by answering, not by reading. If you have more to say, say less now and bring it out through the questions.
 Introduce the concept with bullet points, bolded key terms, and a real-world example.
 Emit one concept card immediately after your explanation (see CARD FORMAT below).
 End with a check-in question that requires {student_name} to demonstrate understanding, not just say "yes".
 Bad: "Does that make sense?" Good: "So based on that, what do you think happens to the mRNA if the LNP doesn't escape the endosome?"
 
-STEP 2 — CONFIRM
+STEP 2  -  CONFIRM
 Read {student_name}'s answer carefully.
 - If it is vague, short, or uses generic language without specifics: push back. "You said X, can you be more specific? What exactly does Y mean here?" Do NOT move on.
 - If it demonstrates genuine understanding: affirm briefly and move to Step 3.
 
-STEP 3 — CHALLENGE
+STEP 3  -  CHALLENGE
 Raise the stakes with an application question using a real-world scenario.
 Use "what would go wrong if...", a clinical case, or a named drug/company as the hook.
 Example: "Moderna's early LNP had a serious tolerability problem. Based on what you just told me about ionizable lipids, what do you think caused it?"
 The challenge is not optional. It cements the concept before you move to the next one.
-After {student_name} answers the challenge, bridge naturally to the next concept in one sentence — show how what they just learned connects to and makes the next concept necessary. Never just announce the next concept; earn the transition.
+After {student_name} answers the challenge, bridge naturally to the next concept in one sentence  -  show how what they just learned connects to and makes the next concept necessary. Never just announce the next concept; earn the transition.
 
-MISCONCEPTION OFFER — use sparingly, once or twice per session at most:
-After completing a concept's full loop (not during teaching), you may naturally offer: "There's a really common misconception in this space around this — do you want to hear it?" Only do this when it feels genuinely relevant, never mechanically. If they say yes, share it clearly. Then move on. Never open a concept with a misconception and never force this offer.
+MISCONCEPTION OFFER  -  use sparingly, once or twice per session at most:
+After completing a concept's full loop (not during teaching), you may naturally offer: "There's a really common misconception in this space around this  -  do you want to hear it?" Only do this when it feels genuinely relevant, never mechanically. If they say yes, share it clearly. Then move on. Never open a concept with a misconception and never force this offer.
 
-CARD FORMAT — emit once per new concept, in STEP 1 only:
+CARD FORMAT  -  emit once per new concept, in STEP 1 only:
 On its own line, immediately after your explanation:
-<<<CARD:{{"title":"concept name","what":"one sentence: what it is, no jargon","why":"one sentence: why it matters for {student_name} specifically, tied to their career","how":["**Bold term**: one sentence explanation","**Bold term**: one sentence explanation","**Bold term**: one sentence explanation"],"example":"one specific drug, company, trial, or clinical story — make it real","remember":"the single most important insight about this concept — write it as a complete sentence"}}>>>
+<<<CARD:{{"title":"concept name","what":"one sentence: what it is, no jargon","why":"one sentence: why it matters for {student_name} specifically, tied to their career","how":["**Bold term**: one sentence explanation","**Bold term**: one sentence explanation","**Bold term**: one sentence explanation"],"example":"one specific drug, company, trial, or clinical story  -  make it real","remember":"the single most important insight about this concept  -  write it as a complete sentence"}}>>>
 Rules: valid JSON only, no line breaks inside the JSON, emit ONLY for new concepts in STEP 1, never in STEP 2 or STEP 3, maximum one card per response.
 
-FORMATTING RULES — follow strictly:
+FORMATTING RULES  -  follow strictly:
 - No markdown headers (##, ###). No emojis.
-- NEVER use em dashes (—) or long dashes. Use a comma, colon, or rewrite the sentence instead.
-- Never open with filler: not "Great question!", not "Absolutely!", not "Sure!" — just respond.
+- NEVER use em dashes ( - ) or long dashes. Use a comma, colon, or rewrite the sentence instead.
+- Never open with filler: not "Great question!", not "Absolutely!", not "Sure!"  -  just respond.
 - Bullet points over prose. Format as: - **Key term**: explanation. Bold the key term.
 - For critical points {student_name} must remember: bold the entire phrase: **This is the most important thing to understand here.**
 - Numbered lists only for strict sequences. Bullets for everything else.
-- Every response that ends with a question must bold that closing question. Example: **So based on what you just learned, what do you think happens when X?** This is the question the student must answer to move forward — make it impossible to miss.
+- Every response that ends with a question must bold that closing question. Example: **So based on what you just learned, what do you think happens when X?** This is the question the student must answer to move forward  -  make it impossible to miss.
 - Keep bullets concise: one to two sentences max.
 - Inline backticks for technical names and drug names.
 
 PERSONALISATION:
-- Use {student_name}'s name naturally — not every sentence, but enough that it feels personal.
+- Use {student_name}'s name naturally  -  not every sentence, but enough that it feels personal.
 - "So {student_name}, here's what makes this tricky..." or "The key insight for you, {student_name}, is..."
 - Make it feel like you are talking to one person, not broadcasting to a class."""
 
@@ -1525,12 +1717,12 @@ Progress: {covered_count}/{total} covered, {mastered_count}/{total} mastered
 ━━ PREVIOUS SESSION MEMORY for {student_name} ━━
 {session_memory}
 
-Use this to personalise your teaching today. Reference what {student_name} has already covered, acknowledge where they struggled before, and build directly on their progress. If confusion was noted last session, address it naturally — don't wait for them to ask again."""
+Use this to personalise your teaching today. Reference what {student_name} has already covered, acknowledge where they struggled before, and build directly on their progress. If confusion was noted last session, address it naturally  -  don't wait for them to ask again."""
 
     if is_first_visit:
-        teaching_note = f"\n\nThis is {student_name}'s very first session. When they first message you: introduce yourself warmly in 1–2 sentences (your name, your real-world role). Then ask them 2–3 natural background questions — what year they are studying, what they already know about this subject, what made them curious about it. Listen carefully to their answers: you are trying to understand how they already think about this subject, what mental model they carry, and where their instincts are right or wrong. Acknowledge what they share genuinely. Then use what you learned to frame concept 1: \"{curriculum[0]['name']}\" — connect it directly to their existing thinking, either building on it or gently showing where it needs to shift. Never say \"let's begin\" or any variation of it."
+        teaching_note = f"\n\nThis is {student_name}'s very first session. When they first message you: introduce yourself warmly in 1–2 sentences (your name, your real-world role). Then ask them 2–3 natural background questions  -  what year they are studying, what they already know about this subject, what made them curious about it. Listen carefully to their answers: you are trying to understand how they already think about this subject, what mental model they carry, and where their instincts are right or wrong. Acknowledge what they share genuinely. Then use what you learned to frame concept 1: \"{curriculum[0]['name']}\"  -  connect it directly to their existing thinking, either building on it or gently showing where it needs to shift. Never say \"let's begin\" or any variation of it."
     elif next_concept:
-        teaching_note = f"\n\n{student_name} is returning. When they message you: open with a warm, genuine check-in — ask how they are doing or how they have been since the last session. Keep it natural, like a teacher who actually remembers them. After they respond, give a 2–3 sentence recap of what they covered last session (name the specific concepts). Then tell them today you are picking up with \"{next_concept['name']}\" and in one sentence explain how it connects to what they already know. Then move straight into teaching. Never say \"let's begin\" or any variation of it."
+        teaching_note = f"\n\n{student_name} is returning. When they message you: open with a warm, genuine check-in  -  ask how they are doing or how they have been since the last session. Keep it natural, like a teacher who actually remembers them. After they respond, give a 2–3 sentence recap of what they covered last session (name the specific concepts). Then tell them today you are picking up with \"{next_concept['name']}\" and in one sentence explain how it connects to what they already know. Then move straight into teaching. Never say \"let's begin\" or any variation of it."
     else:
         teaching_note = f"\n\n{student_name} has covered the full curriculum. Open with a warm check-in, then help them synthesise concepts, suggest advanced topics, and challenge them with integrative questions. Never say \"let's begin\" or any variation of it."
 
@@ -1617,7 +1809,7 @@ def build_quiz_prompt(subject: dict, student_name: str, covered_ids: list, maste
     covered_set, mastered_set = set(covered_ids), set(mastered_ids)
     to_quiz = [c for c in curriculum if c["id"] in covered_set and c["id"] not in mastered_set]
 
-    voice_rules = "Speak like a human tutor — no markdown headers, no bullet lists, no emojis, no filler openers. Short prose paragraphs. Bold a term only when introducing it. Sound like a person.\n\n"
+    voice_rules = "Speak like a human tutor  -  no markdown headers, no bullet lists, no emojis, no filler openers. Short prose paragraphs. Bold a term only when introducing it. Sound like a person.\n\n"
 
     if not to_quiz:
         return voice_rules + f"""You are {subject['tutor_name']} at Bversity. {student_name} has mastered everything they've covered. Tell them directly, then suggest the next concept to move on to. One short paragraph.\n\nEnd with: <<<MASTERED:>>>"""
@@ -1631,9 +1823,9 @@ def build_quiz_prompt(subject: dict, student_name: str, covered_ids: list, maste
 Test them on these concepts:
 {concept_list}
 
-Ask two or three questions that probe real understanding — not recall. Use "explain why", "walk me through", or "what would happen if" style questions. Write them as a tutor would ask in conversation, not as a formatted list.
+Ask two or three questions that probe real understanding  -  not recall. Use "explain why", "walk me through", or "what would happen if" style questions. Write them as a tutor would ask in conversation, not as a formatted list.
 
-After {student_name} responds: evaluate honestly. If they show solid understanding, affirm it and mark mastery. If there are gaps, explain the gap directly and ask one follow-up — do not mark mastery yet.
+After {student_name} responds: evaluate honestly. If they show solid understanding, affirm it and mark mastery. If there are gaps, explain the gap directly and ask one follow-up  -  do not mark mastery yet.
 
 End your response with (hidden from student):
 <<<MASTERED:concept_id1,concept_id2>>>
@@ -1642,27 +1834,27 @@ If none mastered: <<<MASTERED:>>>"""
 
 RECALL_WARMUP_SUFFIX = """
 
-━━ RECALL WARMUP — THIS MESSAGE ONLY ━━
+━━ RECALL WARMUP  -  THIS MESSAGE ONLY ━━
 {student_name} just opened a new session and wrote a quick recall from memory before we began.
 Their recall is the current message.
 
 Your response for THIS message only:
-1. Acknowledge what they got right — specifically, name the concept or mechanism they recalled. 1–2 sentences.
+1. Acknowledge what they got right  -  specifically, name the concept or mechanism they recalled. 1–2 sentences.
 2. If they missed something important or got it slightly wrong, correct it briefly and directly. 1 sentence max.
 3. Bridge naturally into the next concept: "Let's build on that today..." or similar.
-DO NOT do a formal quiz. DO NOT ask them to recall more. DO NOT start teaching a new concept yet — just bridge to it.
+DO NOT do a formal quiz. DO NOT ask them to recall more. DO NOT start teaching a new concept yet  -  just bridge to it.
 Keep the entire response under 4 sentences. Sound like a tutor who's pleased they came prepared."""
 
 
 # ── Mock responses ────────────────────────────────────────────────────────────
 
 MOCK_RESPONSES = {
-    "bioinformatics":  "In bioinformatics we use computational methods to analyse biological sequences and other molecular data.\n\n**[Mock mode — add ANTHROPIC_API_KEY to .env for live AI tutoring]**",
-    "genomics":        "The genome is the complete set of genetic instructions in an organism.\n\n**[Mock mode — add ANTHROPIC_API_KEY to .env for live AI tutoring]**",
-    "drug_discovery":  "The drug development pipeline from target to approval takes roughly 12 years on average.\n\n**[Mock mode — add ANTHROPIC_API_KEY to .env for live AI tutoring]**",
-    "clinical_trials": "Phase I trials focus on safety and dose-finding in 20–80 participants before advancing to efficacy testing.\n\n**[Mock mode — add ANTHROPIC_API_KEY to .env for live AI tutoring]**",
-    "genai_ml":        "Machine learning in life sciences is transforming how we predict molecular properties and design new drugs.\n\n**[Mock mode — add ANTHROPIC_API_KEY to .env for live AI tutoring]**",
-    "biotech_business":"Understanding biotech business models is as important as understanding the science behind the drugs.\n\n**[Mock mode — add ANTHROPIC_API_KEY to .env for live AI tutoring]**",
+    "bioinformatics":  "In bioinformatics we use computational methods to analyse biological sequences and other molecular data.\n\n**[Mock mode  -  add ANTHROPIC_API_KEY to .env for live AI tutoring]**",
+    "genomics":        "The genome is the complete set of genetic instructions in an organism.\n\n**[Mock mode  -  add ANTHROPIC_API_KEY to .env for live AI tutoring]**",
+    "drug_discovery":  "The drug development pipeline from target to approval takes roughly 12 years on average.\n\n**[Mock mode  -  add ANTHROPIC_API_KEY to .env for live AI tutoring]**",
+    "clinical_trials": "Phase I trials focus on safety and dose-finding in 20–80 participants before advancing to efficacy testing.\n\n**[Mock mode  -  add ANTHROPIC_API_KEY to .env for live AI tutoring]**",
+    "genai_ml":        "Machine learning in life sciences is transforming how we predict molecular properties and design new drugs.\n\n**[Mock mode  -  add ANTHROPIC_API_KEY to .env for live AI tutoring]**",
+    "biotech_business":"Understanding biotech business models is as important as understanding the science behind the drugs.\n\n**[Mock mode  -  add ANTHROPIC_API_KEY to .env for live AI tutoring]**",
 }
 
 # ── Request models ────────────────────────────────────────────────────────────
@@ -1819,14 +2011,14 @@ async def send_welcome_email(to_email: str, name: str) -> bool:
     body = (
         _heading(f"Welcome to Bversity, {first}!") +
         _para("You've just joined India's first AI Native University for Biotech &amp; Life Sciences. "
-              "Your personal AI tutor is ready — pick a subject and start your first conversation.") +
+              "Your personal AI tutor is ready  -  pick a subject and start your first conversation.") +
         _btn("Open Bversity →", "https://bversity.io") +
         _divider() +
         _para("<strong>What to do first:</strong><br>"
               "1. Head to <em>Career Path</em> and tell your tutor what you want to become.<br>"
-              "2. Open any subject — Genomics, Drug Discovery, Bioinformatics — and say hello.<br>"
+              "2. Open any subject  -  Genomics, Drug Discovery, Bioinformatics  -  and say hello.<br>"
               "3. Your 30-day personalised study plan will be ready once you pick a career.") +
-        _small("Questions? Reply to this email — we read every one.")
+        _small("Questions? Reply to this email  -  we read every one.")
     )
     return await _send_email(to_email, f"Welcome to Bversity, {first}! 🎉", _email_wrap(body))
 
@@ -1834,13 +2026,13 @@ async def send_completion_email(to_email: str, name: str, subject_name: str, cre
     first = name.split()[0]
     body = (
         _heading(f"You completed {subject_name}!") +
-        _para(f"Congratulations {first} — you've covered every concept in <strong>{subject_name}</strong>. "
+        _para(f"Congratulations {first}  -  you've covered every concept in <strong>{subject_name}</strong>. "
               "Your certificate is now available in your dashboard.") +
         _btn("View Certificate →", "https://bversity.io") +
         _divider() +
         _para(f'<strong>Credential ID:</strong> BVG-{credential_id}<br>'
               'Share this on LinkedIn to let the world know.') +
-        _small("Keep going — more subjects await. Each one sharpens your edge in the biotech job market.")
+        _small("Keep going  -  more subjects await. Each one sharpens your edge in the biotech job market.")
     )
     return await _send_email(to_email, f"Certificate earned: {subject_name} 🎓", _email_wrap(body))
 
@@ -1849,7 +2041,7 @@ async def send_lag_nudge_email(to_email: str, name: str, lag_days: int, lag_conc
     body = (
         _heading(f"Hey {first}, you're {lag_days} day{'s' if lag_days != 1 else ''} behind") +
         _para(f"Your study plan has <strong>{lag_concepts} concept{'s' if lag_concepts != 1 else ''}</strong> overdue. "
-              "A short session today can get you back on track — even 20 minutes covers 1–2 concepts.") +
+              "A short session today can get you back on track  -  even 20 minutes covers 1–2 concepts.") +
         _btn("Continue Learning →", "https://bversity.io") +
         _divider() +
         _para("Consistency is more powerful than intensity. Log in, pick up where you left off, and let your tutor guide you.") +
@@ -1859,14 +2051,14 @@ async def send_lag_nudge_email(to_email: str, name: str, lag_days: int, lag_conc
 
 async def send_inactivity_nudge_email(to_email: str, name: str, days_since: int, career: dict = None) -> bool:
     first = name.split()[0]
-    career_line = f"You're on your way to becoming a <strong>{career['title']}</strong> — don't lose momentum." if career else "You're building real biotech knowledge — don't lose momentum."
+    career_line = f"You're on your way to becoming a <strong>{career['title']}</strong>  -  don't lose momentum." if career else "You're building real biotech knowledge  -  don't lose momentum."
     subject_line = f"Hey {first}, it's been {days_since} days" if days_since < 7 else f"{first}, your learning path needs you"
     body = (
         _heading(f"Hey {first}, you still there?") +
         _para(f"It's been <strong>{days_since} day{'s' if days_since != 1 else ''}</strong> since your last session on Bversity. {career_line}") +
         _btn("Pick Up Where You Left Off →", "https://university.bversity.io") +
         _divider() +
-        _para("Your AI tutors are ready. Even a 15-minute session keeps you moving forward — and your progress is exactly where you left it.") +
+        _para("Your AI tutors are ready. Even a 15-minute session keeps you moving forward  -  and your progress is exactly where you left it.") +
         _small("You're receiving this because you're a registered learner at Bversity.")
     )
     return await _send_email(to_email, subject_line, _email_wrap(body))
@@ -1884,7 +2076,7 @@ async def send_streak_milestone_email(to_email: str, name: str, streak: int, car
         _divider() +
         _small("Keep showing up. The compounding effect of daily learning is real.")
     )
-    return await _send_email(to_email, f"{emoji} {streak}-day learning streak — keep it going, {first}!", _email_wrap(body))
+    return await _send_email(to_email, f"{emoji} {streak}-day learning streak  -  keep it going, {first}!", _email_wrap(body))
 
 
 async def send_module_complete_email(to_email: str, name: str, module_name: str, subject_name: str, career: dict = None) -> bool:
@@ -1895,9 +2087,9 @@ async def send_module_complete_email(to_email: str, name: str, module_name: str,
         _para(f"You just finished <strong>{module_name}</strong> in {subject_name}. {career_line}") +
         _btn("Continue to Next Module →", "https://university.bversity.io") +
         _divider() +
-        _small("Take the module quiz to lock in your mastery — it's short and worth it.")
+        _small("Take the module quiz to lock in your mastery  -  it's short and worth it.")
     )
-    return await _send_email(to_email, f"You completed '{module_name}' — {first}", _email_wrap(body))
+    return await _send_email(to_email, f"You completed '{module_name}'  -  {first}", _email_wrap(body))
 
 
 def _infer_sessions(msgs: list, gap_minutes: int = 30) -> list:
@@ -1993,7 +2185,7 @@ def gather_student_week_data(student_id: str, conn) -> dict:
         (student_id, week_ago)
     ).fetchone()[0]
 
-    # Stuck concepts — covered >14 days ago, still not mastered
+    # Stuck concepts  -  covered >14 days ago, still not mastered
     stuck_rows = conn.execute(
         "SELECT subject_id, concept_id FROM concept_progress WHERE student_id=? AND mastered_at IS NULL AND first_covered_at<=? ORDER BY first_covered_at ASC LIMIT 3",
         (student_id, stuck_cutoff)
@@ -2051,7 +2243,12 @@ def gather_student_week_data(student_id: str, conn) -> dict:
     ).fetchone()
     streak    = profile['streak_count'] if profile else 0
     career_id = profile['career_id'] if profile else None
-    career_title = CAREERS[career_id]['title'] if career_id and career_id in CAREERS else None
+    if career_id and career_id in CAREERS:
+        career_title = CAREERS[career_id]['title']
+    elif career_id and career_id in SUBJECTS:
+        career_title = f"{SUBJECTS[career_id]['name']} ({SUBJECTS[career_id].get('certification', '')} prep)"
+    else:
+        career_title = None
 
     # Career-critical untouched concepts
     untouched_career_concepts = []
@@ -2132,7 +2329,7 @@ async def generate_report_narrative(student_name: str, data: dict) -> str:
         f"Peak learning time: {data['peak_time']}." if data.get('peak_time') else "",
         f"Most active day: {data['peak_day']}." if data.get('peak_day') else "",
         f"Sessions this week: {data['sessions']} (avg {data['avg_session_mins']} min each, longest {data['longest_session_mins']} min).",
-        f"Messages sent: {data['total_messages']} (avg {data['avg_msgs_per_session']} per session — {'deep engagement' if data['avg_msgs_per_session'] > 8 else 'light engagement'}).",
+        f"Messages sent: {data['total_messages']} (avg {data['avg_msgs_per_session']} per session  -  {'deep engagement' if data['avg_msgs_per_session'] > 8 else 'light engagement'}).",
         f"Concepts covered: {data['concepts_covered']}, mastered: {data['concepts_mastered']}.",
         f"Quizzes: {data['quizzes_passed']}/{data['quizzes_taken']} passed." if data['quizzes_taken'] > 0 else "",
         f"Recently mastered: {data['strongest_concept']}." if data.get('strongest_concept') else "",
@@ -2149,7 +2346,7 @@ async def generate_report_narrative(student_name: str, data: dict) -> str:
 Write a warm, specific 2-3 sentence coaching note to {first} based on their week's learning data.
 Reference their actual behaviour patterns (time of day, session length, engagement depth).
 Give one concrete, forward-looking recommendation tied to their career goal.
-Sound like a coach who genuinely studied their data — not a bot sending a template.
+Sound like a coach who genuinely studied their data  -  not a bot sending a template.
 
 {context}
 
@@ -2166,7 +2363,7 @@ Write only the 2-3 sentence note. No greeting, no subject line."""
         return msg.content[0].text.strip()
     except Exception as e:
         print(f"Narrative gen error: {e}")
-        return f"You had a solid week, {first}. Keep building on your progress — every session compounds."
+        return f"You had a solid week, {first}. Keep building on your progress  -  every session compounds."
 
 
 async def send_weekly_learner_report(to_email: str, name: str, data: dict, narrative: str) -> bool:
@@ -2239,7 +2436,7 @@ async def send_weekly_learner_report(to_email: str, name: str, data: dict, narra
             career_section += _para(f"Focus area: <strong>{data['weakest_subject']}</strong>")
 
     # ── Streak ───────────────────────────────────────────────
-    streak_line = _para(f"🔥 <strong>{data['streak']}-day streak</strong> — keep it going!") if data.get('streak', 0) > 0 else ""
+    streak_line = _para(f"🔥 <strong>{data['streak']}-day streak</strong>  -  keep it going!") if data.get('streak', 0) > 0 else ""
 
     body = (
         _heading(f"Your week at Bversity, {first} 🧬") +
@@ -2411,7 +2608,7 @@ async def send_join_reminder(x_admin_key: str = Header(None)):
         first = email.split("@")[0].split(".")[0].capitalize()
         body = (
             _heading(f"Your Bversity access is waiting, {first}!") +
-            _para("You were approved for Bversity — the world's first AI-Native Biotech University — "
+            _para("You were approved for Bversity  -  the world's first AI-Native Biotech University  -  "
                   "but we noticed you haven't logged in yet.") +
             _btn("Start Learning Now →", "https://university.bversity.io") +
             _divider() +
@@ -2422,7 +2619,7 @@ async def send_join_reminder(x_admin_key: str = Header(None)):
             _divider() +
             _small("Your access is still active. If you have any questions, just reply to this email.")
         )
-        ok = await _send_email(email, "Your Bversity access is waiting — come join us! 🎓", _email_wrap(body))
+        ok = await _send_email(email, "Your Bversity access is waiting  -  come join us! 🎓", _email_wrap(body))
         if ok:
             sent += 1
     return {"sent": sent, "total": len(not_joined)}
@@ -2706,6 +2903,13 @@ def get_profile(student_id: str, background_tasks: BackgroundTasks = None):
     waitlist_university = waitlist_row["university"] if waitlist_row else None
     waitlist_year = waitlist_row["year_of_study"] if waitlist_row else None
     career_obj = CAREERS.get(row["career_id"]) if row and row["career_id"] else None
+    _cid = row["career_id"] if row else None
+    if _cid and _cid in CAREERS:
+        _career_title = CAREERS[_cid]["title"]
+    elif _cid and _cid in SUBJECTS:
+        _career_title = f"{SUBJECTS[_cid]['name']} · {SUBJECTS[_cid].get('certification','')}"
+    else:
+        _career_title = None
     career_key_set = set(career_obj.get("key_concepts", [])) if career_obj else set()
     career_concept_counts = {}
     if career_key_set:
@@ -2746,6 +2950,7 @@ def get_profile(student_id: str, background_tasks: BackgroundTasks = None):
         "streak_count": streak_count,
         "streak_today": streak_today,
         "streak_at_risk": streak_at_risk,
+        "career_title": _career_title,
     }
 
 class OnboardingRequest(BaseModel):
@@ -3135,7 +3340,7 @@ async def get_quiz_questions(subject_id: str, module_id: str, student_id: str = 
         conn.close()
         raise HTTPException(status_code=404, detail="Module not found")
 
-    module_name = subs[0]["name"].split(":")[0].split("—")[0].strip()
+    module_name = subs[0]["name"].split(":")[0].split(" - ")[0].strip()
     concept_lines = "\n".join(f"- {c['name']}" for c in subs)
     subject_name  = SUBJECTS.get(subject_id, {}).get("name", subject_id)
 
@@ -3190,7 +3395,7 @@ Requirements:
     except Exception as e:
         conn.close()
         print(f"Quiz question parse error: {e}\nRaw: {raw[:300]}")
-        raise HTTPException(status_code=500, detail="Failed to generate valid questions — please retry")
+        raise HTTPException(status_code=500, detail="Failed to generate valid questions  -  please retry")
 
     conn.execute(
         "INSERT OR REPLACE INTO module_quiz_questions (subject_id, module_id, questions_json, generated_at) VALUES (?,?,?,?)",
@@ -3211,7 +3416,7 @@ def submit_quiz(student_id: str, subject_id: str, module_id: str, req: QuizSubmi
     ).fetchone()
     if not existing:
         conn.close()
-        raise HTTPException(status_code=404, detail="Questions not found — generate them first")
+        raise HTTPException(status_code=404, detail="Questions not found  -  generate them first")
 
     questions = json.loads(existing["questions_json"])
     answers = [int(a) for a in req.answers]
@@ -3486,7 +3691,7 @@ Rubric criteria:
 
 Provide structured feedback in this format:
 1. **Overall Assessment** (2-3 sentences on overall quality)
-2. **Rubric Feedback** (one short paragraph per criterion — what they did well and what to improve)
+2. **Rubric Feedback** (one short paragraph per criterion  -  what they did well and what to improve)
 3. **Top Strength** (one specific thing done exceptionally well)
 4. **Key Improvement** (the single most impactful thing to work on next)
 5. **Score** (out of 10, as a number only on its own line like: Score: 8/10)
@@ -3567,7 +3772,7 @@ Rubric criteria:
 
 Provide structured feedback in this format:
 1. **Overall Assessment** (2-3 sentences on overall quality)
-2. **Rubric Feedback** (one short paragraph per criterion — what they did well and what to improve)
+2. **Rubric Feedback** (one short paragraph per criterion  -  what they did well and what to improve)
 3. **Top Strength** (one specific thing done exceptionally well)
 4. **Key Improvement** (the single most impactful thing to work on next)
 5. **Score** (out of 10, as a number only on its own line like: Score: 8/10)
@@ -3621,11 +3826,11 @@ The project scenario: {req.project_scenario}
 
 Their challenge: {req.project_problem}
 
-Your role is to be their personal guide through this project — like a senior colleague sitting next to them. You know exactly what they need to do at each step, which databases to use, what the output should look like, and what common mistakes to avoid.
+Your role is to be their personal guide through this project  -  like a senior colleague sitting next to them. You know exactly what they need to do at each step, which databases to use, what the output should look like, and what common mistakes to avoid.
 
 Be specific and practical. If they're stuck on a step, tell them exactly what to click, what to search for, what to look at. Don't be generic. Reference real tools, real data, real biology.
 
-Keep responses concise — 3-5 sentences max unless they ask for a detailed explanation. End with a question or prompt that moves them forward."""
+Keep responses concise  -  3-5 sentences max unless they ask for a detailed explanation. End with a question or prompt that moves them forward."""
 
     messages = [{"role": m["role"], "content": m["content"]} for m in req.messages if m.get("role") in ("user", "assistant")]
     response = client.messages.create(
@@ -4130,7 +4335,7 @@ STUDENT SUBMISSION (extracted text):
 {extracted_text}
 ---
 
-Grade the submission against each criterion. Be rigorous but fair — this is graduate-level biotech work.
+Grade the submission against each criterion. Be rigorous but fair  -  this is graduate-level biotech work.
 
 Return ONLY valid JSON (no markdown, no preamble) in this exact structure:
 {{
@@ -4604,7 +4809,7 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
                     (req.student_id, req.subject_id, mod_id)
                 ).fetchone()
                 if not already_done:
-                    mod_name = subs[0]["name"].split(":")[0].split("—")[0].strip()
+                    mod_name = subs[0]["name"].split(":")[0].split(" - ")[0].strip()
                     modules_completed.append({"id": mod_id, "name": mod_name})
                     student_row2 = conn.execute("SELECT email, name FROM students WHERE id=?", (req.student_id,)).fetchone()
                     if student_row2:
@@ -4711,7 +4916,7 @@ async def send_waitlist_confirmation_email(to_email: str, name: str, position: i
     first = name.split()[0]
     body = (
         _heading(f"You're on the Bversity waitlist, {first}!") +
-        _para(f"Thank you for your interest in Bversity — the world's first AI-Native Biotech University. "
+        _para(f"Thank you for your interest in Bversity  -  the world's first AI-Native Biotech University. "
               f"We've received your application and you are <strong>#{position} on the waitlist</strong>.") +
         _divider() +
         _para("<strong>What happens next?</strong><br>"
@@ -4720,7 +4925,7 @@ async def send_waitlist_confirmation_email(to_email: str, name: str, position: i
         _para("In the meantime, explore what you'll be learning at "
               "<a href='https://university.bversity.io' style='color:#00A896'>university.bversity.io</a>.") +
         _divider() +
-        _small("Questions? Reply to this email — we read every one.")
+        _small("Questions? Reply to this email  -  we read every one.")
     )
     return await _send_email(to_email, f"You're #{position} on the Bversity waitlist!", _email_wrap(body))
 
@@ -4728,14 +4933,14 @@ async def send_access_granted_email(to_email: str, name: str) -> bool:
     first = name.split()[0]
     body = (
         _heading(f"Your Bversity access is approved, {first}!") +
-        _para("Great news — we've reviewed your application and you've been granted access to Bversity. "
+        _para("Great news  -  we've reviewed your application and you've been granted access to Bversity. "
               "You can now log in and start learning from the world's first AI-Native Biotech University.") +
         _btn("Access Bversity Now →", "https://university.bversity.io") +
         _divider() +
         _para("<strong>How to get started:</strong><br>"
               "1. Click the button above to open the platform.<br>"
               "2. Enter your email address to receive a one-time verification code.<br>"
-              "3. Enter the code to log in — no password needed.<br>"
+              "3. Enter the code to log in  -  no password needed.<br>"
               "4. Pick a subject and start your first AI tutoring session.") +
         _divider() +
         _small("Your email address is already approved. If you have any trouble logging in, reply to this email.")
@@ -4785,10 +4990,10 @@ Here is the session transcript:
 Write concise tutor notes in exactly this format (keep each field to 1-3 sentences):
 
 CONCEPTS_COVERED: [which concepts were substantively taught this session]
-CONFIDENCE_SIGNALS: [where the student showed clear understanding — specific moments]
+CONFIDENCE_SIGNALS: [where the student showed clear understanding  -  specific moments]
 CONFUSION_SIGNALS: [where the student hesitated, gave vague answers, or asked clarifying questions]
 NOTABLE_MOMENTS: [interesting questions asked, background info revealed, breakthroughs]
-FOLLOW_UP: [what to address, revisit, or build on in the next session — be specific]
+FOLLOW_UP: [what to address, revisit, or build on in the next session  -  be specific]
 
 Be honest, specific, and brief. These notes directly shape the next session."""
 
@@ -4969,7 +5174,7 @@ SUBJECT_NEWS_QUERIES = {
 }
 
 def _clean_news_title(title: str) -> str:
-    # Google News appends " - Source Name" — strip it
+    # Google News appends " - Source Name"  -  strip it
     parts = title.rsplit(" - ", 1)
     return parts[0].strip() if len(parts) > 1 else title.strip()
 
@@ -5702,7 +5907,7 @@ async def contact_founder(req: FounderContactReq):
     """
     await _send_email(
         to_email=founder_email,
-        subject=f"[Bversity] {req.student_name} — {req.reason}",
+        subject=f"[Bversity] {req.student_name}  -  {req.reason}",
         html=html,
         reply_to=req.student_email,
     )
@@ -5736,3 +5941,110 @@ def update_image(req: ImageUpdateReq, x_admin_key: str = Header(None)):
     config[req.section][req.key]["url"] = req.url
     save_image_config(config)
     return {"status": "ok"}
+
+
+# ── Adzuna Job Listings ────────────────────────────────────────────────────────
+
+ADZUNA_APP_ID  = os.getenv("ADZUNA_APP_ID", "")
+ADZUNA_APP_KEY = os.getenv("ADZUNA_APP_KEY", "")
+ADZUNA_COUNTRY = "us"
+
+CERT_SEARCH_QUERIES = {
+    "us_cra":              "clinical research associate CCRA",
+    "us_ccrp":             "clinical research coordinator CCRP",
+    "us_regulatory":       "regulatory affairs specialist RAC",
+    "us_pharmacovigilance":"pharmacovigilance drug safety CPVC",
+    "us_msl":              "medical science liaison BCMAS",
+    "us_cdm":              "clinical data manager CCDM",
+}
+
+JOB_CACHE_DAYS = 3
+
+
+def _fetch_adzuna(cert_id: str) -> list[dict]:
+    query = CERT_SEARCH_QUERIES.get(cert_id, "life sciences")
+    params = urllib.parse.urlencode({
+        "app_id":         ADZUNA_APP_ID,
+        "app_key":        ADZUNA_APP_KEY,
+        "results_per_page": 10,
+        "what":           query,
+        "content-type":   "application/json",
+    })
+    url = f"https://api.adzuna.com/v1/api/jobs/{ADZUNA_COUNTRY}/search/1?{params}"
+    req = urllib.request.Request(url, headers={"Accept": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=10, context=_SSL_CTX) as resp:
+            data = json.loads(resp.read().decode())
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Adzuna error: {e}")
+
+    results = []
+    for job in data.get("results", []):
+        sal = job.get("salary_min"), job.get("salary_max")
+        results.append({
+            "cert_id":     cert_id,
+            "title":       job.get("title", ""),
+            "company":     job.get("company", {}).get("display_name", ""),
+            "location":    job.get("location", {}).get("display_name", ""),
+            "salary_min":  sal[0],
+            "salary_max":  sal[1],
+            "url":         job.get("redirect_url", ""),
+            "description": (job.get("description") or "")[:400],
+            "posted_date": job.get("created", ""),
+            "fetched_at":  datetime.utcnow().isoformat(),
+        })
+    return results
+
+
+def _store_jobs(cert_id: str, jobs: list[dict]):
+    with sqlite3.connect(DB_PATH) as db:
+        db.execute("DELETE FROM job_listings WHERE cert_id = ?", (cert_id,))
+        db.executemany(
+            """INSERT INTO job_listings
+               (cert_id, title, company, location, salary_min, salary_max,
+                url, description, posted_date, fetched_at)
+               VALUES (:cert_id,:title,:company,:location,:salary_min,:salary_max,
+                       :url,:description,:posted_date,:fetched_at)""",
+            jobs,
+        )
+
+
+def _cached_jobs(cert_id: str) -> list[dict] | None:
+    cutoff = (datetime.utcnow() - timedelta(days=JOB_CACHE_DAYS)).isoformat()
+    with sqlite3.connect(DB_PATH) as db:
+        db.row_factory = sqlite3.Row
+        rows = db.execute(
+            "SELECT * FROM job_listings WHERE cert_id=? AND fetched_at>? ORDER BY id",
+            (cert_id, cutoff),
+        ).fetchall()
+    if not rows:
+        return None
+    return [dict(r) for r in rows]
+
+
+@app.get("/jobs/{cert_id}")
+def get_jobs(cert_id: str):
+    if not ADZUNA_APP_ID or not ADZUNA_APP_KEY:
+        raise HTTPException(status_code=503, detail="Adzuna credentials not configured")
+    cached = _cached_jobs(cert_id)
+    if cached:
+        return {"jobs": cached, "source": "cache"}
+    jobs = _fetch_adzuna(cert_id)
+    _store_jobs(cert_id, jobs)
+    return {"jobs": jobs, "source": "live"}
+
+
+@app.post("/jobs/refresh")
+def refresh_jobs(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    if not ADZUNA_APP_ID or not ADZUNA_APP_KEY:
+        raise HTTPException(status_code=503, detail="Adzuna credentials not configured")
+    results = {}
+    for cert_id in CERT_SEARCH_QUERIES:
+        try:
+            jobs = _fetch_adzuna(cert_id)
+            _store_jobs(cert_id, jobs)
+            results[cert_id] = len(jobs)
+        except Exception as e:
+            results[cert_id] = f"error: {e}"
+    return results
