@@ -314,7 +314,7 @@ const TUTOR_AVATARS = {
 };
 
 const _urlRegion = new URLSearchParams(window.location.search).get('region');
-const _hostRegion = window.location.hostname.startsWith('us.') ? 'us' : null;
+const _hostRegion = window.location.hostname.startsWith('usa.') ? 'us' : null;
 if (_urlRegion) localStorage.setItem('bversity_region', _urlRegion);
 else if (_hostRegion) localStorage.setItem('bversity_region', _hostRegion);
 const ACTIVE_REGION = localStorage.getItem('bversity_region') || 'india';
