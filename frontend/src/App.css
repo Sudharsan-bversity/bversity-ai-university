@@ -12905,3 +12905,56 @@ body {
 .paywall-btn--ghost:hover { color: #555; }
 .paywall-help { font-size: 0.75rem; color: #bbb; }
 .paywall-help a { color: #00A896; }
+
+/* ── Insights tab ── */
+.ins-section { margin-bottom: 2.5rem; }
+.ins-section-title { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #333; margin-bottom: 0.3rem; }
+.ins-section-sub { font-size: 0.75rem; color: #999; margin-bottom: 1rem; }
+
+/* Retention */
+.ins-retention-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+@media (max-width: 800px) { .ins-retention-row { grid-template-columns: 1fr 1fr; } }
+.ins-ret-box { background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.ins-ret-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #aaa; }
+.ins-ret-val { font-size: 2rem; font-weight: 800; line-height: 1; }
+.ins-ret-cohort { font-size: 0.7rem; color: #bbb; }
+.ins-ret-bar-track { height: 4px; background: #f0f0f0; border-radius: 2px; margin-top: 0.5rem; }
+.ins-ret-bar-fill { height: 100%; border-radius: 2px; transition: width 0.4s; }
+
+/* Weekly chart */
+.ins-weekly-chart { display: flex; align-items: flex-end; gap: 6px; height: 80px; padding: 0.5rem 0; }
+.ins-weekly-bar-wrap { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; height: 100%; }
+.ins-weekly-bar { width: 100%; border-radius: 3px 3px 0 0; min-height: 4px; }
+.ins-weekly-label { font-size: 0.6rem; color: #bbb; white-space: nowrap; }
+
+/* Funnel */
+.ins-funnel { display: flex; flex-direction: column; gap: 0.6rem; }
+.ins-funnel-row { display: grid; grid-template-columns: 180px 1fr 50px 45px 50px; align-items: center; gap: 0.75rem; }
+.ins-funnel-label { font-size: 0.78rem; color: #444; font-weight: 500; }
+.ins-funnel-bar-wrap { height: 24px; background: #f5f5f5; border-radius: 4px; overflow: hidden; }
+.ins-funnel-bar { height: 100%; border-radius: 4px; transition: width 0.4s; opacity: 0.85; }
+.ins-funnel-count { font-size: 0.82rem; font-weight: 700; color: #333; text-align: right; }
+.ins-funnel-pct { font-size: 0.72rem; color: #888; text-align: right; }
+.ins-funnel-drop { font-size: 0.68rem; color: #ef4444; font-weight: 600; }
+
+/* Subject popularity */
+.ins-pop-list { display: flex; flex-direction: column; gap: 0.75rem; }
+.ins-pop-row { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 0.75rem; background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 0.75rem 1rem; }
+.ins-pop-rank { font-size: 0.75rem; font-weight: 700; color: #ccc; }
+.ins-pop-name { font-size: 0.85rem; font-weight: 600; color: #222; margin-bottom: 0.35rem; }
+.ins-pop-bar-track { height: 5px; background: #f0f0f0; border-radius: 3px; }
+.ins-pop-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+.ins-pop-stats { display: flex; flex-direction: column; gap: 0.15rem; text-align: right; }
+.ins-pop-stat { font-size: 0.7rem; color: #888; }
+
+/* Concept difficulty */
+.ins-diff-list { background: #fff; border: 1px solid #eee; border-radius: 10px; overflow: hidden; }
+.ins-diff-header { display: grid; grid-template-columns: 2fr 1.5fr 60px 100px 120px; gap: 0.75rem; padding: 0.6rem 1rem; background: #f9f9f9; font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: #aaa; }
+.ins-diff-row { display: grid; grid-template-columns: 2fr 1.5fr 60px 100px 120px; gap: 0.75rem; padding: 0.65rem 1rem; border-top: 1px solid #f5f5f5; align-items: center; }
+.ins-diff-row:hover { background: #fafafa; }
+.ins-diff-concept { font-size: 0.8rem; font-weight: 500; color: #222; text-transform: capitalize; }
+.ins-diff-subj { font-size: 0.72rem; font-weight: 500; }
+.ins-diff-num { font-size: 0.78rem; color: #666; text-align: center; }
+.ins-diff-rate { font-size: 0.78rem; font-weight: 700; display: flex; flex-direction: column; gap: 3px; }
+.ins-diff-rate-bar { height: 3px; border-radius: 2px; transition: width 0.3s; max-width: 80px; }
+.ins-diff-days { font-size: 0.75rem; color: #888; }

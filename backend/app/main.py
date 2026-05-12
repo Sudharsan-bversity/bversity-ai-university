@@ -3167,7 +3167,27 @@ def admin_student_detail(student_id: str, x_admin_key: str = Header(None)):
         "message_feedback": [dict(r) for r in msg_fb],
         "study_plan": study_plan,
         "daily_activity": [dict(r) for r in daily],
+        "retention": _calc_student_retention(msgs),
     }
+
+def _calc_student_retention(msgs):
+    user_msgs = [m for m in msgs if m["role"] == "user"]
+    if not user_msgs:
+        return {"d1": None, "d7": None, "d14": None, "d30": None}
+    first = datetime.fromisoformat(user_msgs[0]["created_at"])
+    dates = set(m["created_at"][:10] for m in user_msgs)
+    now = datetime.utcnow()
+    result = {}
+    for key, day in [("d1", 1), ("d7", 7), ("d14", 14), ("d30", 30)]:
+        if (now - first).days < day - 1:
+            result[key] = None
+            continue
+        found = any(
+            (first + timedelta(days=d)).strftime("%Y-%m-%d") in dates
+            for d in range(day - 1, day + 2)
+        )
+        result[key] = found
+    return result
 
 @app.get("/student/{student_id}")
 def get_student(student_id: str):
@@ -4564,6 +4584,162 @@ def analytics_cohort(x_admin_key: str = Header(None)):
         },
     }
 
+
+# ── Retention curve ──────────────────────────────────────────────────────────
+
+@app.get("/admin/analytics/retention")
+def analytics_retention(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    # Get all students with their signup date and message dates
+    students = conn.execute("""
+        SELECT s.id, s.created_at,
+            (SELECT MIN(created_at) FROM messages WHERE student_id = s.id AND role = 'user') AS first_msg,
+            (SELECT GROUP_CONCAT(DATE(created_at)) FROM messages WHERE student_id = s.id AND role = 'user') AS active_dates
+        FROM students s
+        WHERE s.email NOT LIKE '%@bversity.alumni'
+    """).fetchall()
+
+    cohort_sizes = {"d1": 0, "d7": 0, "d14": 0, "d30": 0}
+    retained     = {"d1": 0, "d7": 0, "d14": 0, "d30": 0}
+    student_retention = []
+
+    for s in students:
+        if not s["first_msg"]:
+            student_retention.append({"id": s["id"], "started": False, "d1": False, "d7": False, "d14": False, "d30": False})
+            continue
+        signup = datetime.fromisoformat(s["created_at"])
+        first  = datetime.fromisoformat(s["first_msg"])
+        dates  = set((s["active_dates"] or "").split(","))
+        now    = datetime.utcnow()
+
+        def active_around(base, day, window=1):
+            for d in range(day - window, day + window + 1):
+                check = (base + timedelta(days=d)).strftime("%Y-%m-%d")
+                if check in dates:
+                    return True
+            return False
+
+        sr = {"id": s["id"], "started": True}
+        for key, day in [("d1", 1), ("d7", 7), ("d14", 14), ("d30", 30)]:
+            if (now - first).days >= day - 1:
+                cohort_sizes[key] += 1
+                val = active_around(first, day)
+                retained[key] += 1 if val else 0
+                sr[key] = val
+            else:
+                sr[key] = None  # too early to measure
+        student_retention.append(sr)
+
+    rates = {}
+    for key in ["d1", "d7", "d14", "d30"]:
+        rates[key] = round(retained[key] / cohort_sizes[key] * 100, 1) if cohort_sizes[key] else None
+
+    # Weekly retention trend (last 8 weeks)
+    weekly = []
+    for w in range(7, -1, -1):
+        week_start = (datetime.utcnow() - timedelta(weeks=w+1)).strftime("%Y-%m-%d")
+        week_end   = (datetime.utcnow() - timedelta(weeks=w)).strftime("%Y-%m-%d")
+        active = conn.execute("""
+            SELECT COUNT(DISTINCT student_id) FROM messages
+            WHERE role = 'user' AND DATE(created_at) >= ? AND DATE(created_at) < ?
+        """, (week_start, week_end)).fetchone()[0]
+        weekly.append({"week": week_start, "active": active})
+
+    conn.close()
+    return {"rates": rates, "cohort_sizes": cohort_sizes, "weekly_trend": weekly, "per_student": student_retention}
+
+# ── Subject popularity ────────────────────────────────────────────────────────
+
+@app.get("/admin/analytics/subject-popularity")
+def analytics_subject_popularity(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT
+            m.subject_id,
+            COUNT(DISTINCT m.student_id) AS students,
+            COUNT(CASE WHEN m.role = 'user' THEN 1 END) AS messages,
+            COUNT(DISTINCT DATE(m.created_at)) AS active_days,
+            AVG(CASE WHEN m.role = 'user' THEN 1.0 END) AS _unused,
+            (SELECT COUNT(*) FROM concept_progress cp WHERE cp.subject_id = m.subject_id) AS concepts_covered,
+            (SELECT COUNT(*) FROM concept_progress cp WHERE cp.subject_id = m.subject_id AND cp.mastered_at IS NOT NULL) AS concepts_mastered,
+            MIN(m.created_at) AS first_session,
+            MAX(m.created_at) AS last_session
+        FROM messages m
+        JOIN students s ON s.id = m.student_id
+        WHERE s.email NOT LIKE '%@bversity.alumni'
+        GROUP BY m.subject_id
+        ORDER BY students DESC
+    """).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+# ── Drop-off funnel ───────────────────────────────────────────────────────────
+
+@app.get("/admin/analytics/funnel")
+def analytics_funnel(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    requested   = conn.execute("SELECT COUNT(*) FROM access_requests").fetchone()[0]
+    approved    = conn.execute("SELECT COUNT(*) FROM approved_emails").fetchone()[0]
+    signed_up   = conn.execute("SELECT COUNT(*) FROM students WHERE email NOT LIKE '%@bversity.alumni'").fetchone()[0]
+    onboarded   = conn.execute("SELECT COUNT(*) FROM student_profile WHERE onboarded_at IS NOT NULL").fetchone()[0]
+    had_session = conn.execute("""
+        SELECT COUNT(DISTINCT student_id) FROM messages m
+        JOIN students s ON s.id = m.student_id
+        WHERE m.role = 'user' AND s.email NOT LIKE '%@bversity.alumni'
+    """).fetchone()[0]
+    returned_d7 = conn.execute("""
+        SELECT COUNT(DISTINCT m.student_id) FROM messages m
+        JOIN students s ON s.id = m.student_id
+        WHERE s.email NOT LIKE '%@bversity.alumni'
+        AND (SELECT COUNT(DISTINCT DATE(created_at)) FROM messages m2
+             WHERE m2.student_id = m.student_id AND m2.role = 'user') >= 2
+        AND (SELECT MAX(created_at) FROM messages m3
+             WHERE m3.student_id = m.student_id AND m3.role = 'user') > datetime('now', '-7 days')
+    """).fetchone()[0]
+    conn.close()
+
+    funnel = [
+        {"stage": "Requested Access",    "count": requested,   "pct": 100},
+        {"stage": "Approved",            "count": approved,    "pct": round(approved / requested * 100, 1) if requested else 0},
+        {"stage": "Signed Up",           "count": signed_up,   "pct": round(signed_up / requested * 100, 1) if requested else 0},
+        {"stage": "Completed Onboarding","count": onboarded,   "pct": round(onboarded / requested * 100, 1) if requested else 0},
+        {"stage": "Had First Session",   "count": had_session, "pct": round(had_session / requested * 100, 1) if requested else 0},
+        {"stage": "Returned (7 days)",   "count": returned_d7, "pct": round(returned_d7 / requested * 100, 1) if requested else 0},
+    ]
+    return {"funnel": funnel}
+
+# ── Concept difficulty map ────────────────────────────────────────────────────
+
+@app.get("/admin/analytics/concept-difficulty")
+def analytics_concept_difficulty(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT
+            cp.subject_id,
+            cp.concept_id,
+            COUNT(*) AS times_covered,
+            SUM(CASE WHEN cp.mastered_at IS NOT NULL THEN 1 ELSE 0 END) AS times_mastered,
+            AVG(CASE WHEN cp.mastered_at IS NOT NULL
+                THEN CAST((julianday(cp.mastered_at) - julianday(cp.first_covered_at)) AS REAL)
+                ELSE NULL END) AS avg_days_to_master
+        FROM concept_progress cp
+        JOIN students s ON s.id = cp.student_id
+        WHERE s.email NOT LIKE '%@bversity.alumni'
+        GROUP BY cp.subject_id, cp.concept_id
+        HAVING times_covered >= 2
+        ORDER BY (CAST(times_mastered AS REAL) / times_covered) ASC
+    """).fetchall()
+    conn.close()
+    result = []
+    for r in rows:
+        d = dict(r)
+        d["mastery_rate"] = round(d["times_mastered"] / d["times_covered"] * 100, 1) if d["times_covered"] else 0
+        result.append(d)
+    return result
 
 # ── Batch email endpoints ─────────────────────────────────────────────────────
 

@@ -5115,6 +5115,8 @@ function AdminView({ onBack }) {
   const [stSearch, setStSearch]                       = useState('');
   const [platformConfig, setPlatformConfig]           = useState(null);
   const [configSaving, setConfigSaving]               = useState({});
+  const [insights, setInsights]                       = useState(null);
+  const [insightsLoading, setInsightsLoading]         = useState(false);
 
   async function loadAdminData(key) {
     const headers = { 'X-Admin-Key': key };
@@ -5390,6 +5392,25 @@ function AdminView({ onBack }) {
     setSystemHealthLoading(false);
   }
 
+  async function loadInsights() {
+    setInsightsLoading(true);
+    try {
+      const [retentionRes, popularityRes, funnelRes, difficultyRes] = await Promise.all([
+        fetch('/api/admin/analytics/retention',          { headers: { 'X-Admin-Key': adminKey } }),
+        fetch('/api/admin/analytics/subject-popularity', { headers: { 'X-Admin-Key': adminKey } }),
+        fetch('/api/admin/analytics/funnel',             { headers: { 'X-Admin-Key': adminKey } }),
+        fetch('/api/admin/analytics/concept-difficulty', { headers: { 'X-Admin-Key': adminKey } }),
+      ]);
+      setInsights({
+        retention:   retentionRes.ok   ? await retentionRes.json()   : null,
+        popularity:  popularityRes.ok  ? await popularityRes.json()  : null,
+        funnel:      funnelRes.ok      ? await funnelRes.json()      : null,
+        difficulty:  difficultyRes.ok  ? await difficultyRes.json()  : null,
+      });
+    } catch {}
+    setInsightsLoading(false);
+  }
+
   async function loadPlatformConfig() {
     try {
       const r = await fetch('/api/admin/platform-config', { headers: { 'X-Admin-Key': adminKey } });
@@ -5639,6 +5660,7 @@ function AdminView({ onBack }) {
             { id: 'announce',    label: 'Announce',   icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 17H2a3 3 0 000 6h20a3 3 0 000-6z"/><path d="M6 17V7a2 2 0 012-2h1"/><path d="M18 17V7a2 2 0 00-2-2h-1"/><line x1="12" y1="5" x2="12" y2="2"/></svg> },
             { id: 'images',      label: 'Images',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> },
             { id: 'system',      label: 'System',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> },
+            { id: 'insights',    label: 'Insights',   icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg> },
             { id: 'settings',    label: 'Settings',   icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> },
           ].map(item => (
             <button
@@ -5658,6 +5680,7 @@ function AdminView({ onBack }) {
                 if (item.id === 'images') loadImages();
                 if (item.id === 'system') loadSystemHealth();
                 if (item.id === 'settings') loadPlatformConfig();
+                if (item.id === 'insights') loadInsights();
               }}
             >
               <span className="admin-sb-icon">{item.icon}</span>
@@ -6027,7 +6050,7 @@ function AdminView({ onBack }) {
             {studentDetailLoading && <div className="sd-loading">Loading...</div>}
 
             {studentDetail && (() => {
-              const { student, stats, progress_by_subject, sessions, session_summaries, timeline, quizzes, platform_feedback, concept_feedback, daily_activity, study_plan } = studentDetail;
+              const { student, stats, progress_by_subject, sessions, session_summaries, timeline, quizzes, platform_feedback, concept_feedback, daily_activity, study_plan, retention } = studentDetail;
               const SUBJECTS_MAP = Object.fromEntries([...US_SUBJECTS, ...INDIA_SUBJECTS].map(s => [s.id, s]));
 
               // daily heatmap
@@ -6102,6 +6125,18 @@ function AdminView({ onBack }) {
                       </div>
                     ))}
                   </div>
+                  {/* Retention badges */}
+                  {retention && (
+                    <div style={{display:'flex',gap:'0.4rem',flexWrap:'wrap',marginBottom:'0.5rem'}}>
+                      {[['D1','d1'],['D7','d7'],['D14','d14'],['D30','d30']].map(([label, key]) => {
+                        const val = retention[key];
+                        const bg = val === null ? '#f0f0f0' : val ? '#dcfce7' : '#fee2e2';
+                        const color = val === null ? '#bbb' : val ? '#16a34a' : '#dc2626';
+                        const text = val === null ? `${label} —` : val ? `${label} ✓` : `${label} ✗`;
+                        return <span key={key} style={{fontSize:'0.68rem',fontWeight:700,padding:'0.2rem 0.55rem',borderRadius:4,background:bg,color}}>{text}</span>;
+                      })}
+                    </div>
+                  )}
 
                   {/* Activity heatmap */}
                   <div className="sd-section">
@@ -7415,6 +7450,149 @@ function AdminView({ onBack }) {
           {systemHealth && (
             <button className="sys-refresh-btn" onClick={loadSystemHealth}>↻ Refresh</button>
           )}
+        </div>
+      )}
+
+      {tab === 'insights' && (
+        <div className="admin-content">
+          <h3 className="access-title">Insights</h3>
+          <p className="access-subtitle">Retention, popularity, funnel, and concept difficulty across all learners.</p>
+          {insightsLoading && <div style={{color:'#999',padding:'2rem'}}>Loading…</div>}
+          {!insightsLoading && !insights && <button className="cfg-action-btn" onClick={loadInsights}>Load Insights</button>}
+          {insights && (() => {
+            const { retention, popularity, funnel, difficulty } = insights;
+
+            // ── Helpers ──────────────────────────────────────────────────────
+            const SUBJECTS_MAP = Object.fromEntries([...US_SUBJECTS, ...INDIA_SUBJECTS].map(s => [s.id, s]));
+
+            return (
+              <>
+                {/* ── Retention curve ──────────────────────────────────── */}
+                {retention && (
+                  <div className="ins-section">
+                    <div className="ins-section-title">Retention Curve</div>
+                    <div className="ins-section-sub">% of students who returned on Day 1, 7, 14, and 30 after their first session</div>
+                    <div className="ins-retention-row">
+                      {[['D1','d1','#10b981'],['D7','d7','#3b82f6'],['D14','d14','#f59e0b'],['D30','d30','#ef4444']].map(([label, key, color]) => {
+                        const rate = retention.rates[key];
+                        const size = retention.cohort_sizes[key];
+                        return (
+                          <div key={key} className="ins-ret-box">
+                            <div className="ins-ret-label">{label} Retention</div>
+                            <div className="ins-ret-val" style={{color}}>
+                              {rate !== null ? `${rate}%` : '—'}
+                            </div>
+                            <div className="ins-ret-cohort">{size} students eligible</div>
+                            <div className="ins-ret-bar-track">
+                              <div className="ins-ret-bar-fill" style={{width: rate ? `${rate}%` : '0%', background: color}} />
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="ins-section-sub" style={{marginTop:'1.25rem'}}>Weekly active learners (last 8 weeks)</div>
+                    <div className="ins-weekly-chart">
+                      {retention.weekly_trend.map((w, i) => {
+                        const max = Math.max(...retention.weekly_trend.map(x => x.active), 1);
+                        return (
+                          <div key={i} className="ins-weekly-bar-wrap">
+                            <div className="ins-weekly-bar" style={{height: `${Math.max(4, (w.active / max) * 100)}%`, background: '#3b82f6'}} title={`${w.active} active`} />
+                            <div className="ins-weekly-label">{w.week.slice(5)}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Drop-off funnel ───────────────────────────────────── */}
+                {funnel && (
+                  <div className="ins-section">
+                    <div className="ins-section-title">Drop-off Funnel</div>
+                    <div className="ins-section-sub">Where you're losing people from request to active learner</div>
+                    <div className="ins-funnel">
+                      {funnel.funnel.map((stage, i) => {
+                        const prev = i > 0 ? funnel.funnel[i-1].count : stage.count;
+                        const drop = prev > 0 ? Math.round((prev - stage.count) / prev * 100) : 0;
+                        const width = Math.max(15, stage.pct);
+                        return (
+                          <div key={i} className="ins-funnel-row">
+                            <div className="ins-funnel-label">{stage.stage}</div>
+                            <div className="ins-funnel-bar-wrap">
+                              <div className="ins-funnel-bar" style={{width:`${width}%`, background: i === 0 ? '#6366f1' : drop > 40 ? '#ef4444' : drop > 20 ? '#f59e0b' : '#10b981'}} />
+                            </div>
+                            <div className="ins-funnel-count">{stage.count}</div>
+                            <div className="ins-funnel-pct">{stage.pct}%</div>
+                            {i > 0 && drop > 0 && <div className="ins-funnel-drop">−{drop}%</div>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Subject popularity ────────────────────────────────── */}
+                {popularity && popularity.length > 0 && (
+                  <div className="ins-section">
+                    <div className="ins-section-title">Subject Popularity</div>
+                    <div className="ins-section-sub">Ranked by number of unique students</div>
+                    <div className="ins-pop-list">
+                      {popularity.map((s, i) => {
+                        const subj = SUBJECTS_MAP[s.subject_id];
+                        const maxStudents = popularity[0].students;
+                        return (
+                          <div key={s.subject_id} className="ins-pop-row">
+                            <div className="ins-pop-rank">#{i+1}</div>
+                            <div className="ins-pop-info">
+                              <div className="ins-pop-name">{subj ? subj.name : s.subject_id}</div>
+                              <div className="ins-pop-bar-track">
+                                <div className="ins-pop-bar-fill" style={{width:`${(s.students/maxStudents)*100}%`, background: subj?.color || '#00A896'}} />
+                              </div>
+                            </div>
+                            <div className="ins-pop-stats">
+                              <span className="ins-pop-stat">{s.students} students</span>
+                              <span className="ins-pop-stat">{s.messages} msgs</span>
+                              <span className="ins-pop-stat">{s.concepts_covered} concepts</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Concept difficulty ────────────────────────────────── */}
+                {difficulty && difficulty.length > 0 && (
+                  <div className="ins-section">
+                    <div className="ins-section-title">Concept Difficulty Map</div>
+                    <div className="ins-section-sub">Concepts with lowest mastery rates — where students struggle most</div>
+                    <div className="ins-diff-list">
+                      <div className="ins-diff-header">
+                        <span>Concept</span><span>Subject</span><span>Covered</span><span>Mastery</span><span>Avg days to master</span>
+                      </div>
+                      {difficulty.slice(0, 20).map((c, i) => {
+                        const subj = SUBJECTS_MAP[c.subject_id];
+                        const rate = c.mastery_rate;
+                        const color = rate < 20 ? '#ef4444' : rate < 50 ? '#f59e0b' : '#10b981';
+                        return (
+                          <div key={i} className="ins-diff-row">
+                            <span className="ins-diff-concept">{c.concept_id.replace(/_/g,' ')}</span>
+                            <span className="ins-diff-subj" style={{color: subj?.color || '#888'}}>{subj?.name || c.subject_id}</span>
+                            <span className="ins-diff-num">{c.times_covered}</span>
+                            <span className="ins-diff-rate" style={{color}}>
+                              {rate}%
+                              <div className="ins-diff-rate-bar" style={{background: color, width:`${rate}%`}} />
+                            </span>
+                            <span className="ins-diff-days">{c.avg_days_to_master ? `${Math.round(c.avg_days_to_master)}d` : '—'}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       )}
 
