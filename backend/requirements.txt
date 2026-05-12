@@ -6,3 +6,5 @@ pypdf
 python-multipart
 python-docx
 httpx
+stripe
+razorpay

@@ -324,11 +324,46 @@ def init_db():
         "ALTER TABLE student_profile ADD COLUMN last_active_at TEXT",
         "ALTER TABLE student_profile ADD COLUMN nudge_sent_at TEXT",
         "ALTER TABLE student_profile ADD COLUMN weekly_report_sent_at TEXT",
+        "ALTER TABLE approved_emails ADD COLUMN product TEXT NOT NULL DEFAULT 'career_pathways'",
+        "ALTER TABLE approved_emails ADD COLUMN expires_at TEXT",
+        "ALTER TABLE approved_emails ADD COLUMN access_type TEXT NOT NULL DEFAULT 'manual'",
+        "ALTER TABLE access_requests ADD COLUMN product TEXT NOT NULL DEFAULT 'career_pathways'",
     ]:
         try:
             conn.execute(col)
         except Exception:
             pass
+
+    conn.executescript("""
+        CREATE TABLE IF NOT EXISTS platform_config (
+            product     TEXT PRIMARY KEY,
+            mode        TEXT NOT NULL DEFAULT 'invite_only',
+            trial_days  INTEGER NOT NULL DEFAULT 15,
+            updated_at  TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS subscriptions (
+            id                      TEXT PRIMARY KEY,
+            student_id              TEXT NOT NULL,
+            product                 TEXT NOT NULL,
+            status                  TEXT NOT NULL DEFAULT 'trial',
+            trial_start             TEXT,
+            trial_end               TEXT,
+            country_code            TEXT,
+            payment_method          TEXT,
+            gateway_subscription_id TEXT,
+            gateway_customer_id     TEXT,
+            amount_cents            INTEGER,
+            currency                TEXT,
+            created_at              TEXT NOT NULL,
+            updated_at              TEXT NOT NULL,
+            UNIQUE(student_id, product)
+        );
+    """)
+    conn.execute("""
+        INSERT OR IGNORE INTO platform_config (product, mode, trial_days, updated_at) VALUES
+            ('career_pathways', 'invite_only', 15, datetime('now')),
+            ('certifications',  'invite_only', 15, datetime('now'))
+    """)
     conn.commit()
     conn.close()
 
@@ -1880,14 +1915,14 @@ class MarkRequest(BaseModel):
 class RequestCodeRequest(BaseModel):
     email: str
     name: str
+    product: str = "career_pathways"
 
 class VerifyCodeRequest(BaseModel):
     email: str
     name: str
     code: str
+    product: str = "career_pathways"
 
-class AddEmailRequest(BaseModel):
-    email: str
 
 # ── Email ─────────────────────────────────────────────────────────────────────
 
@@ -2524,15 +2559,21 @@ async def register(req: RegisterRequest, background_tasks: BackgroundTasks):
 
 @app.post("/request-code")
 async def request_code(req: RequestCodeRequest):
-    email = req.email.lower().strip()
-    name  = req.name.strip()
+    email   = req.email.lower().strip()
+    name    = req.name.strip()
+    product = req.product if req.product in ("career_pathways", "certifications") else "career_pathways"
     if not email or not name:
         raise HTTPException(status_code=400, detail="Name and email are required")
     conn = get_db()
-    approved = conn.execute("SELECT email FROM approved_emails WHERE email = ?", (email,)).fetchone()
-    if not approved:
-        conn.close()
-        raise HTTPException(status_code=403, detail="This email doesn't have access yet. Contact sudharsan@bversity.io to request access.")
+    config = conn.execute("SELECT mode FROM platform_config WHERE product = ?", (product,)).fetchone()
+    mode   = config["mode"] if config else "invite_only"
+    if mode == "invite_only":
+        approved = conn.execute(
+            "SELECT email FROM approved_emails WHERE email = ? AND product = ?", (email, product)
+        ).fetchone()
+        if not approved:
+            conn.close()
+            raise HTTPException(status_code=403, detail="This email doesn't have access yet. Contact sudharsan@bversity.io to request access.")
     conn.execute("UPDATE verification_codes SET used = 1 WHERE email = ? AND used = 0", (email,))
     code       = str(random.randint(100000, 999999))
     expires_at = (datetime.utcnow() + timedelta(minutes=15)).isoformat()
@@ -2547,11 +2588,13 @@ async def request_code(req: RequestCodeRequest):
 
 @app.post("/verify-code")
 def verify_code(req: VerifyCodeRequest):
-    email = req.email.lower().strip()
-    code  = req.code.strip()
-    name  = req.name.strip()
-    conn  = get_db()
-    now   = datetime.utcnow().isoformat()
+    email   = req.email.lower().strip()
+    code    = req.code.strip()
+    name    = req.name.strip()
+    product = req.product if req.product in ("career_pathways", "certifications") else "career_pathways"
+    conn    = get_db()
+    now_dt  = datetime.utcnow()
+    now     = now_dt.isoformat()
     row = conn.execute(
         "SELECT * FROM verification_codes WHERE email = ? AND code = ? AND used = 0 AND expires_at > ? ORDER BY id DESC LIMIT 1",
         (email, code, now)
@@ -2560,23 +2603,54 @@ def verify_code(req: VerifyCodeRequest):
         conn.close()
         raise HTTPException(status_code=400, detail="Invalid or expired code. Please request a new one.")
     conn.execute("UPDATE verification_codes SET used = 1 WHERE id = ?", (row["id"],))
+
     existing = conn.execute("SELECT * FROM students WHERE email = ?", (email,)).fetchone()
     if existing:
-        conn.commit(); conn.close()
-        return {"student_id": existing["id"], "name": existing["name"], "returning": True}
-    student_id = str(uuid.uuid4())
-    conn.execute("INSERT INTO students (id, name, email, created_at) VALUES (?, ?, ?, ?)",
-                 (student_id, name, email, datetime.utcnow().isoformat()))
+        student_id = existing["id"]
+    else:
+        student_id = str(uuid.uuid4())
+        conn.execute("INSERT INTO students (id, name, email, created_at) VALUES (?, ?, ?, ?)",
+                     (student_id, name, email, now))
+
+    # create trial subscription if self_serve and none exists
+    config = conn.execute("SELECT mode, trial_days FROM platform_config WHERE product = ?", (product,)).fetchone()
+    mode       = config["mode"] if config else "invite_only"
+    trial_days = config["trial_days"] if config else 15
+    sub = conn.execute("SELECT * FROM subscriptions WHERE student_id = ? AND product = ?", (student_id, product)).fetchone()
+    if not sub and mode == "self_serve":
+        trial_end = (now_dt + timedelta(days=trial_days)).isoformat()
+        conn.execute("""
+            INSERT INTO subscriptions (id, student_id, product, status, trial_start, trial_end, created_at, updated_at)
+            VALUES (?, ?, ?, 'trial', ?, ?, ?, ?)
+        """, (str(uuid.uuid4()), student_id, product, now, trial_end, now, now))
+        sub = conn.execute("SELECT * FROM subscriptions WHERE student_id = ? AND product = ?", (student_id, product)).fetchone()
+
     conn.commit(); conn.close()
-    return {"student_id": student_id, "name": name, "returning": False}
+
+    subscription = None
+    if sub:
+        subscription = {"status": sub["status"], "trial_end": sub["trial_end"]}
+
+    return {
+        "student_id": student_id,
+        "name": name if not existing else existing["name"],
+        "returning": existing is not None,
+        "subscription": subscription,
+    }
 
 @app.get("/admin/approved-emails")
 def admin_list_approved(x_admin_key: str = Header(None)):
     require_admin(x_admin_key)
     conn = get_db()
-    rows = conn.execute("SELECT email, added_at FROM approved_emails ORDER BY added_at DESC").fetchall()
+    rows = conn.execute("SELECT email, added_at, product, expires_at, access_type FROM approved_emails ORDER BY added_at DESC").fetchall()
     conn.close()
-    return [{"email": r["email"], "added_at": r["added_at"]} for r in rows]
+    return [dict(r) for r in rows]
+
+class AddEmailRequest(BaseModel):
+    email: str
+    product: str = "career_pathways"
+    access_type: str = "manual"
+    trial_days: int = None
 
 @app.post("/admin/approved-emails")
 def admin_add_email(req: AddEmailRequest, x_admin_key: str = Header(None)):
@@ -2584,16 +2658,23 @@ def admin_add_email(req: AddEmailRequest, x_admin_key: str = Header(None)):
     email = req.email.lower().strip()
     if not email:
         raise HTTPException(status_code=400, detail="Email is required")
+    product = req.product if req.product in ("career_pathways", "certifications") else "career_pathways"
+    now = datetime.utcnow()
+    expires_at = None
+    if req.trial_days:
+        expires_at = (now + timedelta(days=req.trial_days)).isoformat()
     conn = get_db()
     try:
-        conn.execute("INSERT INTO approved_emails (email, added_at) VALUES (?, ?)",
-                     (email, datetime.utcnow().isoformat()))
+        conn.execute(
+            "INSERT INTO approved_emails (email, added_at, product, expires_at, access_type) VALUES (?, ?, ?, ?, ?)",
+            (email, now.isoformat(), product, expires_at, req.access_type)
+        )
         conn.commit()
     except sqlite3.IntegrityError:
         conn.close()
-        raise HTTPException(status_code=409, detail="Email already approved")
+        raise HTTPException(status_code=409, detail="Email already approved for this product")
     conn.close()
-    return {"email": email, "added_at": datetime.utcnow().isoformat()}
+    return {"email": email, "added_at": now.isoformat(), "product": product, "expires_at": expires_at}
 
 @app.post("/admin/send-join-reminder")
 async def send_join_reminder(x_admin_key: str = Header(None)):
@@ -2723,6 +2804,191 @@ def admin_system_health(x_admin_key: str = Header(None)):
         }
     }
 
+# ── Payments ─────────────────────────────────────────────────────────────────
+
+STRIPE_SECRET_KEY      = os.environ.get("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET  = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+RAZORPAY_KEY_ID        = os.environ.get("RAZORPAY_KEY_ID", "")
+RAZORPAY_KEY_SECRET    = os.environ.get("RAZORPAY_KEY_SECRET", "")
+
+PRICING = {
+    "career_pathways": {"IN": {"amount": 29900, "currency": "INR", "display": "₹299/month"},
+                        "default": {"amount": 2900,  "currency": "USD", "display": "$29/month"}},
+    "certifications":  {"default": {"amount": 2900,  "currency": "USD", "display": "$29/month"}},
+}
+
+async def detect_country(ip: str) -> str:
+    try:
+        async with httpx.AsyncClient(timeout=3) as client:
+            r = await client.get(f"https://ipapi.co/{ip}/country/")
+            if r.status_code == 200:
+                return r.text.strip()
+    except Exception:
+        pass
+    return "US"
+
+def get_pricing(product: str, country_code: str) -> dict:
+    tiers = PRICING.get(product, PRICING["career_pathways"])
+    return tiers.get(country_code, tiers.get("default"))
+
+@app.get("/pricing")
+async def get_pricing_for_user(product: str = "career_pathways", request: None = None):
+    from fastapi import Request
+    return {"career_pathways": PRICING["career_pathways"], "certifications": PRICING["certifications"]}
+
+@app.post("/payments/detect-country")
+async def detect_country_endpoint(x_forwarded_for: str = Header(None), x_real_ip: str = Header(None)):
+    ip = x_forwarded_for.split(",")[0].strip() if x_forwarded_for else (x_real_ip or "")
+    country = await detect_country(ip)
+    return {"country_code": country}
+
+class CreateCheckoutRequest(BaseModel):
+    student_id: str
+    product: str
+    country_code: str = "US"
+    success_url: str = ""
+    cancel_url: str = ""
+
+@app.post("/payments/create-checkout")
+async def create_checkout(req: CreateCheckoutRequest):
+    if not req.student_id:
+        raise HTTPException(status_code=400, detail="student_id required")
+    product      = req.product if req.product in ("career_pathways", "certifications") else "career_pathways"
+    country_code = req.country_code.upper()
+    pricing      = get_pricing(product, country_code)
+    gateway      = "razorpay" if (country_code == "IN" and product == "career_pathways") else "stripe"
+
+    if gateway == "stripe":
+        if not STRIPE_SECRET_KEY:
+            return {"gateway": "stripe", "enabled": False, "message": "Payments not yet live"}
+        try:
+            import stripe as stripe_lib
+            stripe_lib.api_key = STRIPE_SECRET_KEY
+            session = stripe_lib.checkout.Session.create(
+                payment_method_types=["card"],
+                mode="subscription",
+                line_items=[{"price_data": {
+                    "currency": pricing["currency"].lower(),
+                    "unit_amount": pricing["amount"],
+                    "recurring": {"interval": "month"},
+                    "product_data": {"name": f"Bversity {product.replace('_', ' ').title()}"},
+                }, "quantity": 1}],
+                client_reference_id=req.student_id,
+                metadata={"student_id": req.student_id, "product": product},
+                success_url=req.success_url or "https://university.bversity.io?payment=success",
+                cancel_url=req.cancel_url or "https://university.bversity.io?payment=cancelled",
+            )
+            return {"gateway": "stripe", "enabled": True, "checkout_url": session.url}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+    else:  # razorpay
+        if not RAZORPAY_KEY_ID:
+            return {"gateway": "razorpay", "enabled": False, "message": "Payments not yet live"}
+        try:
+            import razorpay as rz
+            client = rz.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+            order = client.order.create({
+                "amount": pricing["amount"],
+                "currency": pricing["currency"],
+                "receipt": f"{req.student_id}_{product}",
+                "notes": {"student_id": req.student_id, "product": product},
+            })
+            return {"gateway": "razorpay", "enabled": True, "order_id": order["id"],
+                    "key_id": RAZORPAY_KEY_ID, "amount": pricing["amount"], "currency": pricing["currency"]}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/payments/stripe-webhook")
+async def stripe_webhook(request: None = None):
+    from fastapi import Request
+    return {"received": True}
+
+@app.post("/payments/razorpay-webhook")
+async def razorpay_webhook(request: None = None):
+    from fastapi import Request
+    return {"received": True}
+
+# ── Subscription status ───────────────────────────────────────────────────────
+
+@app.get("/subscription/{student_id}/{product}")
+def get_subscription(student_id: str, product: str):
+    conn = get_db()
+    sub = conn.execute(
+        "SELECT * FROM subscriptions WHERE student_id = ? AND product = ?", (student_id, product)
+    ).fetchone()
+    conn.close()
+    if not sub:
+        return {"status": "none"}
+    now = datetime.utcnow().isoformat()
+    if sub["status"] == "trial" and sub["trial_end"] and sub["trial_end"] < now:
+        return {"status": "expired", "trial_end": sub["trial_end"]}
+    return {"status": sub["status"], "trial_end": sub["trial_end"]}
+
+# ── Admin: extend trial ───────────────────────────────────────────────────────
+
+class ExtendTrialRequest(BaseModel):
+    days: int = 15
+    access_type: str = "free"
+
+@app.post("/admin/students/{student_id}/extend-trial")
+def extend_trial(student_id: str, product: str, body: ExtendTrialRequest, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    now = datetime.utcnow()
+    sub = conn.execute("SELECT * FROM subscriptions WHERE student_id = ? AND product = ?", (student_id, product)).fetchone()
+    if sub:
+        current_end = datetime.fromisoformat(sub["trial_end"]) if sub["trial_end"] else now
+        new_end = (max(current_end, now) + timedelta(days=body.days)).isoformat()
+        conn.execute("UPDATE subscriptions SET trial_end = ?, status = 'trial', updated_at = ? WHERE student_id = ? AND product = ?",
+                     (new_end, now.isoformat(), student_id, product))
+    else:
+        trial_end = (now + timedelta(days=body.days)).isoformat()
+        conn.execute("""
+            INSERT INTO subscriptions (id, student_id, product, status, trial_start, trial_end, created_at, updated_at)
+            VALUES (?, ?, ?, 'trial', ?, ?, ?, ?)
+        """, (str(uuid.uuid4()), student_id, product, now.isoformat(), trial_end, now.isoformat(), now.isoformat()))
+        new_end = trial_end
+    # also update approved_emails expiry
+    email_row = conn.execute("SELECT email FROM students WHERE id = ?", (student_id,)).fetchone()
+    if email_row:
+        conn.execute("UPDATE approved_emails SET expires_at = ?, access_type = ? WHERE email = ? AND product = ?",
+                     (new_end, body.access_type, email_row["email"], product))
+    conn.commit(); conn.close()
+    return {"ok": True, "trial_end": new_end}
+
+# ── Platform config ─────────────────────────────────────────────────────────
+
+@app.get("/admin/platform-config")
+def get_platform_config(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    rows = conn.execute("SELECT * FROM platform_config").fetchall()
+    conn.close()
+    return {r["product"]: {"mode": r["mode"], "trial_days": r["trial_days"]} for r in rows}
+
+class PlatformConfigUpdate(BaseModel):
+    mode: str
+    trial_days: int = 15
+
+@app.put("/admin/platform-config/{product}")
+def update_platform_config(product: str, body: PlatformConfigUpdate, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    if product not in ("career_pathways", "certifications"):
+        raise HTTPException(status_code=400, detail="Invalid product")
+    if body.mode not in ("invite_only", "self_serve"):
+        raise HTTPException(status_code=400, detail="Invalid mode")
+    conn = get_db()
+    conn.execute(
+        "UPDATE platform_config SET mode = ?, trial_days = ?, updated_at = datetime('now') WHERE product = ?",
+        (body.mode, body.trial_days, product)
+    )
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+# ── Students ─────────────────────────────────────────────────────────────────
+
 @app.get("/admin/students")
 def admin_students(x_admin_key: str = Header(None)):
     require_admin(x_admin_key)
@@ -2752,6 +3018,8 @@ def admin_students(x_admin_key: str = Header(None)):
         d["career_title"] = career["title"] if career else None
         d["career_icon"]  = career["icon"]  if career else None
         d["career_cluster"] = career["cluster"] if career else None
+        cid = d.get("career_id") or ""
+        d["region"] = "us" if cid.startswith("us_") else "india"
         result.append(d)
     return result
 
@@ -2876,7 +3144,10 @@ def admin_student_detail(student_id: str, x_admin_key: str = Header(None)):
     conn.close()
 
     return {
-        "student": {**dict(student), **profile, "career_title": career["title"] if career else None, "career_icon": career["icon"] if career else None},
+        "student": {**dict(student), **profile,
+                    "career_title": career["title"] if career else None,
+                    "career_icon": career["icon"] if career else None,
+                    "region": "us" if (profile.get("career_id") or "").startswith("us_") else "india"},
         "stats": {
             "total_messages": sum(1 for m in msgs if m["role"] == "user"),
             "total_concepts_covered": len(cp_rows),
@@ -4333,6 +4604,46 @@ def email_preview(x_admin_key: str = Header(None)):
         "digest_count":      len(digest_students),
     }
 
+@app.post("/admin/check-trial-expiry")
+async def check_trial_expiry(background_tasks: BackgroundTasks, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    now = datetime.utcnow()
+    tomorrow = (now + timedelta(days=1)).isoformat()
+    # Find trials expiring within 24 hours that haven't been warned
+    warning_subs = conn.execute("""
+        SELECT sub.*, s.email, s.name
+        FROM subscriptions sub JOIN students s ON s.id = sub.student_id
+        WHERE sub.status = 'trial' AND sub.trial_end <= ? AND sub.trial_end > ?
+    """, (tomorrow, now.isoformat())).fetchall()
+    # Find expired trials still marked as 'trial'
+    expired_subs = conn.execute("""
+        SELECT id FROM subscriptions WHERE status = 'trial' AND trial_end < ?
+    """, (now.isoformat(),)).fetchall()
+    for sub in expired_subs:
+        conn.execute("UPDATE subscriptions SET status = 'expired', updated_at = ? WHERE id = ?",
+                     (now.isoformat(), sub["id"]))
+    conn.commit()
+    conn.close()
+    warned = 0
+    for sub in warning_subs:
+        product_label = "Certifications" if sub["product"] == "certifications" else "Career Pathways"
+        first = sub["name"].split()[0]
+        body = (
+            _heading(f"Your {product_label} trial ends tomorrow, {first}") +
+            _para(f"Your 15-day free trial of Bversity {product_label} ends tomorrow. "
+                  "After that, your account will be locked until you subscribe.") +
+            _btn("Continue Learning — Subscribe Now →", "https://university.bversity.io") +
+            _divider() +
+            _para("Career Pathways is <strong>₹299/month</strong> for India, <strong>$29/month</strong> elsewhere. "
+                  "Certifications is <strong>$29/month</strong>.") +
+            _small("Questions? Reply to this email or contact sudharsan@bversity.io")
+        )
+        ok = await _send_email(sub["email"], f"Your Bversity trial ends tomorrow", _email_wrap(body))
+        if ok:
+            warned += 1
+    return {"warned": warned, "expired": len(expired_subs)}
+
 @app.post("/admin/send-nudges")
 async def send_nudges(background_tasks: BackgroundTasks, x_admin_key: str = Header(None)):
     require_admin(x_admin_key)
@@ -5041,6 +5352,7 @@ class AccessWaitlistRequest(BaseModel):
     year_of_study: str = ""
     country: str = ""
     reason: str = ""
+    product: str = "career_pathways"
 
 async def send_waitlist_confirmation_email(to_email: str, name: str, position: int) -> bool:
     first = name.split()[0]
@@ -5077,25 +5389,41 @@ async def send_access_granted_email(to_email: str, name: str) -> bool:
     )
     return await _send_email(to_email, f"Your Bversity access is approved, {first}! 🎉", _email_wrap(body))
 
+async def send_admin_access_request_notification(name: str, email: str, product: str, university: str, country: str, reason: str):
+    admin_email = os.environ.get("ADMIN_NOTIFY_EMAIL", "sudharsan@bversity.io")
+    product_label = "Certifications" if product == "certifications" else "Career Pathways"
+    body = (
+        _heading(f"New access request — {product_label}") +
+        _para(f"<strong>{name}</strong> ({email}) has requested access to <strong>{product_label}</strong>.") +
+        (f"<p style='margin:0 0 12px;font-size:14px;'><strong>University/Org:</strong> {university}</p>" if university else "") +
+        (f"<p style='margin:0 0 12px;font-size:14px;'><strong>Country:</strong> {country}</p>" if country else "") +
+        (f"<p style='margin:0 0 12px;font-size:14px;'><strong>Reason:</strong> {reason}</p>" if reason else "") +
+        _btn("Review in Admin Panel →", "https://university.bversity.io/#admin") +
+        _small("You are receiving this because you are the Bversity admin.")
+    )
+    await _send_email(admin_email, f"New access request: {name} ({product_label})", _email_wrap(body))
+
 @app.post("/request-access")
 async def request_access(req: AccessWaitlistRequest, background_tasks: BackgroundTasks):
     if not req.name.strip() or not req.email.strip():
         raise HTTPException(status_code=400, detail="Name and email are required")
+    product = req.product if req.product in ("career_pathways", "certifications") else "career_pathways"
     conn = get_db()
-    existing = conn.execute("SELECT id FROM access_requests WHERE email = ?", (req.email.strip().lower(),)).fetchone()
+    existing = conn.execute("SELECT id FROM access_requests WHERE email = ? AND product = ?", (req.email.strip().lower(), product)).fetchone()
     if existing:
         count = conn.execute("SELECT COUNT(*) as n FROM access_requests").fetchone()["n"]
         conn.close()
         return {"ok": True, "already_submitted": True, "position": count}
     request_id = str(uuid.uuid4())
     conn.execute(
-        "INSERT INTO access_requests (id, name, email, phone, university, year_of_study, country, reason, status, submitted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)",
-        (request_id, req.name.strip(), req.email.strip().lower(), req.phone.strip(), req.university.strip(), req.year_of_study.strip(), req.country.strip(), req.reason.strip(), datetime.utcnow().isoformat()),
+        "INSERT INTO access_requests (id, name, email, phone, university, year_of_study, country, reason, status, submitted_at, product) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)",
+        (request_id, req.name.strip(), req.email.strip().lower(), req.phone.strip(), req.university.strip(), req.year_of_study.strip(), req.country.strip(), req.reason.strip(), datetime.utcnow().isoformat(), product),
     )
     conn.commit()
     count = conn.execute("SELECT COUNT(*) as n FROM access_requests").fetchone()["n"]
     conn.close()
     background_tasks.add_task(send_waitlist_confirmation_email, req.email.strip().lower(), req.name.strip(), count)
+    background_tasks.add_task(send_admin_access_request_notification, req.name.strip(), req.email.strip().lower(), product, req.university.strip(), req.country.strip(), req.reason.strip())
     return {"ok": True, "already_submitted": False, "position": count}
 
 @app.get("/waitlist-count")

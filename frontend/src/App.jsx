@@ -1198,6 +1198,19 @@ function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfil
       </nav>
 
       <div className="sidebar-bottom">
+        <div className="sidebar-cross-product">
+          {ACTIVE_REGION === 'us' ? (
+            <a href="https://university.bversity.io" target="_blank" rel="noreferrer" className="sidebar-cross-link">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              <span>Explore Career Pathways →</span>
+            </a>
+          ) : (
+            <a href="https://usa.bversity.io" target="_blank" rel="noreferrer" className="sidebar-cross-link">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              <span>Explore Certifications →</span>
+            </a>
+          )}
+        </div>
         <button className="sidebar-founder-btn" onClick={onContact}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
@@ -5098,7 +5111,10 @@ function AdminView({ onBack }) {
   const [systemHealth, setSystemHealth]               = useState(null);
   const [systemHealthLoading, setSystemHealthLoading] = useState(false);
   const [stFilter, setStFilter]                       = useState('all');
+  const [stRegion, setStRegion]                       = useState('all');
   const [stSearch, setStSearch]                       = useState('');
+  const [platformConfig, setPlatformConfig]           = useState(null);
+  const [configSaving, setConfigSaving]               = useState({});
 
   async function loadAdminData(key) {
     const headers = { 'X-Admin-Key': key };
@@ -5374,6 +5390,26 @@ function AdminView({ onBack }) {
     setSystemHealthLoading(false);
   }
 
+  async function loadPlatformConfig() {
+    try {
+      const r = await fetch('/api/admin/platform-config', { headers: { 'X-Admin-Key': adminKey } });
+      if (r.ok) setPlatformConfig(await r.json());
+    } catch {}
+  }
+
+  async function savePlatformConfig(product, mode) {
+    setConfigSaving(s => ({ ...s, [product]: true }));
+    try {
+      await fetch(`/api/admin/platform-config/${product}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+        body: JSON.stringify({ mode, trial_days: platformConfig?.[product]?.trial_days || 15 }),
+      });
+      setPlatformConfig(c => ({ ...c, [product]: { ...c[product], mode } }));
+    } catch {}
+    setConfigSaving(s => ({ ...s, [product]: false }));
+  }
+
   async function saveImage(section, key) {
     const editKey = `${section}__${key}`;
     const url = imageEdits[editKey] || '';
@@ -5603,6 +5639,7 @@ function AdminView({ onBack }) {
             { id: 'announce',    label: 'Announce',   icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 17H2a3 3 0 000 6h20a3 3 0 000-6z"/><path d="M6 17V7a2 2 0 012-2h1"/><path d="M18 17V7a2 2 0 00-2-2h-1"/><line x1="12" y1="5" x2="12" y2="2"/></svg> },
             { id: 'images',      label: 'Images',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> },
             { id: 'system',      label: 'System',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg> },
+            { id: 'settings',    label: 'Settings',   icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg> },
           ].map(item => (
             <button
               key={item.id}
@@ -5620,6 +5657,7 @@ function AdminView({ onBack }) {
                 if (item.id === 'announce') { loadAnnouncePreview('all'); };
                 if (item.id === 'images') loadImages();
                 if (item.id === 'system') loadSystemHealth();
+                if (item.id === 'settings') loadPlatformConfig();
               }}
             >
               <span className="admin-sb-icon">{item.icon}</span>
@@ -5897,6 +5935,8 @@ function AdminView({ onBack }) {
           .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
           .filter(s => {
             if (stSearch && !s.name.toLowerCase().includes(stSearch.toLowerCase()) && !s.email.toLowerCase().includes(stSearch.toLowerCase())) return false;
+            if (stRegion === 'us' && s.region !== 'us') return false;
+            if (stRegion === 'india' && s.region !== 'india') return false;
             if (stFilter === 'never') return !s.last_active;
             if (stFilter === 'active') return s.last_active && (Date.now() - new Date(s.last_active).getTime()) <= 7 * 86400000;
             if (stFilter === 'quiet') return s.last_active && (Date.now() - new Date(s.last_active).getTime()) > 7 * 86400000;
@@ -5908,6 +5948,11 @@ function AdminView({ onBack }) {
             <span className="admin-students-count">{filtered.length} of {students.length} learner{students.length !== 1 ? 's' : ''}</span>
             <div className="admin-st-filters">
               <input className="admin-st-search" placeholder="Search name or email…" value={stSearch} onChange={e => setStSearch(e.target.value)} />
+              <div className="admin-st-filter-btns">
+                {[['all','All'],['india','Career Pathways'],['us','Certifications']].map(([v,l]) => (
+                  <button key={v} className={`admin-st-filter-btn ${stRegion === v ? 'active' : ''}`} onClick={() => setStRegion(v)}>{l}</button>
+                ))}
+              </div>
               <div className="admin-st-filter-btns">
                 {[['all','All'],['active','Active'],['quiet','Gone Quiet'],['never','Not Started']].map(([v,l]) => (
                   <button key={v} className={`admin-st-filter-btn ${stFilter === v ? 'active' : ''}`} onClick={() => setStFilter(v)}>{l}</button>
@@ -5930,11 +5975,16 @@ function AdminView({ onBack }) {
                     <div className="admin-st-college">{[s.college, s.year_of_study].filter(Boolean).join(' · ')}</div>
                   )}
                 </div>
-                {s.career_title ? (
-                  <div className="admin-st-career">{s.career_icon} {s.career_title}</div>
-                ) : (
-                  <div className="admin-st-career admin-st-career--none">No career selected</div>
-                )}
+                <div style={{display:'flex',flexDirection:'column',gap:'0.25rem'}}>
+                  <span className={`admin-st-region-badge ${s.region === 'us' ? 'admin-st-region-badge--us' : 'admin-st-region-badge--india'}`}>
+                    {s.region === 'us' ? 'Certifications' : 'Career Pathways'}
+                  </span>
+                  {s.career_title ? (
+                    <div className="admin-st-career">{s.career_icon} {s.career_title}</div>
+                  ) : (
+                    <div className="admin-st-career admin-st-career--none">No path selected</div>
+                  )}
+                </div>
                 <div className="admin-st-progress-col">
                   <div className="admin-st-prog-label">{s.concepts_covered} covered · {s.concepts_mastered} mastered</div>
                   <div className="admin-st-prog-bar-track">
@@ -6002,9 +6052,36 @@ function AdminView({ onBack }) {
                       <div className="sd-email">{student.email}</div>
                       <div className="sd-meta-row">
                         {student.career_title && <span className="sd-badge">{student.career_icon} {student.career_title}</span>}
+                        <span className={`admin-st-region-badge ${student.region === 'us' ? 'admin-st-region-badge--us' : 'admin-st-region-badge--india'}`}>
+                          {student.region === 'us' ? 'Certifications' : 'Career Pathways'}
+                        </span>
                         {(student.city || student.state) && <span className="sd-badge-dim">{[student.city, student.state].filter(Boolean).join(', ')}</span>}
                         {student.college && <span className="sd-badge-dim">{student.college}{student.year_of_study ? ` · ${student.year_of_study}` : ''}</span>}
                         <span className="sd-badge-dim">Joined {new Date(student.created_at).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}</span>
+                      </div>
+                      <div style={{marginTop:'0.6rem',display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
+                        <button className="sd-action-btn" onClick={async () => {
+                          const days = prompt('Extend trial by how many days?', '15');
+                          if (!days || isNaN(days)) return;
+                          const product = student.region === 'us' ? 'certifications' : 'career_pathways';
+                          const r = await fetch(`/api/admin/students/${student.id}/extend-trial?product=${product}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+                            body: JSON.stringify({ days: parseInt(days), access_type: 'free' }),
+                          });
+                          if (r.ok) { const d = await r.json(); alert(`Trial extended to ${new Date(d.trial_end).toLocaleDateString()}`); }
+                          else alert('Failed to extend trial');
+                        }}>+ Extend Trial</button>
+                        <button className="sd-action-btn sd-action-btn--free" onClick={async () => {
+                          const product = student.region === 'us' ? 'certifications' : 'career_pathways';
+                          const r = await fetch(`/api/admin/students/${student.id}/extend-trial?product=${product}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+                            body: JSON.stringify({ days: 3650, access_type: 'free' }),
+                          });
+                          if (r.ok) alert('Granted 10-year free access');
+                          else alert('Failed');
+                        }}>Grant Free Access</button>
                       </div>
                     </div>
                   </div>
@@ -7338,6 +7415,71 @@ function AdminView({ onBack }) {
           {systemHealth && (
             <button className="sys-refresh-btn" onClick={loadSystemHealth}>↻ Refresh</button>
           )}
+        </div>
+      )}
+
+      {tab === 'settings' && (
+        <div className="admin-content">
+          <h3 className="access-title">Platform Settings</h3>
+          <p className="access-subtitle">Control access mode per product. Switch between invite-only and self-serve without any code changes.</p>
+
+          {!platformConfig && <div style={{color:'#999',padding:'2rem'}}>Loading…</div>}
+          {platformConfig && (
+            <div className="cfg-grid">
+              {[
+                { key: 'career_pathways', label: 'Career Pathways', desc: 'university.bversity.io — career building for biotech', color: '#00796B' },
+                { key: 'certifications',  label: 'Certifications',  desc: 'usa.bversity.io — CCRA, CCRP, RAC, MSL, CDM', color: '#0066CC' },
+              ].map(({ key, label, desc, color }) => {
+                const cfg  = platformConfig[key] || { mode: 'invite_only', trial_days: 15 };
+                const isSelf = cfg.mode === 'self_serve';
+                return (
+                  <div key={key} className="cfg-card">
+                    <div className="cfg-card-header">
+                      <div>
+                        <div className="cfg-card-title" style={{ color }}>{label}</div>
+                        <div className="cfg-card-desc">{desc}</div>
+                      </div>
+                      <span className={`cfg-mode-badge ${isSelf ? 'cfg-mode-badge--self' : 'cfg-mode-badge--invite'}`}>
+                        {isSelf ? 'Self-Serve' : 'Invite Only'}
+                      </span>
+                    </div>
+                    <div className="cfg-row">
+                      <span className="cfg-label">Access mode</span>
+                      <div className="cfg-toggle-group">
+                        <button className={`cfg-toggle-btn ${!isSelf ? 'active' : ''}`} onClick={() => savePlatformConfig(key, 'invite_only')} disabled={configSaving[key]}>Invite Only</button>
+                        <button className={`cfg-toggle-btn ${isSelf ? 'active' : ''}`} onClick={() => savePlatformConfig(key, 'self_serve')} disabled={configSaving[key]}>Self-Serve</button>
+                      </div>
+                    </div>
+                    <div className="cfg-row">
+                      <span className="cfg-label">Trial length</span>
+                      <span className="cfg-value">{cfg.trial_days} days</span>
+                    </div>
+                    <div className="cfg-row">
+                      <span className="cfg-label">Pricing</span>
+                      <span className="cfg-value">{key === 'certifications' ? '$29/month (all regions)' : '₹299/month India · $29/month others'}</span>
+                    </div>
+                    <div className="cfg-row">
+                      <span className="cfg-label">Payment gateway</span>
+                      <span className="cfg-value">{key === 'certifications' ? 'Stripe only' : 'Stripe (intl) + Razorpay (India)'}<span className="cfg-coming-soon"> · not yet live</span></span>
+                    </div>
+                    {isSelf && <div className="cfg-notice">Self-serve is active. Anyone can sign up and start a {cfg.trial_days}-day trial immediately.</div>}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="cfg-section-title" style={{marginTop:'2rem'}}>Trial Expiry</div>
+          <div className="cfg-action-row">
+            <div>
+              <div className="cfg-action-label">Check & send trial warning emails</div>
+              <div className="cfg-action-desc">Sends warning emails to students whose trial ends within 24 hours, and marks expired trials as locked.</div>
+            </div>
+            <button className="cfg-action-btn" onClick={async () => {
+              const r = await fetch('/api/admin/check-trial-expiry', { method: 'POST', headers: { 'X-Admin-Key': adminKey } });
+              if (r.ok) { const d = await r.json(); alert(`Done — ${d.warned} warned, ${d.expired} expired.`); }
+            }}>Run Now</button>
+          </div>
         </div>
       )}
 
@@ -11414,6 +11556,7 @@ export default function App() {
 
   const [student, setStudent] = useState(getStoredStudent);
   const [screen, setScreen] = useState('welcome');
+  const [subscription, setSubscription] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [revisionModule, setRevisionModule]   = useState(null);
   const [capstoneSubject, setCapstoneSubject] = useState(null);
@@ -11514,6 +11657,7 @@ export default function App() {
     storeStudent(s);
     setStudent(s);
     setIsReturning(data.returning);
+    if (data.subscription) setSubscription(data.subscription);
     fetchCareerProfile(s.id);
     // show re-entry screen only for returning users, once per browser session
     const reentryKey = `bv_reentry_${s.id}`;
@@ -11608,6 +11752,31 @@ export default function App() {
   if (!student) {
     if (screen === 'welcome') return <WelcomeScreen onGetStarted={() => setScreen('login')} />;
     return <LoginView onLogin={handleLogin} onBack={() => setScreen('welcome')} />;
+  }
+
+  if (subscription?.status === 'expired') {
+    const isUs = ACTIVE_REGION === 'us';
+    return (
+      <div className="paywall-overlay">
+        <div className="paywall-card">
+          <div className="paywall-logo">Forte</div>
+          <div className="paywall-title">Your free trial has ended</div>
+          <div className="paywall-sub">
+            You've used your 15-day free trial of {isUs ? 'Certifications' : 'Career Pathways'}.
+            Subscribe to continue your learning journey.
+          </div>
+          <div className="paywall-price">
+            {isUs ? '$29' : ACTIVE_REGION === 'india' ? '₹299' : '$29'}
+            <span className="paywall-period">/month</span>
+          </div>
+          <button className="paywall-btn paywall-btn--primary" onClick={() => alert('Payment coming soon! Contact sudharsan@bversity.io to continue access.')}>
+            {isUs ? 'Subscribe with Stripe' : 'Subscribe Now'}
+          </button>
+          <button className="paywall-btn paywall-btn--ghost" onClick={handleLogout}>Sign out</button>
+          <div className="paywall-help">Questions? <a href="mailto:sudharsan@bversity.io">Contact us</a></div>
+        </div>
+      </div>
+    );
   }
 
   if (showOnboarding) {

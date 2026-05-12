@@ -12847,3 +12847,61 @@ body {
 .sd-plan-concept { flex: 1; color: #333; }
 .sd-plan-subj { font-size: 0.72rem; color: #999; width: 130px; text-align: right; flex-shrink: 0; }
 .sd-plan-date { font-size: 0.72rem; color: #bbb; width: 80px; text-align: right; flex-shrink: 0; }
+
+/* ── Admin region badges ── */
+.admin-st-region-badge { display: inline-block; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 0.15rem 0.45rem; border-radius: 4px; }
+.admin-st-region-badge--us { background: #e0f0ff; color: #0066CC; }
+.admin-st-region-badge--india { background: #e6f7f5; color: #00796B; }
+
+/* ── Settings / Platform Config ── */
+.cfg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-top: 1.25rem; }
+@media (max-width: 900px) { .cfg-grid { grid-template-columns: 1fr; } }
+.cfg-card { background: #fff; border: 1px solid #e8e8e8; border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; gap: 0.85rem; }
+.cfg-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+.cfg-card-title { font-size: 1rem; font-weight: 700; margin-bottom: 0.2rem; }
+.cfg-card-desc { font-size: 0.75rem; color: #888; }
+.cfg-mode-badge { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; padding: 0.2rem 0.6rem; border-radius: 999px; white-space: nowrap; }
+.cfg-mode-badge--self { background: #e6f7f0; color: #00796B; }
+.cfg-mode-badge--invite { background: #f0f0f0; color: #666; }
+.cfg-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; font-size: 0.82rem; }
+.cfg-label { color: #888; flex-shrink: 0; }
+.cfg-value { color: #333; font-weight: 500; text-align: right; }
+.cfg-coming-soon { color: #bbb; font-weight: 400; }
+.cfg-toggle-group { display: flex; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; }
+.cfg-toggle-btn { padding: 0.3rem 0.75rem; font-size: 0.75rem; font-weight: 600; border: none; background: #f8f8f8; color: #888; cursor: pointer; transition: all 0.15s; }
+.cfg-toggle-btn.active { background: #00A896; color: #fff; }
+.cfg-toggle-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.cfg-notice { background: #e6f7f0; color: #00796B; font-size: 0.78rem; padding: 0.5rem 0.75rem; border-radius: 6px; }
+.cfg-section-title { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #999; margin-bottom: 0.75rem; }
+.cfg-action-row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; background: #fff; border: 1px solid #e8e8e8; border-radius: 10px; padding: 1rem 1.25rem; }
+.cfg-action-label { font-size: 0.88rem; font-weight: 600; color: #222; margin-bottom: 0.2rem; }
+.cfg-action-desc { font-size: 0.75rem; color: #888; }
+.cfg-action-btn { padding: 0.45rem 1rem; background: #00A896; color: #fff; border: none; border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.cfg-action-btn:hover { background: #008f7f; }
+
+/* ── Student detail action buttons ── */
+.sd-action-btn { padding: 0.3rem 0.75rem; font-size: 0.72rem; font-weight: 600; border: 1px solid #00A896; color: #00A896; background: #fff; border-radius: 5px; cursor: pointer; transition: all 0.15s; }
+.sd-action-btn:hover { background: #00A896; color: #fff; }
+.sd-action-btn--free { border-color: #6366f1; color: #6366f1; }
+.sd-action-btn--free:hover { background: #6366f1; color: #fff; }
+
+/* ── Cross-product sidebar link ── */
+.sidebar-cross-product { padding: 0 0.75rem 0.5rem; }
+.sidebar-cross-link { display: flex; align-items: center; gap: 0.4rem; font-size: 0.7rem; font-weight: 600; color: var(--teal); text-decoration: none; padding: 0.4rem 0.6rem; border: 1px solid rgba(0,168,150,0.2); border-radius: 6px; background: rgba(0,168,150,0.04); transition: all 0.15s; }
+.sidebar-cross-link:hover { background: rgba(0,168,150,0.1); border-color: rgba(0,168,150,0.4); }
+
+/* ── Paywall ── */
+.paywall-overlay { position: fixed; inset: 0; background: rgba(6,8,15,0.92); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+.paywall-card { background: #fff; border-radius: 20px; padding: 2.5rem 2rem; max-width: 420px; width: 90%; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+.paywall-logo { font-family: 'DM Serif Display', Georgia, serif; font-size: 1.75rem; color: #111; }
+.paywall-title { font-size: 1.35rem; font-weight: 700; color: #111; }
+.paywall-sub { font-size: 0.88rem; color: #666; line-height: 1.6; }
+.paywall-price { font-size: 2.5rem; font-weight: 800; color: #00A896; }
+.paywall-period { font-size: 1rem; font-weight: 400; color: #888; }
+.paywall-btn { width: 100%; padding: 0.85rem; border-radius: 10px; font-size: 0.95rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.15s; }
+.paywall-btn--primary { background: #00A896; color: #fff; }
+.paywall-btn--primary:hover { background: #008f7f; }
+.paywall-btn--ghost { background: transparent; color: #999; font-weight: 500; font-size: 0.82rem; }
+.paywall-btn--ghost:hover { color: #555; }
+.paywall-help { font-size: 0.75rem; color: #bbb; }
+.paywall-help a { color: #00A896; }
