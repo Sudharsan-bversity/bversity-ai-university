@@ -5020,7 +5020,7 @@ function FeedbackModal({ studentId, onClose }) {
 // ── Admin View ─────────────────────────────────────────────────────────────
 
 function AdminView({ onBack }) {
-  const [adminKey, setAdminKey]       = useState('');
+  const [adminKey, setAdminKey]       = useState(() => localStorage.getItem('bversity_admin_key') || '');
   const [keyInput, setKeyInput]       = useState('');
   const [showKey, setShowKey]         = useState(false);
   const [tab, setTab]                 = useState('overview');
@@ -5100,27 +5100,36 @@ function AdminView({ onBack }) {
   const [stFilter, setStFilter]                       = useState('all');
   const [stSearch, setStSearch]                       = useState('');
 
+  async function loadAdminData(key) {
+    const headers = { 'X-Admin-Key': key };
+    const [subsRes, overviewRes, studentsRes, emailsRes] = await Promise.all([
+      fetch('/api/admin/submissions',    { headers }),
+      fetch('/api/admin/overview',       { headers }),
+      fetch('/api/admin/students',       { headers }),
+      fetch('/api/admin/approved-emails',{ headers }),
+    ]);
+    if (!subsRes.ok) throw new Error('Invalid admin key');
+    setSubmissions(await subsRes.json());
+    if (overviewRes.ok)  setOverview(await overviewRes.json());
+    if (studentsRes.ok)  setStudents(await studentsRes.json());
+    if (emailsRes.ok)    setApprovedEmails(await emailsRes.json());
+    fetch('/api/admin/health', { headers }).then(r => r.ok ? r.json().then(setHealth) : null).catch(() => {});
+  }
+
+  useEffect(() => {
+    const saved = localStorage.getItem('bversity_admin_key');
+    if (saved) loadAdminData(saved).catch(() => { localStorage.removeItem('bversity_admin_key'); setAdminKey(''); });
+  }, []);
+
   async function handleAuth(e) {
     e.preventDefault();
     if (!keyInput.trim()) return;
     setLoading(true); setError('');
     try {
       const key = keyInput.trim();
-      const headers = { 'X-Admin-Key': key };
-      const [subsRes, overviewRes, studentsRes, emailsRes] = await Promise.all([
-        fetch('/api/admin/submissions',    { headers }),
-        fetch('/api/admin/overview',       { headers }),
-        fetch('/api/admin/students',       { headers }),
-        fetch('/api/admin/approved-emails',{ headers }),
-      ]);
-      if (!subsRes.ok) throw new Error('Invalid admin key');
+      await loadAdminData(key);
+      localStorage.setItem('bversity_admin_key', key);
       setAdminKey(key);
-      setSubmissions(await subsRes.json());
-      if (overviewRes.ok)  setOverview(await overviewRes.json());
-      if (studentsRes.ok)  setStudents(await studentsRes.json());
-      if (emailsRes.ok)    setApprovedEmails(await emailsRes.json());
-      // load health bar immediately
-      fetch('/api/admin/health', { headers }).then(r => r.ok ? r.json().then(setHealth) : null).catch(() => {});
     } catch (err) { setError(err.message); }
     finally { setLoading(false); }
   }
@@ -5619,7 +5628,7 @@ function AdminView({ onBack }) {
             </button>
           ))}
         </nav>
-        <button className="admin-sb-back" onClick={() => { setAdminKey(''); setKeyInput(''); }}>
+        <button className="admin-sb-back" onClick={() => { localStorage.removeItem('bversity_admin_key'); setAdminKey(''); setKeyInput(''); }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
           Logout
         </button>
