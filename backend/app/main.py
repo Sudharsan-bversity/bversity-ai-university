@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Header, BackgroundTasks
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Header, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
@@ -74,6 +74,8 @@ def save_image_config(config):
 RATE_LIMIT_MAX = int(os.environ.get("CHAT_RATE_LIMIT", "40"))   # messages per window
 RATE_LIMIT_WINDOW = 3600                                          # 1 hour in seconds
 _rate_buckets: dict = collections.defaultdict(collections.deque)
+
+_anthropic_status = {"ok": None, "error": None, "checked_at": None}
 
 def check_rate_limit(student_id: str):
     now = time.time()
@@ -328,6 +330,11 @@ def init_db():
         "ALTER TABLE approved_emails ADD COLUMN expires_at TEXT",
         "ALTER TABLE approved_emails ADD COLUMN access_type TEXT NOT NULL DEFAULT 'manual'",
         "ALTER TABLE access_requests ADD COLUMN product TEXT NOT NULL DEFAULT 'career_pathways'",
+        "ALTER TABLE student_profile ADD COLUMN learner_archetype TEXT",
+        "ALTER TABLE subscriptions ADD COLUMN subscription_end TEXT",
+        "ALTER TABLE subscriptions ADD COLUMN started_at TEXT",
+        "ALTER TABLE subscriptions ADD COLUMN warning_2d_sent TEXT",
+        "ALTER TABLE subscriptions ADD COLUMN warning_1d_sent TEXT",
     ]:
         try:
             conn.execute(col)
@@ -337,8 +344,8 @@ def init_db():
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS platform_config (
             product     TEXT PRIMARY KEY,
-            mode        TEXT NOT NULL DEFAULT 'invite_only',
-            trial_days  INTEGER NOT NULL DEFAULT 15,
+            mode        TEXT NOT NULL DEFAULT 'self_serve',
+            trial_days  INTEGER NOT NULL DEFAULT 5,
             updated_at  TEXT NOT NULL
         );
         CREATE TABLE IF NOT EXISTS subscriptions (
@@ -358,11 +365,81 @@ def init_db():
             updated_at              TEXT NOT NULL,
             UNIQUE(student_id, product)
         );
+        CREATE TABLE IF NOT EXISTS payment_events (
+            id                  TEXT PRIMARY KEY,
+            student_id          TEXT NOT NULL,
+            product             TEXT NOT NULL,
+            event_type          TEXT NOT NULL DEFAULT 'payment',
+            amount_cents        INTEGER NOT NULL DEFAULT 0,
+            currency            TEXT NOT NULL DEFAULT 'usd',
+            gateway             TEXT NOT NULL,
+            gateway_payment_id  TEXT,
+            created_at          TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS site_settings (
+            key   TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        INSERT OR IGNORE INTO site_settings (key, value, updated_at) VALUES (
+            'hero_video_url',
+            'https://videos.pexels.com/video-files/18069830/18069830-hd_1920_1080_24fps.mp4',
+            datetime('now')
+        );
+        CREATE TABLE IF NOT EXISTS subject_videos (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            subject_id   TEXT NOT NULL,
+            title        TEXT NOT NULL,
+            drive_url    TEXT NOT NULL,
+            order_index  INTEGER NOT NULL,
+            added_at     TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS archetype_scores (
+            student_id          TEXT PRIMARY KEY,
+            question_depth      REAL DEFAULT 0,
+            exam_focus          REAL DEFAULT 0,
+            anxiety_markers     REAL DEFAULT 0,
+            topic_jumping       REAL DEFAULT 0,
+            challenge_seeking   REAL DEFAULT 0,
+            practical_anchoring REAL DEFAULT 0,
+            mastery_push        REAL DEFAULT 0,
+            sessions_scored     INTEGER DEFAULT 0,
+            archetype           TEXT,
+            archetype_reasoning TEXT,
+            updated_at          TEXT
+        );
+        CREATE TABLE IF NOT EXISTS concept_summaries (
+            concept_id   TEXT NOT NULL,
+            subject_id   TEXT NOT NULL,
+            what         TEXT NOT NULL,
+            why          TEXT NOT NULL,
+            key_points   TEXT NOT NULL,
+            real_world   TEXT,
+            interview_q  TEXT,
+            generated_at TEXT NOT NULL,
+            PRIMARY KEY (subject_id, concept_id)
+        );
+        CREATE TABLE IF NOT EXISTS industry_news (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            title        TEXT NOT NULL,
+            url          TEXT NOT NULL,
+            source       TEXT NOT NULL,
+            published_at TEXT,
+            fetched_at   TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS industry_newsletter (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            title        TEXT NOT NULL,
+            content      TEXT,
+            url          TEXT,
+            published_at TEXT NOT NULL,
+            created_at   TEXT NOT NULL
+        );
     """)
     conn.execute("""
         INSERT OR IGNORE INTO platform_config (product, mode, trial_days, updated_at) VALUES
-            ('career_pathways', 'invite_only', 15, datetime('now')),
-            ('certifications',  'invite_only', 15, datetime('now'))
+            ('career_pathways', 'self_serve', 5, datetime('now')),
+            ('certifications',  'self_serve', 5, datetime('now'))
     """)
     conn.commit()
     conn.close()
@@ -419,6 +496,108 @@ def seed_placed_alumni():
 
 init_db()
 seed_placed_alumni()
+
+# ── Industry News ─────────────────────────────────────────────────────────────
+
+_NEWS_FEEDS = [
+    {"name": "STAT News",            "url": "https://www.statnews.com/feed/"},
+    {"name": "FierceBiotech",        "url": "https://www.fiercebiotech.com/rss/xml"},
+    {"name": "Endpoints News",       "url": "https://endpts.com/feed/"},
+    {"name": "BioPharma Dive",       "url": "https://www.biopharmadive.com/feeds/news/"},
+    {"name": "The Scientist",        "url": "https://www.the-scientist.com/rss"},
+    {"name": "FDA Press Releases",   "url": "https://www.fda.gov/about-fda/contact-fda/stay-informed/rss-feeds/press-announcements/rss.xml"},
+    {"name": "GEN Biotech News",     "url": "https://www.genengnews.com/feed/"},
+    {"name": "CenterWatch",          "url": "https://www.centerwatch.com/feed/"},
+    {"name": "BioSpectrum India",    "url": "https://www.biospectrumindia.com/rss.xml"},
+    {"name": "Express Pharma India", "url": "https://www.expresspharma.in/feed/"},
+    {"name": "ET Pharma & Biotech",  "url": "https://economictimes.indiatimes.com/industry/healthcare/biotech/pharmaceuticals/rssfeeds/13353464.cms"},
+]
+
+_news_last_fetched: Optional[datetime] = None
+_news_fetch_lock = False
+
+
+def _parse_rss_date(date_str: Optional[str]) -> Optional[str]:
+    if not date_str:
+        return None
+    fmts = [
+        "%a, %d %b %Y %H:%M:%S %z",
+        "%a, %d %b %Y %H:%M:%S GMT",
+        "%Y-%m-%dT%H:%M:%S%z",
+        "%Y-%m-%dT%H:%M:%SZ",
+    ]
+    for fmt in fmts:
+        try:
+            return datetime.strptime(date_str.strip(), fmt).isoformat()
+        except Exception:
+            pass
+    return date_str
+
+
+def _parse_feed_bytes(raw: bytes, source: str, max_items: int = 4):
+    items = []
+    try:
+        root = ET.fromstring(raw)
+    except ET.ParseError:
+        return items
+    ATOM = "http://www.w3.org/2005/Atom"
+
+    channel = root.find("channel")
+    if channel is not None:
+        for item in list(channel.findall("item"))[:max_items]:
+            title = (item.findtext("title") or "").strip()
+            url   = (item.findtext("link") or "").strip()
+            pub   = item.findtext("pubDate")
+            if title and url:
+                items.append({"title": title, "url": url, "source": source, "published_at": _parse_rss_date(pub)})
+        return items
+
+    def _at(t): return f"{{{ATOM}}}{t}"
+    for entry in list(root.findall(_at("entry")))[:max_items]:
+        t_el  = entry.find(_at("title"))
+        l_el  = entry.find(_at("link"))
+        p_el  = entry.find(_at("published")) or entry.find(_at("updated"))
+        title = (t_el.text or "").strip() if t_el is not None else ""
+        url   = l_el.get("href", "") if l_el is not None else ""
+        pub   = p_el.text if p_el is not None else None
+        if title and url:
+            items.append({"title": title, "url": url, "source": source, "published_at": _parse_rss_date(pub)})
+    return items
+
+
+def _fetch_news_feeds():
+    global _news_last_fetched, _news_fetch_lock
+    if _news_fetch_lock:
+        return
+    _news_fetch_lock = True
+    try:
+        items = []
+        for feed in _NEWS_FEEDS:
+            try:
+                req = urllib.request.Request(feed["url"], headers={"User-Agent": "Mozilla/5.0 (compatible; Bversity/1.0)"})
+                with urllib.request.urlopen(req, context=_SSL_CTX, timeout=12) as resp:
+                    raw = resp.read()
+                items.extend(_parse_feed_bytes(raw, feed["name"]))
+            except Exception as e:
+                print(f"[news] {feed['name']} fetch error: {e}")
+        if items:
+            now = datetime.utcnow().isoformat()
+            conn = get_db()
+            conn.execute("DELETE FROM industry_news")
+            for it in items[:30]:
+                conn.execute(
+                    "INSERT INTO industry_news (title, url, source, published_at, fetched_at) VALUES (?,?,?,?,?)",
+                    (it["title"], it["url"], it["source"], it.get("published_at"), now),
+                )
+            conn.commit()
+            conn.close()
+            _news_last_fetched = datetime.utcnow()
+            print(f"[news] fetched {len(items)} articles")
+    except Exception as e:
+        print(f"[news] fetch_all error: {e}")
+    finally:
+        _news_fetch_lock = False
+
 
 # ── Curriculum ────────────────────────────────────────────────────────────────
 
@@ -1646,7 +1825,7 @@ def fts_query(text: str) -> str:
     return ' OR '.join(f'"{w}"' for w in meaningful)
 
 
-def retrieve_context(subject_id: str, query: str, conn, top_k: int = 4) -> str:
+def retrieve_context(subject_id: str, query: str, conn, top_k: int = 3) -> str:
     try:
         q = fts_query(query)
         rows = conn.execute(
@@ -1669,7 +1848,7 @@ def has_materials(subject_id: str, conn) -> bool:
 def build_system_prompt(subject: dict, student_name: str, is_first_visit: bool,
                         covered_ids: list, mastered_ids: list, rag_context: str = "",
                         career: dict = None, session_memory: str = "",
-                        concept_notes_map: dict = None) -> str:
+                        concept_notes_map: dict = None, pending_question: str = "") -> str:
     base = subject["system_prompt"]
 
     voice_block = f"""
@@ -1755,11 +1934,14 @@ Progress: {covered_count}/{total} covered, {mastered_count}/{total} mastered
 Use this to personalise your teaching today. Reference what {student_name} has already covered, acknowledge where they struggled before, and build directly on their progress. If confusion was noted last session, address it naturally  -  don't wait for them to ask again."""
 
     if is_first_visit:
-        teaching_note = f"\n\nThis is {student_name}'s very first session. When they first message you: introduce yourself warmly in 1–2 sentences (your name, your real-world role). Then ask them 2–3 natural background questions  -  what year they are studying, what they already know about this subject, what made them curious about it. Listen carefully to their answers: you are trying to understand how they already think about this subject, what mental model they carry, and where their instincts are right or wrong. Acknowledge what they share genuinely. Then use what you learned to frame concept 1: \"{curriculum[0]['name']}\"  -  connect it directly to their existing thinking, either building on it or gently showing where it needs to shift. Never say \"let's begin\" or any variation of it."
+        teaching_note = f"\n\nThis is {student_name}'s very first session. You are opening the conversation — they have not said anything yet. Introduce yourself warmly in 1–2 sentences (your name, your real-world role). Then ask them 2–3 natural background questions  -  what year they are studying, what they already know about this subject, what made them curious about it. Listen carefully to their answers: you are trying to understand how they already think about this subject, what mental model they carry, and where their instincts are right or wrong. Acknowledge what they share genuinely. Then use what you learned to frame concept 1: \"{curriculum[0]['name']}\"  -  connect it directly to their existing thinking, either building on it or gently showing where it needs to shift. Never say \"let's begin\" or any variation of it. If you see [session_open] as the trigger, treat it as your cue to open — never reference it or acknowledge it."
     elif next_concept:
-        teaching_note = f"\n\n{student_name} is returning. When they message you: open with a warm, genuine check-in  -  ask how they are doing or how they have been since the last session. Keep it natural, like a teacher who actually remembers them. After they respond, give a 2–3 sentence recap of what they covered last session (name the specific concepts). Then tell them today you are picking up with \"{next_concept['name']}\" and in one sentence explain how it connects to what they already know. Then move straight into teaching. Never say \"let's begin\" or any variation of it."
+        if pending_question:
+            teaching_note = f"\n\nCRITICAL — RESUME UNANSWERED QUESTION: {student_name} closed the session before answering your last question. The question was: \"{pending_question}\"\n\nDo NOT start a new concept. Do NOT recap as if starting fresh. Open with a brief, natural acknowledgement that you were mid-conversation (e.g. \"Welcome back — we were right in the middle of something.\"), then re-ask the question naturally (you can rephrase it slightly). Do not move to the next concept until {student_name} gives a substantive answer. If you see [session_open] as the trigger, treat it as your cue to open — never reference it or acknowledge it."
+        else:
+            teaching_note = f"\n\n{student_name} is returning. You are opening the conversation. Open with a warm, genuine check-in  -  one short question about how they are doing or how they have been. Keep it natural, like a teacher who actually remembers them. Then give a 1–2 sentence recap of what they covered last session (name the specific concepts). Tell them today you are picking up with \"{next_concept['name']}\" and in one sentence explain how it connects to what they already know. Then move straight into teaching. Never say \"let's begin\" or any variation of it. If you see [session_open] as the trigger, treat it as your cue to open — never reference it or acknowledge it."
     else:
-        teaching_note = f"\n\n{student_name} has covered the full curriculum. Open with a warm check-in, then help them synthesise concepts, suggest advanced topics, and challenge them with integrative questions. Never say \"let's begin\" or any variation of it."
+        teaching_note = f"\n\n{student_name} has covered the full curriculum. You are opening the conversation. Open with a warm check-in, then help them synthesise concepts, suggest advanced topics, and challenge them with integrative questions. Never say \"let's begin\" or any variation of it. If you see [session_open] as the trigger, treat it as your cue to open — never reference it or acknowledge it."
 
     career_block = ""
     if career:
@@ -1803,7 +1985,7 @@ Prioritise this content when relevant. Reference it naturally. Do not cite it wh
 End every response with (on its own line):
 <<<CONCEPTS:concept_id1,concept_id2>>>
 Valid IDs: {concept_ids_list}
-Only tag concepts SUBSTANTIVELY taught in THIS response. If none: <<<CONCEPTS:>>>
+CRITICAL RULE: Only tag a concept AFTER {student_name} has answered your Step 3 challenge question to your satisfaction. Do NOT tag a concept just because you explained it in Step 1. The tag signals that the student has genuinely worked through the concept, not just heard it. If you are in Step 1 or Step 2, or waiting for an answer: <<<CONCEPTS:>>>
 This line is stripped before {student_name} sees the response.
 
 ━━ DEFINITION TAGGING (required when bolding terms) ━━
@@ -1901,9 +2083,15 @@ class RegisterRequest(BaseModel):
 class ChatRequest(BaseModel):
     student_id: str
     subject_id: str
-    message: str
+    message: str = ""
     quiz_mode: bool = False
     recall_warmup: bool = False
+    auto_open: bool = False
+
+    def __init__(self, **data):
+        if "message" in data and len(data["message"]) > 4000:
+            data["message"] = data["message"][:4000]
+        super().__init__(**data)
 
 class ProfileRequest(BaseModel):
     career_id: str
@@ -2527,8 +2715,8 @@ async def send_verification_email(to_email: str, name: str, code: str) -> bool:
 # ── Admin auth ────────────────────────────────────────────────────────────────
 
 def require_admin(x_admin_key: str = Header(None)):
-    expected = os.environ.get("ADMIN_KEY", "bversity-admin-2025")
-    if x_admin_key != expected:
+    expected = os.environ.get("ADMIN_KEY")
+    if not expected or x_admin_key != expected:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
 # ── Routes ────────────────────────────────────────────────────────────────────
@@ -2557,6 +2745,15 @@ async def register(req: RegisterRequest, background_tasks: BackgroundTasks):
     background_tasks.add_task(send_welcome_email, req.email.lower().strip(), req.name.strip())
     return {"student_id": student_id, "name": req.name.strip(), "returning": False}
 
+@app.get("/check-email")
+async def check_email_endpoint(email: str):
+    conn = get_db()
+    student = conn.execute("SELECT name FROM students WHERE email = ?", (email.lower().strip(),)).fetchone()
+    conn.close()
+    if student:
+        return {"exists": True, "name": student["name"]}
+    return {"exists": False, "name": ""}
+
 @app.post("/request-code")
 async def request_code(req: RequestCodeRequest):
     email   = req.email.lower().strip()
@@ -2566,7 +2763,7 @@ async def request_code(req: RequestCodeRequest):
         raise HTTPException(status_code=400, detail="Name and email are required")
     conn = get_db()
     config = conn.execute("SELECT mode FROM platform_config WHERE product = ?", (product,)).fetchone()
-    mode   = config["mode"] if config else "invite_only"
+    mode   = config["mode"] if config else "self_serve"
     if mode == "invite_only":
         approved = conn.execute(
             "SELECT email FROM approved_emails WHERE email = ? AND product = ?", (email, product)
@@ -2614,11 +2811,11 @@ def verify_code(req: VerifyCodeRequest):
 
     # create trial subscription if self_serve and none exists
     config = conn.execute("SELECT mode, trial_days FROM platform_config WHERE product = ?", (product,)).fetchone()
-    mode       = config["mode"] if config else "invite_only"
-    trial_days = config["trial_days"] if config else 15
+    mode       = config["mode"] if config else "self_serve"
+    trial_days = config["trial_days"] if config else 5
     sub = conn.execute("SELECT * FROM subscriptions WHERE student_id = ? AND product = ?", (student_id, product)).fetchone()
-    if not sub and mode == "self_serve":
-        trial_end = (now_dt + timedelta(days=trial_days)).isoformat()
+    if not sub:
+        trial_end = (now_dt + timedelta(days=trial_days)).isoformat() + 'Z'
         conn.execute("""
             INSERT INTO subscriptions (id, student_id, product, status, trial_start, trial_end, created_at, updated_at)
             VALUES (?, ?, ?, 'trial', ?, ?, ?, ?)
@@ -2738,6 +2935,27 @@ def admin_overview(x_admin_key: str = Header(None)):
               SELECT DISTINCT student_id FROM messages WHERE role='user' AND created_at > ?
           )
     """, (week_ago,)).fetchone()[0]
+    waitlist_total    = conn.execute("SELECT COUNT(*) FROM access_requests").fetchone()[0]
+    waitlist_joined   = conn.execute(
+        "SELECT COUNT(*) FROM access_requests WHERE email IN (SELECT email FROM students WHERE email NOT LIKE '%@bversity.alumni')"
+    ).fetchone()[0]
+    now_iso = datetime.utcnow().isoformat()
+    paying_active  = conn.execute(
+        "SELECT COUNT(DISTINCT sub.student_id) FROM subscriptions sub JOIN students s ON s.id=sub.student_id WHERE sub.status='active' AND s.email NOT LIKE '%@bversity.alumni'"
+    ).fetchone()[0]
+    on_trial       = conn.execute(
+        "SELECT COUNT(DISTINCT sub.student_id) FROM subscriptions sub JOIN students s ON s.id=sub.student_id WHERE sub.status='trial' AND sub.trial_end > ? AND s.email NOT LIKE '%@bversity.alumni'",
+        (now_iso,)
+    ).fetchone()[0]
+    trial_expired  = conn.execute(
+        "SELECT COUNT(DISTINCT sub.student_id) FROM subscriptions sub JOIN students s ON s.id=sub.student_id WHERE (sub.status='expired' OR (sub.status='trial' AND sub.trial_end <= ?)) AND s.email NOT LIKE '%@bversity.alumni'",
+        (now_iso,)
+    ).fetchone()[0]
+    week_from_now = (datetime.utcnow() + timedelta(days=7)).isoformat()
+    expiring_this_week = conn.execute(
+        "SELECT COUNT(DISTINCT sub.student_id) FROM subscriptions sub JOIN students s ON s.id=sub.student_id WHERE sub.status='trial' AND sub.trial_end > ? AND sub.trial_end <= ? AND s.email NOT LIKE '%@bversity.alumni'",
+        (now_iso, week_from_now)
+    ).fetchone()[0]
     conn.close()
     return {
         "total_students":      total_students,
@@ -2748,6 +2966,209 @@ def admin_overview(x_admin_key: str = Header(None)):
         "never_started":       never_started,
         "active_ever":         active_ever,
         "gone_quiet":          gone_quiet,
+        "waitlist_total":      waitlist_total,
+        "waitlist_joined":     waitlist_joined,
+        "paying_active":       paying_active,
+        "on_trial":            on_trial,
+        "trial_expired":       trial_expired,
+        "expiring_this_week":  expiring_this_week,
+    }
+
+@app.get("/admin/churn-risk")
+def admin_churn_risk(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    now_iso = datetime.utcnow().isoformat()
+    week_from_now = (datetime.utcnow() + timedelta(days=7)).isoformat()
+    rows = conn.execute("""
+        SELECT
+            s.id,
+            s.name,
+            s.email,
+            COALESCE(sp.career_id, '') AS career_path,
+            sub.trial_end,
+            sub.product AS product_id,
+            COALESCE(msg_stats.msg_count, 0)   AS messages_sent,
+            COALESCE(msg_stats.last_active, '') AS last_active
+        FROM subscriptions sub
+        JOIN students s ON s.id = sub.student_id
+        LEFT JOIN student_profile sp ON sp.student_id = s.id
+        LEFT JOIN (
+            SELECT student_id,
+                   COUNT(*) AS msg_count,
+                   MAX(created_at) AS last_active
+            FROM messages
+            WHERE role = 'user'
+            GROUP BY student_id
+        ) msg_stats ON msg_stats.student_id = s.id
+        WHERE sub.status = 'trial'
+          AND sub.trial_end > ?
+          AND sub.trial_end <= ?
+          AND s.email NOT LIKE '%@bversity.alumni'
+        ORDER BY sub.trial_end ASC
+    """, (now_iso, week_from_now)).fetchall()
+    conn.close()
+    result = []
+    for r in rows:
+        days_left = max(0, round((
+            datetime.fromisoformat(r["trial_end"]) - datetime.utcnow()
+        ).total_seconds() / 86400, 1))
+        last_active_days = None
+        if r["last_active"]:
+            try:
+                delta = (datetime.utcnow() - datetime.fromisoformat(r["last_active"])).days
+                last_active_days = delta
+            except Exception:
+                pass
+        result.append({
+            "id":               r["id"],
+            "name":             r["name"],
+            "email":            r["email"],
+            "career_path":      r["career_path"] or "",
+            "product_id":       r["product_id"] or "",
+            "trial_end":        r["trial_end"],
+            "days_left":        days_left,
+            "messages_sent":    r["messages_sent"],
+            "last_active_days": last_active_days,
+        })
+    return result
+
+
+@app.get("/admin/engagement-heatmap")
+def admin_engagement_heatmap(x_admin_key: str = Header(None)):
+    """Returns per-subject message counts and avg session depth for the heatmap."""
+    require_admin(x_admin_key)
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT
+            m.subject_id,
+            COUNT(*) AS message_count,
+            COUNT(DISTINCT m.student_id) AS learner_count,
+            COUNT(DISTINCT DATE(m.created_at)) AS active_days
+        FROM messages m
+        JOIN students s ON s.id = m.student_id
+        WHERE m.role = 'user'
+          AND s.email NOT LIKE '%@bversity.alumni'
+        GROUP BY m.subject_id
+        ORDER BY message_count DESC
+    """).fetchall()
+    conn.close()
+    total_msgs = sum(r["message_count"] for r in rows) or 1
+    return [
+        {
+            "subject_id":    r["subject_id"],
+            "message_count": r["message_count"],
+            "learner_count": r["learner_count"],
+            "active_days":   r["active_days"],
+            "share_pct":     round(r["message_count"] / total_msgs * 100, 1),
+        }
+        for r in rows
+    ]
+
+
+@app.get("/settings/hero_video")
+def get_hero_video():
+    with get_db() as conn:
+        row = conn.execute("SELECT value FROM site_settings WHERE key='hero_video_url'").fetchone()
+        return {"url": row["value"] if row else ""}
+
+class HeroVideoUpdate(BaseModel):
+    url: str
+
+@app.put("/admin/settings/hero_video")
+def set_hero_video(body: HeroVideoUpdate, x_admin_key: str = Header(None)):
+    if not os.environ.get("ADMIN_KEY") or x_admin_key != os.environ.get("ADMIN_KEY"):
+        raise HTTPException(status_code=403, detail="Forbidden")
+    now = datetime.utcnow().isoformat()
+    with get_db() as conn:
+        conn.execute(
+            "INSERT INTO site_settings (key, value, updated_at) VALUES ('hero_video_url', ?, ?) ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+            (body.url.strip(), now)
+        )
+    return {"ok": True, "url": body.url.strip()}
+
+@app.get("/admin/revenue")
+def admin_revenue(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    now     = datetime.utcnow()
+    now_iso = now.isoformat()
+
+    # ── Totals by currency ────────────────────────────────────────────────────
+    currency_totals = {}
+    for row in conn.execute("SELECT currency, SUM(amount_cents) as total FROM payment_events WHERE event_type='payment' GROUP BY currency").fetchall():
+        currency_totals[row["currency"]] = row["total"] or 0
+
+    # ── Monthly breakdown — last 12 months ────────────────────────────────────
+    monthly = []
+    for i in range(11, -1, -1):
+        month_start = (now.replace(day=1) - __import__("datetime").timedelta(days=i*30)).replace(day=1)
+        if i == 0:
+            month_end = now
+        else:
+            next_month = (month_start.replace(day=28) + __import__("datetime").timedelta(days=4)).replace(day=1)
+            month_end  = next_month - __import__("datetime").timedelta(seconds=1)
+        rows = conn.execute(
+            "SELECT currency, SUM(amount_cents) as total, COUNT(*) as count FROM payment_events WHERE event_type='payment' AND created_at >= ? AND created_at <= ? GROUP BY currency",
+            (month_start.isoformat(), month_end.isoformat())
+        ).fetchall()
+        entry = {"month": month_start.strftime("%b %Y"), "totals": {}, "count": 0}
+        for r in rows:
+            entry["totals"][r["currency"]] = r["total"] or 0
+            entry["count"] += r["count"] or 0
+        monthly.append(entry)
+
+    # ── By gateway ────────────────────────────────────────────────────────────
+    gateway_rows = conn.execute(
+        "SELECT gateway, currency, SUM(amount_cents) as total, COUNT(*) as count FROM payment_events WHERE event_type='payment' GROUP BY gateway, currency"
+    ).fetchall()
+    by_gateway = {}
+    for r in gateway_rows:
+        g = r["gateway"]
+        if g not in by_gateway:
+            by_gateway[g] = {"count": 0, "totals": {}}
+        by_gateway[g]["count"] += r["count"] or 0
+        by_gateway[g]["totals"][r["currency"]] = r["total"] or 0
+
+    # ── This month ────────────────────────────────────────────────────────────
+    month_start_iso = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
+    this_month_rows = conn.execute(
+        "SELECT currency, SUM(amount_cents) as total, COUNT(*) as count FROM payment_events WHERE event_type='payment' AND created_at >= ? GROUP BY currency",
+        (month_start_iso,)
+    ).fetchall()
+    this_month = {"totals": {}, "count": 0}
+    for r in this_month_rows:
+        this_month["totals"][r["currency"]] = r["total"] or 0
+        this_month["count"] += r["count"] or 0
+
+    # ── Active subscribers ────────────────────────────────────────────────────
+    active_count = conn.execute(
+        "SELECT COUNT(DISTINCT sub.student_id) FROM subscriptions sub JOIN students s ON s.id=sub.student_id WHERE sub.status='active' AND s.email NOT LIKE '%@bversity.alumni'"
+    ).fetchone()[0]
+
+    # ── Recent payments ───────────────────────────────────────────────────────
+    recent = conn.execute("""
+        SELECT pe.id, pe.student_id, s.name, s.email, pe.product, pe.amount_cents, pe.currency,
+               pe.gateway, pe.gateway_payment_id, pe.created_at
+        FROM payment_events pe
+        JOIN students s ON s.id = pe.student_id
+        WHERE pe.event_type = 'payment'
+        ORDER BY pe.created_at DESC
+        LIMIT 50
+    """).fetchall()
+
+    # ── Total payments count ──────────────────────────────────────────────────
+    total_count = conn.execute("SELECT COUNT(*) FROM payment_events WHERE event_type='payment'").fetchone()[0]
+
+    conn.close()
+    return {
+        "currency_totals":   currency_totals,
+        "monthly":           monthly,
+        "by_gateway":        by_gateway,
+        "this_month":        this_month,
+        "active_subscribers": active_count,
+        "total_payments":    total_count,
+        "recent_payments":   [dict(r) for r in recent],
     }
 
 @app.get("/admin/system-health")
@@ -2795,6 +3216,7 @@ def admin_system_health(x_admin_key: str = Header(None)):
         "messages": { "total": total_messages, "today": messages_today,
                       "daily_soft_limit": 500, "daily_hard_limit": 1000 },
         "concepts_covered": total_concepts,
+        "anthropic_api": _anthropic_status,
         "limits": {
             "concurrent_users":  { "value": 25,   "note": "SQLite single-writer bottleneck. Upgrade to Postgres + larger droplet at ~25 concurrent." },
             "storage_upgrade":   { "value": 15,   "note": "Consider upgrading disk when used exceeds 15GB." },
@@ -2812,19 +3234,38 @@ RAZORPAY_KEY_ID        = os.environ.get("RAZORPAY_KEY_ID", "")
 RAZORPAY_KEY_SECRET    = os.environ.get("RAZORPAY_KEY_SECRET", "")
 
 PRICING = {
-    "career_pathways": {"IN": {"amount": 29900, "currency": "INR", "display": "₹299/month"},
-                        "default": {"amount": 2900,  "currency": "USD", "display": "$29/month"}},
-    "certifications":  {"default": {"amount": 2900,  "currency": "USD", "display": "$29/month"}},
+    "career_pathways": {"IN": {"amount": 79900, "currency": "INR", "display": "₹799/month",
+                               "razorpay_plan_id": "plan_SqmoQLK8SS4Ekr"},
+                        "default": {"amount": 2900,  "currency": "USD", "display": "$29/month",
+                                    "razorpay_plan_id": "plan_SqmlRXMtKcsrXp"}},
+    "certifications":  {"default": {"amount": 2900,  "currency": "USD", "display": "$29/month",
+                                    "razorpay_plan_id": "plan_SqmlRXMtKcsrXp"}},
 }
 
 async def detect_country(ip: str) -> str:
-    try:
-        async with httpx.AsyncClient(timeout=3) as client:
-            r = await client.get(f"https://ipapi.co/{ip}/country/")
+    if not ip or ip in ("127.0.0.1", "::1", ""):
+        return "US"
+    import httpx as _httpx
+    async with _httpx.AsyncClient(timeout=4) as client:
+        # Primary: ipinfo.io plain-text endpoint
+        try:
+            r = await client.get(f"https://ipinfo.io/{ip}/country",
+                                 headers={"Accept": "text/plain"})
             if r.status_code == 200:
-                return r.text.strip()
-    except Exception:
-        pass
+                code = r.text.strip().upper()
+                if len(code) == 2:
+                    return code
+        except Exception:
+            pass
+        # Fallback: ip-api.com (HTTP only on free tier)
+        try:
+            r = await client.get(f"http://ip-api.com/json/{ip}?fields=countryCode")
+            if r.status_code == 200:
+                code = r.json().get("countryCode", "US")
+                if len(code) == 2:
+                    return code
+        except Exception:
+            pass
     return "US"
 
 def get_pricing(product: str, country_code: str) -> dict:
@@ -2832,12 +3273,18 @@ def get_pricing(product: str, country_code: str) -> dict:
     return tiers.get(country_code, tiers.get("default"))
 
 @app.get("/pricing")
-async def get_pricing_for_user(product: str = "career_pathways", request: None = None):
-    from fastapi import Request
+async def get_pricing_for_user(product: str = "career_pathways"):
     return {"career_pathways": PRICING["career_pathways"], "certifications": PRICING["certifications"]}
 
 @app.post("/payments/detect-country")
-async def detect_country_endpoint(x_forwarded_for: str = Header(None), x_real_ip: str = Header(None)):
+async def detect_country_endpoint(
+    cf_ipcountry: str = Header(None, alias="CF-IPCountry"),
+    x_forwarded_for: str = Header(None),
+    x_real_ip: str = Header(None),
+):
+    # If Cloudflare is in front, use their header directly (no geo lookup needed)
+    if cf_ipcountry and len(cf_ipcountry) == 2:
+        return {"country_code": cf_ipcountry.upper()}
     ip = x_forwarded_for.split(",")[0].strip() if x_forwarded_for else (x_real_ip or "")
     country = await detect_country(ip)
     return {"country_code": country}
@@ -2856,7 +3303,7 @@ async def create_checkout(req: CreateCheckoutRequest):
     product      = req.product if req.product in ("career_pathways", "certifications") else "career_pathways"
     country_code = req.country_code.upper()
     pricing      = get_pricing(product, country_code)
-    gateway      = "razorpay" if (country_code == "IN" and product == "career_pathways") else "stripe"
+    gateway      = "razorpay" if RAZORPAY_KEY_ID else "stripe"
 
     if gateway == "stripe":
         if not STRIPE_SECRET_KEY:
@@ -2885,28 +3332,188 @@ async def create_checkout(req: CreateCheckoutRequest):
     else:  # razorpay
         if not RAZORPAY_KEY_ID:
             return {"gateway": "razorpay", "enabled": False, "message": "Payments not yet live"}
+        plan_id = pricing.get("razorpay_plan_id")
+        if not plan_id:
+            raise HTTPException(status_code=500, detail="No Razorpay plan configured for this pricing tier")
         try:
             import razorpay as rz
             client = rz.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
-            order = client.order.create({
-                "amount": pricing["amount"],
-                "currency": pricing["currency"],
-                "receipt": f"{req.student_id}_{product}",
-                "notes": {"student_id": req.student_id, "product": product},
+            # Get student email for Razorpay customer
+            conn = get_db()
+            student_row = conn.execute("SELECT name, email FROM students WHERE id = ?", (req.student_id,)).fetchone()
+            conn.close()
+            customer_name  = student_row["name"]  if student_row else "Student"
+            customer_email = student_row["email"] if student_row else ""
+            subscription = client.subscription.create({
+                "plan_id":       plan_id,
+                "total_count":   120,  # 10 years max; Razorpay requires a count
+                "quantity":      1,
+                "notes":         {"student_id": req.student_id, "product": product},
+                "notify_info":   {"notify_phone": "", "notify_email": customer_email},
             })
-            return {"gateway": "razorpay", "enabled": True, "order_id": order["id"],
-                    "key_id": RAZORPAY_KEY_ID, "amount": pricing["amount"], "currency": pricing["currency"]}
+            return {
+                "gateway":         "razorpay",
+                "enabled":         True,
+                "subscription_id": subscription["id"],
+                "key_id":          RAZORPAY_KEY_ID,
+                "amount":          pricing["amount"],
+                "currency":        pricing["currency"],
+                "customer_name":   customer_name,
+                "customer_email":  customer_email,
+            }
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/payments/stripe-webhook")
-async def stripe_webhook(request: None = None):
-    from fastapi import Request
+async def stripe_webhook(request: Request):
+    payload = await request.body()
+    sig = request.headers.get("stripe-signature", "")
+    webhook_secret = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+    try:
+        import stripe as stripe_lib
+        stripe_lib.api_key = STRIPE_SECRET_KEY
+        if webhook_secret:
+            event = stripe_lib.Webhook.construct_event(payload, sig, webhook_secret)
+        else:
+            import json
+            event = json.loads(payload)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        student_id = session.get("client_reference_id") or (session.get("metadata") or {}).get("student_id")
+        product    = (session.get("metadata") or {}).get("product", "career_pathways")
+        if student_id:
+            conn = get_db()
+            now = datetime.utcnow().isoformat()
+            existing = conn.execute("SELECT id FROM subscriptions WHERE student_id = ? AND product = ?", (student_id, product)).fetchone()
+            if existing:
+                conn.execute("UPDATE subscriptions SET status = 'active', payment_method = 'stripe', updated_at = ? WHERE student_id = ? AND product = ?",
+                             (now, student_id, product))
+            else:
+                conn.execute("INSERT INTO subscriptions (id, student_id, product, status, payment_method, started_at, updated_at) VALUES (?, ?, ?, 'active', 'stripe', ?, ?)",
+                             (str(__import__("uuid").uuid4()), student_id, product, now, now))
+            conn.execute(
+                "INSERT INTO payment_events (id, student_id, product, event_type, amount_cents, currency, gateway, gateway_payment_id, created_at) VALUES (?, ?, ?, 'payment', ?, ?, 'stripe', ?, ?)",
+                (str(__import__("uuid").uuid4()), student_id, product,
+                 session.get("amount_total") or 0,
+                 (session.get("currency") or "usd").lower(),
+                 session.get("payment_intent"), now)
+            )
+            conn.commit()
+            conn.close()
+
+    elif event["type"] in ("customer.subscription.deleted", "customer.subscription.paused"):
+        sub_obj    = event["data"]["object"]
+        student_id = (sub_obj.get("metadata") or {}).get("student_id")
+        product    = (sub_obj.get("metadata") or {}).get("product", "career_pathways")
+        if student_id:
+            conn = get_db()
+            conn.execute("UPDATE subscriptions SET status = 'expired', updated_at = ? WHERE student_id = ? AND product = ?",
+                         (datetime.utcnow().isoformat(), student_id, product))
+            conn.commit()
+            conn.close()
+
     return {"received": True}
 
 @app.post("/payments/razorpay-webhook")
-async def razorpay_webhook(request: None = None):
-    from fastapi import Request
+async def razorpay_webhook(request: Request):
+    import hmac, hashlib, json
+    payload = await request.body()
+    webhook_secret = os.environ.get("RAZORPAY_WEBHOOK_SECRET", "")
+    if webhook_secret:
+        sig = request.headers.get("x-razorpay-signature", "")
+        expected = hmac.new(webhook_secret.encode(), payload, hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(sig, expected):
+            raise HTTPException(status_code=400, detail="Invalid signature")
+    try:
+        event = json.loads(payload)
+    except Exception as e:
+        print(f"[razorpay-webhook] Failed to parse payload: {e}")
+        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+
+    event_type = event.get("event", "")
+
+    def _get_sub_notes(event):
+        sub = event.get("payload", {}).get("subscription", {}).get("entity", {})
+        return sub.get("notes", {}), sub.get("id"), sub.get("plan_id")
+
+    def _get_payment_entity(event):
+        return event.get("payload", {}).get("payment", {}).get("entity", {})
+
+    conn = get_db()
+    now  = datetime.utcnow()
+    now_iso = now.isoformat()
+    sub_end = (now + timedelta(days=32)).isoformat()  # ~1 month buffer
+
+    try:
+        if event_type in ("subscription.charged", "payment.captured"):
+            payment    = _get_payment_entity(event)
+            notes      = payment.get("notes", {})
+            # For subscription events, notes may be on the subscription entity
+            if not notes.get("student_id"):
+                notes, rzp_sub_id, _ = _get_sub_notes(event)
+            else:
+                rzp_sub_id = payment.get("subscription_id")
+            student_id = notes.get("student_id")
+            product    = notes.get("product", "career_pathways")
+            if student_id:
+                existing = conn.execute(
+                    "SELECT id FROM subscriptions WHERE student_id = ? AND product = ?",
+                    (student_id, product)).fetchone()
+                if existing:
+                    conn.execute(
+                        "UPDATE subscriptions SET status='active', payment_method='razorpay', subscription_end=?, gateway_subscription_id=?, updated_at=? WHERE student_id=? AND product=?",
+                        (sub_end, rzp_sub_id, now_iso, student_id, product))
+                else:
+                    conn.execute(
+                        "INSERT INTO subscriptions (id, student_id, product, status, payment_method, started_at, subscription_end, gateway_subscription_id, created_at, updated_at) VALUES (?,?,?,'active','razorpay',?,?,?,?,?)",
+                        (str(uuid.uuid4()), student_id, product, now_iso, sub_end, rzp_sub_id, now_iso, now_iso))
+                conn.execute(
+                    "INSERT INTO payment_events (id, student_id, product, event_type, amount_cents, currency, gateway, gateway_payment_id, created_at) VALUES (?,?,?,'payment',?,?,'razorpay',?,?)",
+                    (str(uuid.uuid4()), student_id, product,
+                     payment.get("amount") or 0,
+                     (payment.get("currency") or "inr").lower(),
+                     payment.get("id"), now_iso))
+                conn.commit()
+
+                # Send payment confirmation email
+                student_row = conn.execute("SELECT name, email FROM students WHERE id = ?", (student_id,)).fetchone()
+                if student_row and student_row["email"]:
+                    first         = student_row["name"].split()[0]
+                    product_label = "Certifications" if product == "certifications" else "Career Pathways"
+                    currency      = (payment.get("currency") or "INR").upper()
+                    amount_raw    = payment.get("amount") or 0
+                    amount_disp   = f"₹{amount_raw // 100}" if currency == "INR" else f"${amount_raw / 100:.0f}"
+                    renewal_date  = (now + timedelta(days=30)).strftime("%-d %B %Y")
+                    body = (
+                        _heading(f"You're subscribed, {first}! 🎉") +
+                        _para(f"Your payment of <strong>{amount_disp}/month</strong> for Bversity {product_label} was successful. "
+                              f"Your subscription is now active and will renew on <strong>{renewal_date}</strong>.") +
+                        _btn("Continue Learning →", "https://university.bversity.io") +
+                        _divider() +
+                        _para("Your progress, certificates, and learning history are all saved. "
+                              "Pick up exactly where you left off.") +
+                        _small("Questions about your subscription? Reply to this email or contact sudharsan@bversity.io")
+                    )
+                    import asyncio as _asyncio
+                    _asyncio.create_task(_send_email(student_row["email"], f"Payment confirmed — welcome to Bversity {product_label}!", _email_wrap(body)))
+
+        elif event_type in ("subscription.halted", "subscription.cancelled"):
+            notes, _, _ = _get_sub_notes(event)
+            student_id = notes.get("student_id")
+            product    = notes.get("product", "career_pathways")
+            if student_id:
+                conn.execute(
+                    "UPDATE subscriptions SET status='expired', updated_at=? WHERE student_id=? AND product=?",
+                    (now_iso, student_id, product))
+                conn.commit()
+    except Exception as e:
+        print(f"[razorpay-webhook] ERROR processing event '{event_type}': {e}")
+        conn.rollback()
+    finally:
+        conn.close()
     return {"received": True}
 
 # ── Subscription status ───────────────────────────────────────────────────────
@@ -2923,7 +3530,9 @@ def get_subscription(student_id: str, product: str):
     now = datetime.utcnow().isoformat()
     if sub["status"] == "trial" and sub["trial_end"] and sub["trial_end"] < now:
         return {"status": "expired", "trial_end": sub["trial_end"]}
-    return {"status": sub["status"], "trial_end": sub["trial_end"]}
+    if sub["status"] == "active" and sub["subscription_end"] and sub["subscription_end"] < now:
+        return {"status": "expired", "subscription_end": sub["subscription_end"]}
+    return {"status": sub["status"], "trial_end": sub["trial_end"], "subscription_end": sub["subscription_end"]}
 
 # ── Admin: extend trial ───────────────────────────────────────────────────────
 
@@ -2969,7 +3578,7 @@ def get_platform_config(x_admin_key: str = Header(None)):
 
 class PlatformConfigUpdate(BaseModel):
     mode: str
-    trial_days: int = 15
+    trial_days: int = 5
 
 @app.put("/admin/platform-config/{product}")
 def update_platform_config(product: str, body: PlatformConfigUpdate, x_admin_key: str = Header(None)):
@@ -2993,6 +3602,7 @@ def update_platform_config(product: str, body: PlatformConfigUpdate, x_admin_key
 def admin_students(x_admin_key: str = Header(None)):
     require_admin(x_admin_key)
     conn = get_db()
+    now_iso = datetime.utcnow().isoformat()
     rows = conn.execute("""
         SELECT
             s.id, s.name, s.email, s.created_at,
@@ -3004,9 +3614,13 @@ def admin_students(x_admin_key: str = Header(None)):
             (SELECT COUNT(*) FROM concept_progress cp WHERE cp.student_id = s.id) AS concepts_covered,
             (SELECT COUNT(*) FROM concept_progress cp WHERE cp.student_id = s.id AND cp.mastered_at IS NOT NULL) AS concepts_mastered,
             (SELECT MAX(created_at) FROM messages m WHERE m.student_id = s.id) AS last_active,
-            (SELECT COUNT(DISTINCT DATE(created_at)) FROM messages m WHERE m.student_id = s.id AND m.role = 'user') AS days_active
+            (SELECT COUNT(DISTINCT DATE(created_at)) FROM messages m WHERE m.student_id = s.id AND m.role = 'user') AS days_active,
+            sub.status AS sub_status,
+            sub.trial_end AS sub_trial_end,
+            sub.payment_method AS sub_payment_method
         FROM students s
         LEFT JOIN student_profile sp ON sp.student_id = s.id
+        LEFT JOIN subscriptions sub ON sub.student_id = s.id
         WHERE s.email NOT LIKE '%@bversity.alumni'
         ORDER BY s.created_at DESC
     """).fetchall()
@@ -3020,6 +3634,17 @@ def admin_students(x_admin_key: str = Header(None)):
         d["career_cluster"] = career["cluster"] if career else None
         cid = d.get("career_id") or ""
         d["region"] = "us" if cid.startswith("us_") else "india"
+        # Resolve effective subscription status
+        raw = d.get("sub_status")
+        trial_end = d.get("sub_trial_end")
+        if raw == "active":
+            d["access_status"] = "active"
+        elif raw == "trial":
+            d["access_status"] = "trial" if (trial_end and trial_end > now_iso) else "expired"
+        elif raw in ("expired", "cancelled"):
+            d["access_status"] = raw
+        else:
+            d["access_status"] = "no_subscription"
         result.append(d)
     return result
 
@@ -3107,7 +3732,7 @@ def admin_student_detail(student_id: str, x_admin_key: str = Header(None)):
         timeline.append({"type": "subject_completed", "at": r["completed_at"], "subject_id": r["subject_id"]})
     for r in conn.execute("SELECT from_career_id, to_career_id, reason, changed_at FROM career_changes WHERE student_id = ? ORDER BY changed_at", (student_id,)).fetchall():
         timeline.append({"type": "career_change", "at": r["changed_at"], "from": r["from_career_id"], "to": r["to_career_id"], "reason": r["reason"]})
-    timeline.sort(key=lambda x: x["at"])
+    timeline.sort(key=lambda x: x["at"] or "")
 
     # ── Quiz results ──────────────────────────────────────────────────────────
     quizzes = [dict(r) for r in conn.execute(
@@ -3141,6 +3766,8 @@ def admin_student_detail(student_id: str, x_admin_key: str = Header(None)):
         (student_id,)
     ).fetchall()
 
+    archetype_row = conn.execute("SELECT * FROM archetype_scores WHERE student_id = ?", (student_id,)).fetchone()
+
     conn.close()
 
     return {
@@ -3168,6 +3795,7 @@ def admin_student_detail(student_id: str, x_admin_key: str = Header(None)):
         "study_plan": study_plan,
         "daily_activity": [dict(r) for r in daily],
         "retention": _calc_student_retention(msgs),
+        "archetype": dict(archetype_row) if archetype_row else {},
     }
 
 def _calc_student_retention(msgs):
@@ -3493,7 +4121,7 @@ def get_community_map():
 
 @app.post("/profile/{student_id}")
 def set_profile(student_id: str, req: ProfileRequest):
-    if req.career_id not in CAREERS:
+    if req.career_id not in CAREERS and req.career_id not in SUBJECTS:
         raise HTTPException(status_code=400, detail="Invalid career_id")
     conn = get_db()
     existing = conn.execute("SELECT career_id FROM student_profile WHERE student_id = ?", (student_id,)).fetchone()
@@ -3503,12 +4131,11 @@ def set_profile(student_id: str, req: ProfileRequest):
     )
     # Generate study plan on first career selection or career change
     has_plan = conn.execute("SELECT 1 FROM study_plan WHERE student_id = ? LIMIT 1", (student_id,)).fetchone()
-    if not has_plan or (existing and existing["career_id"] != req.career_id):
+    if req.career_id in CAREERS and (not has_plan or (existing and existing["career_id"] != req.career_id)):
         _generate_study_plan(student_id, req.career_id, conn)
     conn.commit(); conn.close()
-    if req.career_id not in CAREERS:
-        raise HTTPException(status_code=400, detail="Invalid career_id")
-    return {"career_id": req.career_id, "career": CAREERS[req.career_id]}
+    career = CAREERS.get(req.career_id) or {"id": req.career_id, "name": SUBJECTS[req.career_id]["name"]}
+    return {"career_id": req.career_id, "career": career}
 
 class CareerChangeLogRequest(BaseModel):
     from_career_id: str = ""
@@ -3649,7 +4276,62 @@ class ConceptVideoRequest(BaseModel):
 def get_curriculum(subject_id: str):
     if subject_id not in CURRICULUM:
         raise HTTPException(status_code=404, detail="Unknown subject")
-    return [{"id": c["id"], "name": c["name"]} for c in CURRICULUM[subject_id]]
+    return [{"id": c["id"], "name": c["name"], "desc": c.get("desc", "")} for c in CURRICULUM[subject_id]]
+
+@app.get("/curriculum")
+def get_all_curriculum():
+    return {
+        sid: [{"id": c["id"], "name": c["name"], "desc": c.get("desc", "")} for c in concepts]
+        for sid, concepts in CURRICULUM.items()
+    }
+
+@app.get("/concept-progress/{student_id}")
+def get_concept_progress(student_id: str):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT subject_id, concept_id, mastered_at FROM concept_progress WHERE student_id = ?",
+        (student_id,)
+    ).fetchall()
+    conn.close()
+    result = {}
+    for row in rows:
+        result[row["concept_id"]] = {
+            "covered": True,
+            "mastered": row["mastered_at"] is not None
+        }
+    return result
+
+@app.get("/subject-videos/{subject_id}")
+def get_subject_videos(subject_id: str):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT id, title, drive_url, order_index FROM subject_videos WHERE subject_id = ? ORDER BY order_index ASC",
+        (subject_id,)
+    ).fetchall()
+    conn.close()
+    return [{"id": r["id"], "title": r["title"], "drive_url": r["drive_url"], "order_index": r["order_index"]} for r in rows]
+
+
+@app.get("/concept-summaries/{subject_id}")
+def get_concept_summaries(subject_id: str):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT concept_id, what, why, key_points, real_world, interview_q FROM concept_summaries WHERE subject_id = ?",
+        (subject_id,)
+    ).fetchall()
+    conn.close()
+    import json
+    result = {}
+    for row in rows:
+        result[row["concept_id"]] = {
+            "what": row["what"],
+            "why": row["why"],
+            "key_points": json.loads(row["key_points"]),
+            "real_world": row["real_world"],
+            "interview_q": row["interview_q"],
+        }
+    return result
+
 
 @app.get("/concept-videos")
 def get_all_concept_videos():
@@ -4094,6 +4776,7 @@ def save_lab_step(student_id: str, project_id: str, req: LabStepReq):
 
 @app.post("/labs/{student_id}/{project_id}/submit")
 async def submit_lab(student_id: str, project_id: str, req: LabSubmitReq):
+    check_rate_limit(student_id)
     import anthropic
     client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
     rubric_text = "\n".join(f"- {r}" for r in req.rubric)
@@ -4152,6 +4835,7 @@ async def submit_lab_file(
     subject_id: str = Form(...),
     rubric: str = Form(...),
 ):
+    check_rate_limit(student_id)
     import anthropic
     rubric_list = json.loads(rubric)
     content = await file.read()
@@ -4237,6 +4921,7 @@ class LabAssistReq(BaseModel):
 
 @app.post("/labs/{student_id}/assist")
 async def lab_assist(student_id: str, req: LabAssistReq):
+    check_rate_limit(student_id)
     import anthropic
     client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
     system = f"""You are {req.tutor_name}, {req.tutor_role}. A student is working on an Industry Innovation Lab project titled "{req.project_title}".
@@ -4253,7 +4938,7 @@ Keep responses concise  -  3-5 sentences max unless they ask for a detailed expl
 
     messages = [{"role": m["role"], "content": m["content"]} for m in req.messages if m.get("role") in ("user", "assistant")]
     response = client.messages.create(
-        model="claude-sonnet-4-6",
+        model="claude-haiku-4-5-20251001",
         max_tokens=600,
         system=system,
         messages=messages,
@@ -4438,15 +5123,15 @@ def analytics_cohort(x_admin_key: str = Header(None)):
     week_ago  = (now - timedelta(days=7)).isoformat()
     month_ago = (now - timedelta(days=30)).isoformat()
 
-    total_students = conn.execute("SELECT COUNT(*) FROM students").fetchone()[0]
+    total_students = conn.execute("SELECT COUNT(*) FROM students WHERE email NOT LIKE '%@bversity.alumni'").fetchone()[0]
 
     active_this_week = conn.execute(
-        "SELECT COUNT(DISTINCT student_id) FROM messages WHERE role='user' AND created_at>=?",
+        "SELECT COUNT(DISTINCT m.student_id) FROM messages m JOIN students s ON s.id=m.student_id WHERE m.role='user' AND m.created_at>=? AND s.email NOT LIKE '%@bversity.alumni'",
         (week_ago,)
     ).fetchone()[0]
 
     active_this_month = conn.execute(
-        "SELECT COUNT(DISTINCT student_id) FROM messages WHERE role='user' AND created_at>=?",
+        "SELECT COUNT(DISTINCT m.student_id) FROM messages m JOIN students s ON s.id=m.student_id WHERE m.role='user' AND m.created_at>=? AND s.email NOT LIKE '%@bversity.alumni'",
         (month_ago,)
     ).fetchone()[0]
 
@@ -4741,6 +5426,24 @@ def analytics_concept_difficulty(x_admin_key: str = Header(None)):
         result.append(d)
     return result
 
+@app.get("/admin/analytics/concept-reactions")
+def analytics_concept_reactions(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    rows = conn.execute("""
+        SELECT subject_id, concept_title,
+            SUM(CASE WHEN value = 'up'   THEN 1 ELSE 0 END) AS thumbs_up,
+            SUM(CASE WHEN value = 'down' THEN 1 ELSE 0 END) AS thumbs_down,
+            COUNT(*) AS total
+        FROM concept_feedback
+        GROUP BY subject_id, concept_title
+        HAVING total >= 1
+        ORDER BY thumbs_down DESC, total DESC
+        LIMIT 50
+    """).fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
 # ── Batch email endpoints ─────────────────────────────────────────────────────
 
 @app.get("/admin/email-preview")
@@ -4785,14 +5488,28 @@ async def check_trial_expiry(background_tasks: BackgroundTasks, x_admin_key: str
     require_admin(x_admin_key)
     conn = get_db()
     now = datetime.utcnow()
-    tomorrow = (now + timedelta(days=1)).isoformat()
-    # Find trials expiring within 24 hours that haven't been warned
-    warning_subs = conn.execute("""
+    in_2_days = (now + timedelta(days=2)).isoformat()
+    in_1_day  = (now + timedelta(days=1)).isoformat()
+
+    # 2-day warning: trials expiring in 24–48 hours (skip if already warned)
+    warning_2d = conn.execute("""
         SELECT sub.*, s.email, s.name
         FROM subscriptions sub JOIN students s ON s.id = sub.student_id
         WHERE sub.status = 'trial' AND sub.trial_end <= ? AND sub.trial_end > ?
-    """, (tomorrow, now.isoformat())).fetchall()
-    # Find expired trials still marked as 'trial'
+          AND sub.warning_2d_sent IS NULL
+          AND s.email NOT LIKE '%@bversity.alumni'
+    """, (in_2_days, in_1_day)).fetchall()
+
+    # 1-day warning: trials expiring within 24 hours (skip if already warned)
+    warning_1d = conn.execute("""
+        SELECT sub.*, s.email, s.name
+        FROM subscriptions sub JOIN students s ON s.id = sub.student_id
+        WHERE sub.status = 'trial' AND sub.trial_end <= ? AND sub.trial_end > ?
+          AND sub.warning_1d_sent IS NULL
+          AND s.email NOT LIKE '%@bversity.alumni'
+    """, (in_1_day, now.isoformat())).fetchall()
+
+    # Mark expired
     expired_subs = conn.execute("""
         SELECT id FROM subscriptions WHERE status = 'trial' AND trial_end < ?
     """, (now.isoformat(),)).fetchall()
@@ -4801,23 +5518,37 @@ async def check_trial_expiry(background_tasks: BackgroundTasks, x_admin_key: str
                      (now.isoformat(), sub["id"]))
     conn.commit()
     conn.close()
+
     warned = 0
-    for sub in warning_subs:
+    conn2 = get_db()
+    for sub, days_left, label, warn_col in (
+        [(s, 2, "2 days",   "warning_2d_sent") for s in warning_2d] +
+        [(s, 1, "tomorrow", "warning_1d_sent") for s in warning_1d]
+    ):
         product_label = "Certifications" if sub["product"] == "certifications" else "Career Pathways"
+        price_line    = "₹799/month for India, $29/month elsewhere" if sub["product"] == "career_pathways" else "$29/month"
         first = sub["name"].split()[0]
+        subject_line  = f"Your Bversity trial ends in {label}" if days_left == 2 else "Your Bversity trial ends tomorrow"
         body = (
-            _heading(f"Your {product_label} trial ends tomorrow, {first}") +
-            _para(f"Your 15-day free trial of Bversity {product_label} ends tomorrow. "
-                  "After that, your account will be locked until you subscribe.") +
-            _btn("Continue Learning — Subscribe Now →", "https://university.bversity.io") +
+            _heading(f"Your trial ends in {label}, {first}") +
+            _para(f"Your 5-day free trial of Bversity {product_label} ends in <strong>{label}</strong>. "
+                  f"Subscribe now to keep your progress and continue learning without interruption.") +
+            _btn("Subscribe Now →", "https://university.bversity.io") +
             _divider() +
-            _para("Career Pathways is <strong>₹299/month</strong> for India, <strong>$29/month</strong> elsewhere. "
-                  "Certifications is <strong>$29/month</strong>.") +
+            _para(f"Bversity {product_label} is <strong>{price_line}</strong>. Cancel anytime.") +
             _small("Questions? Reply to this email or contact sudharsan@bversity.io")
         )
-        ok = await _send_email(sub["email"], f"Your Bversity trial ends tomorrow", _email_wrap(body))
+        ok = await _send_email(sub["email"], subject_line, _email_wrap(body))
         if ok:
             warned += 1
+            allowed_cols = {"warning_2d_sent", "warning_1d_sent"}
+            if warn_col not in allowed_cols:
+                continue
+            conn2.execute(f"UPDATE subscriptions SET {warn_col} = ? WHERE id = ?",  # noqa: S608 — col validated above
+                          (now.isoformat(), sub["id"]))
+            conn2.commit()
+    conn2.close()
+
     return {"warned": warned, "expired": len(expired_subs)}
 
 @app.post("/admin/send-nudges")
@@ -4969,7 +5700,7 @@ Return ONLY valid JSON (no markdown, no preamble) in this exact structure:
         import anthropic
         client = anthropic.Anthropic(api_key=api_key)
         message = client.messages.create(
-            model="claude-sonnet-4-6",
+            model="claude-haiku-4-5-20251001",
             max_tokens=2000,
             messages=[{"role": "user", "content": prompt}]
         )
@@ -5259,6 +5990,18 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
         conn.close()
         raise HTTPException(status_code=404, detail="Student not found")
 
+    # ── Subscription gate ────────────────────────────────────────────────────
+    product = "certifications" if req.subject_id.startswith("us_") else "career_pathways"
+    sub = conn.execute("SELECT status, trial_end FROM subscriptions WHERE student_id = ? AND product = ?", (req.student_id, product)).fetchone()
+    if sub:
+        now_iso = datetime.utcnow().isoformat()
+        if sub["status"] == "trial" and sub["trial_end"] and sub["trial_end"] < now_iso:
+            conn.close()
+            raise HTTPException(status_code=402, detail="trial_expired")
+        if sub["status"] == "expired":
+            conn.close()
+            raise HTTPException(status_code=402, detail="subscription_expired")
+
     subject = SUBJECTS[req.subject_id]
     profile_row = conn.execute("SELECT career_id FROM student_profile WHERE student_id = ?", (req.student_id,)).fetchone()
     career = CAREERS.get(profile_row["career_id"]) if profile_row and profile_row["career_id"] else None
@@ -5285,8 +6028,8 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
         (req.student_id, req.subject_id),
     ).fetchall()
     is_first_visit = len(history_rows) == 0
-    history = [{"role": r["role"], "content": r["content"]} for r in history_rows]
-    history.append({"role": "user", "content": req.message})
+    # Keep only the last 20 messages to limit input tokens
+    history = [{"role": r["role"], "content": r["content"]} for r in history_rows[-20:]]
 
     progress_rows = conn.execute(
         "SELECT concept_id, mastered_at FROM concept_progress WHERE student_id = ? AND subject_id = ?",
@@ -5295,16 +6038,33 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
     covered_ids  = [r["concept_id"] for r in progress_rows]
     mastered_ids = [r["concept_id"] for r in progress_rows if r["mastered_at"]]
 
-    conn.execute(
-        "INSERT INTO messages (student_id, subject_id, role, content, created_at) VALUES (?, ?, ?, ?, ?)",
-        (req.student_id, req.subject_id, "user", req.message, datetime.utcnow().isoformat()),
-    )
-    conn.commit()
+    if not req.auto_open:
+        history.append({"role": "user", "content": req.message})
+        conn.execute(
+            "INSERT INTO messages (student_id, subject_id, role, content, created_at) VALUES (?, ?, ?, ?, ?)",
+            (req.student_id, req.subject_id, "user", req.message, datetime.utcnow().isoformat()),
+        )
+        conn.commit()
+    else:
+        # auto_open: AI speaks first — inject a silent trigger so Claude generates an opening
+        history.append({"role": "user", "content": "[session_open]"})
     new_streak = update_streak(req.student_id, conn)
 
     rag_context    = retrieve_context(req.subject_id, req.message, conn)
     using_rag      = bool(rag_context)
     session_memory = get_session_memory(req.student_id, req.subject_id, conn)
+
+    # Detect unanswered question: on auto_open, if last saved message is from the AI and
+    # ends with a bold question (**...**?), the student left before answering.
+    pending_question = ""
+    if req.auto_open and history_rows:
+        last_row = history_rows[-1]
+        if last_row["role"] == "assistant":
+            import re as _re
+            # Bold question: **text?** possibly followed by whitespace
+            bq = _re.search(r'\*\*([^*]+\?[^*]*)\*\*\s*$', last_row["content"].strip())
+            if bq:
+                pending_question = bq.group(1).strip()
 
     notes_rows = conn.execute(
         "SELECT concept_id, notes FROM concept_notes WHERE subject_id = ?",
@@ -5312,25 +6072,65 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
     ).fetchall()
     concept_notes_map = {r["concept_id"]: r["notes"] for r in notes_rows if r["notes"].strip()}
 
+    # Load learner archetype for personalised tutor instruction
+    archetype_row = conn.execute("SELECT archetype FROM archetype_scores WHERE student_id = ?", (req.student_id,)).fetchone()
+    archetype_key = archetype_row["archetype"] if archetype_row else None
+    archetype_instruction = ""
+    if archetype_key and archetype_key in ARCHETYPES:
+        archetype_instruction = "\n\n## Learner Archetype\n" + ARCHETYPES[archetype_key]["tutor_instruction"]
+
     if req.quiz_mode:
         system = build_quiz_prompt(subject, student["name"], covered_ids, mastered_ids, career)
     elif req.recall_warmup:
-        base_system = build_system_prompt(subject, student["name"], is_first_visit, covered_ids, mastered_ids, rag_context, career, session_memory, concept_notes_map)
-        system = base_system + RECALL_WARMUP_SUFFIX.format(student_name=student["name"])
+        base_system = build_system_prompt(subject, student["name"], is_first_visit, covered_ids, mastered_ids, rag_context, career, session_memory, concept_notes_map, pending_question)
+        system = base_system + RECALL_WARMUP_SUFFIX.format(student_name=student["name"]) + archetype_instruction
     else:
-        system = build_system_prompt(subject, student["name"], is_first_visit, covered_ids, mastered_ids, rag_context, career, session_memory, concept_notes_map)
+        system = build_system_prompt(subject, student["name"], is_first_visit, covered_ids, mastered_ids, rag_context, career, session_memory, concept_notes_map, pending_question) + archetype_instruction
 
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if api_key:
-        try:
-            import anthropic
-            client = anthropic.Anthropic(api_key=api_key)
-            response = client.messages.create(
-                model="claude-sonnet-4-6", max_tokens=2048, system=system, messages=history,
-            )
-            raw_reply = response.content[0].text
-        except Exception as e:
-            raw_reply = f"Error connecting to AI: {str(e)}"
+        import anthropic
+        import asyncio
+        import logging
+        client = anthropic.Anthropic(api_key=api_key)
+        raw_reply = None
+        for attempt in range(4):
+            try:
+                response = await asyncio.get_running_loop().run_in_executor(
+                    None,
+                    lambda: client.messages.create(
+                        model="claude-haiku-4-5-20251001", max_tokens=1024,
+                        system=[{"type": "text", "text": system, "cache_control": {"type": "ephemeral"}}],
+                        messages=history,
+                    )
+                )
+                raw_reply = response.content[0].text
+                _anthropic_status["ok"] = True
+                _anthropic_status["error"] = None
+                _anthropic_status["checked_at"] = datetime.utcnow().isoformat()
+                break
+            except anthropic.RateLimitError as e:
+                logging.warning(f"Anthropic RateLimitError attempt {attempt}: {e}")
+                _anthropic_status.update({"ok": False, "error": f"Rate limit (429): {e}", "checked_at": datetime.utcnow().isoformat()})
+                if attempt < 3:
+                    await asyncio.sleep(2 ** attempt)
+                else:
+                    raw_reply = "I'm a little busy right now — too many learners at once! Please send your message again in a few seconds and I'll be right with you."
+            except anthropic.APIStatusError as e:
+                logging.warning(f"Anthropic APIStatusError attempt {attempt}: status={e.status_code} {e}")
+                _anthropic_status.update({"ok": False, "error": f"API error ({e.status_code}): {e.message}", "checked_at": datetime.utcnow().isoformat()})
+                if e.status_code in (529, 503, 500) and attempt < 3:
+                    await asyncio.sleep(2 ** attempt)
+                else:
+                    raw_reply = "I'm a little busy right now — please try again in a moment."
+                    break
+            except Exception as e:
+                logging.error(f"Anthropic unexpected error attempt {attempt}: {type(e).__name__}: {e}")
+                _anthropic_status.update({"ok": False, "error": f"{type(e).__name__}: {e}", "checked_at": datetime.utcnow().isoformat()})
+                raw_reply = "I ran into a hiccup. Please try sending your message again."
+                break
+        if raw_reply is None:
+            raw_reply = "I'm a little busy right now — please try again in a moment."
     else:
         raw_reply = MOCK_RESPONSES.get(req.subject_id, "Mock response.")
 
@@ -5444,6 +6244,14 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
                 send_streak_milestone_email,
                 student_row3["email"], student_row3["name"], new_streak, career
             )
+
+    # Score archetype at 5 messages then every 10 after that
+    user_msg_count = conn.execute(
+        "SELECT COUNT(*) FROM messages WHERE student_id = ? AND subject_id = ? AND role = 'user'",
+        (req.student_id, req.subject_id)
+    ).fetchone()[0]
+    if user_msg_count == 5 or (user_msg_count > 5 and user_msg_count % 10 == 0):
+        background_tasks.add_task(score_session_archetype, req.student_id, req.subject_id)
 
     conn.close()
 
@@ -5609,6 +6417,223 @@ def waitlist_count():
     conn.close()
     return {"count": count}
 
+# ── Learner Archetype Scoring ─────────────────────────────────────────────────
+
+ARCHETYPES = {
+    "challenger": {
+        "label": "The Challenger",
+        "color": "#6366f1",
+        "emoji": "⚔️",
+        "description": "Pushes back, debates, needs friction to stay engaged",
+        "tutor_instruction": (
+            "This learner is a Challenger. They engage best with friction, not answers. "
+            "Pose problems rather than explaining solutions. Introduce deliberate contrarian positions "
+            "and let them argue their way to the truth. If they push back, engage seriously — "
+            "never concede just to be agreeable. Ask 'what do you think is wrong with that reasoning?' "
+            "before giving your own view."
+        ),
+    },
+    "credential_hunter": {
+        "label": "The Credential Hunter",
+        "color": "#0066CC",
+        "emoji": "🎯",
+        "description": "Exam-focused, strategic, wants exactly what they need to pass",
+        "tutor_instruction": (
+            "This learner is a Credential Hunter. They respond to explicit exam relevance. "
+            "Frame every concept with 'this is how the exam tests this' and 'this is the question "
+            "that trips candidates up.' Make depth feel strategic, not academic. "
+            "Use phrases like 'knowing this gives you an edge over candidates who only memorise the definition.'"
+        ),
+    },
+    "scattered_genius": {
+        "label": "The Scattered Genius",
+        "color": "#f59e0b",
+        "emoji": "🌪️",
+        "description": "High curiosity, wide breadth, struggles to consolidate and finish",
+        "tutor_instruction": (
+            "This learner is a Scattered Genius. They're brilliant but scattered — use their own "
+            "curiosity as a hook to keep them on track. When they jump topics, connect the tangent "
+            "back: 'that's a great question — and it's exactly why we need to finish X first.' "
+            "Create explicit 'breadcrumb' moments: 'remember that question you asked earlier? "
+            "This is the answer.' Make consolidation feel like a discovery, not a chore."
+        ),
+    },
+    "imposter": {
+        "label": "The Imposter",
+        "color": "#ec4899",
+        "emoji": "🌱",
+        "description": "High anxiety, avoids evaluation, needs safety to engage deeply",
+        "tutor_instruction": (
+            "This learner shows Imposter syndrome traits. Never evaluate — always explore together. "
+            "Reframe every wrong answer as 'that's the most common misconception, here's why it feels right.' "
+            "Avoid phrases like 'actually' or 'that's incorrect.' Use 'interesting — most people think that too, "
+            "here's what's surprising.' Make confusion feel like evidence of intelligence, not failure. "
+            "Never ask them to judge their own understanding — instead ask 'what's the murkiest part?'"
+        ),
+    },
+    "professional_upgrader": {
+        "label": "The Professional Upgrader",
+        "color": "#10b981",
+        "emoji": "🔧",
+        "description": "Already in the field, time-constrained, wants peer-level exchange",
+        "tutor_instruction": (
+            "This learner is a Professional Upgrader — already working in the industry. "
+            "Treat them as a peer, not a student. Lead with application, skip fundamentals they know. "
+            "Reference their professional context explicitly: 'given your background, the part that's "
+            "actually new here is...' Ask them what they're seeing in their current role — "
+            "their real-world experience is a resource, not a distraction. Keep sessions tight and dense."
+        ),
+    },
+    "ghost": {
+        "label": "The Ghost",
+        "color": "#94a3b8",
+        "emoji": "👻",
+        "description": "High initial intent, sporadic sessions, needs re-entry friction removed",
+        "tutor_instruction": (
+            "This learner has Ghost tendencies — they disappear and feel like they're starting over. "
+            "Begin every session with explicit acknowledgment of their progress: 'last time we covered X, "
+            "and you were close to understanding Y.' Make re-entry feel frictionless, not like a failure. "
+            "Set small session goals explicitly: 'today let's just do one thing.' "
+            "Celebrate showing up as much as progress made."
+        ),
+    },
+}
+
+def _derive_archetype(scores: dict, session_regularity: float) -> str:
+    qd  = scores.get("question_depth", 0)
+    ef  = scores.get("exam_focus", 0)
+    am  = scores.get("anxiety_markers", 0)
+    tj  = scores.get("topic_jumping", 0)
+    cs  = scores.get("challenge_seeking", 0)
+    pa  = scores.get("practical_anchoring", 0)
+    mp  = scores.get("mastery_push", 0)
+
+    archetype_scores = {
+        "challenger":          cs * 1.5 + qd * 0.8 + (3 - am) * 0.5,
+        "credential_hunter":   ef * 1.5 + mp * 0.8 + (3 - tj) * 0.5,
+        "scattered_genius":    tj * 1.5 + qd * 0.8 + (3 - mp) * 0.5,
+        "imposter":            am * 1.5 + (3 - cs) * 0.8 + (3 - qd) * 0.3,
+        "professional_upgrader": pa * 1.5 + qd * 0.7 + (3 - ef) * 0.5,
+        "ghost":               (3 - session_regularity) * 2.0,
+    }
+    return max(archetype_scores, key=archetype_scores.get)
+
+_SCORING_PROMPT = """You are analysing a tutoring session to understand how this learner approaches learning.
+
+Session transcript (student messages only shown):
+{transcript}
+
+Score this learner on each dimension from 0 to 3:
+- 0 = not observed / opposite
+- 1 = slight signal
+- 2 = clear signal
+- 3 = strong signal
+
+Dimensions:
+1. question_depth: Are questions surface-level ("what is X?") or synthesis-level ("why does X lead to Y in context Z?")?
+2. exam_focus: Do they reference exams, certifications, marks, or "what do I need to know"?
+3. anxiety_markers: Hedging ("I might be wrong"), apologising, asking for reassurance, avoiding being evaluated?
+4. topic_jumping: Do they jump between topics within a session rather than going deep on one?
+5. challenge_seeking: Do they push back on explanations, ask counter-questions, debate the tutor?
+6. practical_anchoring: Do they connect concepts to their real job, current work, or practical scenarios?
+7. mastery_push: Do they ask follow-up questions until they truly understand, or accept first answers?
+
+Respond ONLY with valid JSON:
+{{"question_depth": 0-3, "exam_focus": 0-3, "anxiety_markers": 0-3, "topic_jumping": 0-3, "challenge_seeking": 0-3, "practical_anchoring": 0-3, "mastery_push": 0-3, "reasoning": "1-2 sentence observation about this learner"}}"""
+
+async def score_session_archetype(student_id: str, subject_id: str):
+    try:
+        conn = get_db()
+        msgs = conn.execute("""
+            SELECT role, content, created_at FROM messages
+            WHERE student_id = ? AND subject_id = ?
+            ORDER BY created_at DESC LIMIT 40
+        """, (student_id, subject_id)).fetchall()
+
+        user_msgs = [m for m in msgs if m["role"] == "user"]
+        if len(user_msgs) < 3:
+            conn.close()
+            return
+
+        transcript = "\n".join(f"Student: {m['content'][:300]}" for m in user_msgs[-15:])
+        prompt = _SCORING_PROMPT.format(transcript=transcript)
+
+        api_key = os.environ.get("ANTHROPIC_API_KEY")
+        if not api_key:
+            conn.close()
+            return
+
+        client = anthropic.Anthropic(api_key=api_key)
+        response = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=300,
+            messages=[{"role": "user", "content": prompt}],
+        )
+        raw = response.content[0].text.strip()
+        data = json.loads(raw)
+
+        # compute session regularity from message gaps
+        all_dates = conn.execute("""
+            SELECT DISTINCT DATE(created_at) FROM messages
+            WHERE student_id = ? AND role = 'user'
+            ORDER BY created_at
+        """, (student_id,)).fetchall()
+        date_list = [r[0] for r in all_dates]
+        if len(date_list) >= 2:
+            from datetime import date as dt_date
+            gaps = [(datetime.strptime(date_list[i+1], "%Y-%m-%d") - datetime.strptime(date_list[i], "%Y-%m-%d")).days
+                    for i in range(len(date_list)-1)]
+            avg_gap = sum(gaps) / len(gaps)
+            session_regularity = max(0, min(3, 3 - (avg_gap - 1) * 0.3))
+        else:
+            session_regularity = 0.0
+
+        # weighted rolling average with existing scores
+        existing = conn.execute("SELECT * FROM archetype_scores WHERE student_id = ?", (student_id,)).fetchone()
+        n = existing["sessions_scored"] if existing else 0
+        weight_new = 1.0 / (n + 1)
+        weight_old = n / (n + 1) if n > 0 else 0
+
+        dims = ["question_depth","exam_focus","anxiety_markers","topic_jumping","challenge_seeking","practical_anchoring","mastery_push"]
+        new_scores = {}
+        for d in dims:
+            old_val = existing[d] if existing else 0
+            new_val = float(data.get(d, 0))
+            new_scores[d] = round(old_val * weight_old + new_val * weight_new, 2)
+
+        archetype = _derive_archetype(new_scores, session_regularity)
+        reasoning = data.get("reasoning", "")
+        now = datetime.utcnow().isoformat()
+
+        conn.execute("""
+            INSERT INTO archetype_scores
+                (student_id, question_depth, exam_focus, anxiety_markers, topic_jumping,
+                 challenge_seeking, practical_anchoring, mastery_push, sessions_scored,
+                 archetype, archetype_reasoning, updated_at)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
+            ON CONFLICT(student_id) DO UPDATE SET
+                question_depth=excluded.question_depth,
+                exam_focus=excluded.exam_focus,
+                anxiety_markers=excluded.anxiety_markers,
+                topic_jumping=excluded.topic_jumping,
+                challenge_seeking=excluded.challenge_seeking,
+                practical_anchoring=excluded.practical_anchoring,
+                mastery_push=excluded.mastery_push,
+                sessions_scored=excluded.sessions_scored,
+                archetype=excluded.archetype,
+                archetype_reasoning=excluded.archetype_reasoning,
+                updated_at=excluded.updated_at
+        """, (student_id, new_scores["question_depth"], new_scores["exam_focus"],
+              new_scores["anxiety_markers"], new_scores["topic_jumping"],
+              new_scores["challenge_seeking"], new_scores["practical_anchoring"],
+              new_scores["mastery_push"], n + 1, archetype, reasoning, now))
+        conn.execute("UPDATE student_profile SET learner_archetype = ? WHERE student_id = ?", (archetype, student_id))
+        conn.commit()
+        conn.close()
+    except Exception as e:
+        try: conn.close()
+        except: pass
+
 # ── Session Memory ─────────────────────────────────────────────────────────────
 
 def _build_summary_prompt(tutor_name: str, student_name: str, subject_name: str, messages: list) -> str:
@@ -5683,9 +6708,34 @@ async def _generate_session_summary(student_id: str, subject_id: str):
     finally:
         conn.close()
 
+@app.post("/admin/students/{student_id}/score-archetype")
+async def admin_score_archetype(student_id: str, background_tasks: BackgroundTasks, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    subjects = conn.execute(
+        "SELECT DISTINCT subject_id FROM messages WHERE student_id = ? AND role = 'user'", (student_id,)
+    ).fetchall()
+    conn.close()
+    for s in subjects:
+        background_tasks.add_task(score_session_archetype, student_id, s["subject_id"])
+    return {"ok": True, "subjects_queued": len(subjects)}
+
+@app.get("/session-summary/{student_id}/{subject_id}")
+def get_session_summary(student_id: str, subject_id: str):
+    conn = get_db()
+    row = conn.execute(
+        "SELECT summary, message_count, created_at FROM session_summaries WHERE student_id = ? AND subject_id = ? ORDER BY id DESC LIMIT 1",
+        (student_id, subject_id)
+    ).fetchone()
+    conn.close()
+    if not row:
+        return {"summary": None}
+    return {"summary": row["summary"], "message_count": row["message_count"], "created_at": row["created_at"]}
+
 @app.post("/session-end/{student_id}/{subject_id}")
 async def session_end(student_id: str, subject_id: str, background_tasks: BackgroundTasks):
     background_tasks.add_task(_generate_session_summary, student_id, subject_id)
+    background_tasks.add_task(score_session_archetype, student_id, subject_id)
     return {"ok": True}
 
 
@@ -5904,9 +6954,13 @@ async def admin_approve_request(request_id: str, background_tasks: BackgroundTas
     if not req:
         conn.close()
         raise HTTPException(status_code=404, detail="Request not found")
-    existing = conn.execute("SELECT email FROM approved_emails WHERE email = ?", (req["email"],)).fetchone()
+    product = req["product"] or "career_pathways"
+    existing = conn.execute("SELECT email FROM approved_emails WHERE email = ? AND product = ?", (req["email"], product)).fetchone()
     if not existing:
-        conn.execute("INSERT INTO approved_emails (email, added_at) VALUES (?, ?)", (req["email"], datetime.utcnow().isoformat()))
+        conn.execute(
+            "INSERT INTO approved_emails (email, added_at, product, access_type) VALUES (?, ?, ?, 'full')",
+            (req["email"], datetime.utcnow().isoformat(), product)
+        )
     conn.execute("UPDATE access_requests SET status = 'approved' WHERE id = ?", (request_id,))
     conn.commit()
     name  = req["name"]
@@ -6682,3 +7736,130 @@ def refresh_jobs(x_admin_key: str = Header(None)):
         except Exception as e:
             results[cert_id] = f"error: {e}"
     return results
+
+
+# ── Industry News endpoints ───────────────────────────────────────────────────
+
+@app.get("/industry-news")
+def get_industry_news(background_tasks: BackgroundTasks):
+    global _news_last_fetched
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT id, title, url, source, published_at FROM industry_news ORDER BY id DESC LIMIT 30"
+    ).fetchall()
+    newsletter = conn.execute(
+        "SELECT id, title, content, url, published_at FROM industry_newsletter ORDER BY published_at DESC LIMIT 5"
+    ).fetchall()
+    conn.close()
+    is_stale = _news_last_fetched is None or (datetime.utcnow() - _news_last_fetched).total_seconds() > 21600
+    if is_stale and not _news_fetch_lock:
+        background_tasks.add_task(_fetch_news_feeds)
+    return {
+        "articles": [dict(r) for r in rows],
+        "newsletter": [dict(r) for r in newsletter],
+        "refreshing": is_stale and not rows,
+    }
+
+
+@app.post("/admin/industry-news/refresh")
+def refresh_industry_news(x_admin_key: str = Header(None), background_tasks: BackgroundTasks = None):
+    require_admin(x_admin_key)
+    background_tasks.add_task(_fetch_news_feeds)
+    return {"ok": True, "message": "Refresh started in background"}
+
+
+@app.post("/admin/industry-newsletter")
+def add_newsletter_post(data: dict, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    title = (data.get("title") or "").strip()
+    if not title:
+        raise HTTPException(status_code=400, detail="title required")
+    now = datetime.utcnow().isoformat()
+    conn = get_db()
+    conn.execute(
+        "INSERT INTO industry_newsletter (title, content, url, published_at, created_at) VALUES (?,?,?,?,?)",
+        (title, data.get("content"), data.get("url"), data.get("published_at") or now, now),
+    )
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+
+@app.delete("/admin/industry-newsletter/{post_id}")
+def delete_newsletter_post(post_id: int, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    conn.execute("DELETE FROM industry_newsletter WHERE id=?", (post_id,))
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+
+# ── Automated daily scheduler ─────────────────────────────────────────────────
+
+def _run_daily_jobs():
+    import asyncio
+    loop = asyncio.new_event_loop()
+
+    async def _jobs():
+        conn = get_db()
+        now  = datetime.utcnow()
+
+        # 1. Check trial expiry + send warnings
+        tomorrow = (now + timedelta(days=1)).isoformat()
+        warning_subs = conn.execute("""
+            SELECT sub.student_id, sub.trial_end, s.email, s.name, sub.product
+            FROM subscriptions sub JOIN students s ON s.id = sub.student_id
+            WHERE sub.status = 'trial' AND sub.trial_end <= ? AND sub.trial_end > ?
+        """, (tomorrow, now.isoformat())).fetchall()
+        expired_ids = conn.execute(
+            "SELECT id FROM subscriptions WHERE status = 'trial' AND trial_end < ?",
+            (now.isoformat(),)
+        ).fetchall()
+        for sub in expired_ids:
+            conn.execute("UPDATE subscriptions SET status='expired', updated_at=? WHERE id=?",
+                         (now.isoformat(), sub["id"]))
+        conn.commit()
+
+        # 2. Send weekly digest every Monday
+        if now.weekday() == 0:
+            students = conn.execute("""
+                SELECT s.id, s.email, s.name FROM students s
+                WHERE EXISTS (SELECT 1 FROM messages m WHERE m.student_id = s.id AND m.role = 'user')
+                AND s.email IN (SELECT email FROM approved_emails)
+            """).fetchall()
+            conn.close()
+            for st in students:
+                try:
+                    await _send_student_weekly_report(st["id"], st["email"], st["name"])
+                except Exception as e:
+                    print(f"[scheduler] weekly report failed for {st['id']}: {e}")
+        else:
+            conn.close()
+
+        print(f"[scheduler] daily jobs complete — {len(expired_ids)} trials expired, {len(warning_subs)} warnings queued")
+
+    try:
+        loop.run_until_complete(_jobs())
+    finally:
+        loop.close()
+
+def _scheduler_thread():
+    import time
+    while True:
+        now = datetime.utcnow()
+        # Run at 02:00 UTC daily
+        target = now.replace(hour=2, minute=0, second=0, microsecond=0)
+        if now >= target:
+            target += timedelta(days=1)
+        wait = (target - now).total_seconds()
+        time.sleep(wait)
+        try:
+            _run_daily_jobs()
+        except Exception as e:
+            print(f"[scheduler] error: {e}")
+
+import threading as _threading
+_scheduler = _threading.Thread(target=_scheduler_thread, daemon=True, name="daily-scheduler")
+_scheduler.start()
+print("[scheduler] daily scheduler started — runs at 02:00 UTC")

@@ -694,12 +694,34 @@ function useImgs() {
 
 // ── Utils ──────────────────────────────────────────────────────────────────
 
-function getStoredStudent() {
-  try { const s = localStorage.getItem('bversity_student'); return s ? JSON.parse(s) : null; }
-  catch { return null; }
+function _productStorageKey() {
+  return ACTIVE_REGION === 'us' ? 'bversity_student_certifications' : 'bversity_student_career_pathways';
 }
-function storeStudent(s) { localStorage.setItem('bversity_student', JSON.stringify(s)); }
-function clearStudent()  { localStorage.removeItem('bversity_student'); }
+function getStoredStudent() {
+  try {
+    const key = _productStorageKey();
+    const s = localStorage.getItem(key);
+    if (s) return JSON.parse(s);
+    // Cross-region fallback: if region just switched, use the other product's auth
+    const crossKey = ACTIVE_REGION === 'us' ? 'bversity_student_career_pathways' : 'bversity_student_certifications';
+    const cross = localStorage.getItem(crossKey);
+    if (cross) {
+      localStorage.setItem(key, cross);
+      return JSON.parse(cross);
+    }
+    if (ACTIVE_REGION !== 'us') {
+      const legacy = localStorage.getItem('bversity_student');
+      if (legacy) {
+        localStorage.setItem(key, legacy);
+        localStorage.removeItem('bversity_student');
+        return JSON.parse(legacy);
+      }
+    }
+    return null;
+  } catch { return null; }
+}
+function storeStudent(s) { localStorage.setItem(_productStorageKey(), JSON.stringify(s)); }
+function clearStudent()  { localStorage.removeItem(_productStorageKey()); }
 
 function cleanLine(line) {
   return line.replace(/^#{1,6}\s+/, '').replace(/^[-*_]{3,}$/, '');
@@ -909,7 +931,7 @@ function renderMessageContent(content, opts = {}) {
     }
   });
   if (pending.length) out.push(<p key="last">{pending.map((t, j) => j < pending.length - 1 ? [fi(t), <br key={j}/>] : fi(t))}</p>);
-  if (cardData && !opts.skipCard) out.push(<ConceptCard key="cc" data={cardData} color={opts.color} studentId={opts.studentId} subjectId={opts.subjectId} savedId={opts.savedIds?.[cardData.title]} />);
+  if (cardData && !opts.skipCard) out.push(<ConceptCard key={`cc-${cardData.title}`} data={cardData} color={opts.color} studentId={opts.studentId} subjectId={opts.subjectId} savedId={opts.savedIds?.[cardData.title]} />);
   return out;
 }
 
@@ -1119,8 +1141,8 @@ function SearchModal({ student, onStudy, onClose }) {
   );
 }
 
-function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfile, onCommunity, onPrograms, onLibrary, onLabs, onLogout, hasCareer, avatarColor, avatarNum, onSearch, onContact }) {
-  const navItems = [
+function Sidebar({ student, view, subscription, onCourses, onDashboard, onCareerPath, onProfile, onCommunity, onPrograms, onLibrary, onLabs, onNews, onLogout, hasCareer, avatarColor, avatarNum, onSearch, onContact, onUpgrade, upgradeLoading, upgradeError, mobileOpen, userCountry }) {
+  const primaryNav = [
     {
       id: 'home',
       label: 'Courses',
@@ -1149,14 +1171,6 @@ function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfil
       onClick: onLibrary,
       active: view === 'library',
     },
-    ...(ACTIVE_REGION !== 'us' ? [{
-      id: 'labs',
-      label: 'Innovation Labs',
-      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 2v7.527a2 2 0 01-.211.896L4.72 18.578A1 1 0 005.596 20h12.808a1 1 0 00.876-1.422L14.21 10.423A2 2 0 0114 9.527V2"/><line x1="8.5" y1="2" x2="15.5" y2="2"/><line x1="7" y1="16" x2="17" y2="16"/></svg>,
-      onClick: onLabs,
-      active: view === 'labs' || view === 'lab-project',
-      sublabel: 'Real-world projects',
-    }] : []),
     {
       id: 'community',
       label: 'Community',
@@ -1164,37 +1178,65 @@ function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfil
       onClick: onCommunity,
       active: view === 'community',
     },
+  ];
+
+  const secondaryNav = [
+    {
+      id: 'industry-news',
+      label: 'Industry News',
+      icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 22h16a2 2 0 002-2V4a2 2 0 00-2-2H8a2 2 0 00-2 2v16a2 2 0 01-2 2zm0 0a2 2 0 01-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/></svg>,
+      onClick: onNews,
+      active: view === 'news',
+    },
+    ...(ACTIVE_REGION !== 'us' ? [{
+      id: 'labs',
+      label: 'Innovation Labs',
+      icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 2v7.527a2 2 0 01-.211.896L4.72 18.578A1 1 0 005.596 20h12.808a1 1 0 00.876-1.422L14.21 10.423A2 2 0 0114 9.527V2"/><line x1="8.5" y1="2" x2="15.5" y2="2"/><line x1="7" y1="16" x2="17" y2="16"/></svg>,
+      onClick: onLabs,
+      active: view === 'labs' || view === 'lab-project',
+    }] : []),
     ...(ACTIVE_REGION !== 'us' ? [{
       id: 'programs',
       label: 'Degree Programs',
-      icon: <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>,
+      icon: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>,
       onClick: onPrograms,
       active: view === 'programs',
-      sublabel: 'Admissions open · 2026',
     }] : []),
   ];
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar${mobileOpen ? ' mobile-open' : ''}`}>
       <div className="sidebar-logo">
         <img src="/logo-3.png" alt="Bversity" className="sidebar-logo-img" />
       </div>
 
       <nav className="sidebar-nav">
-        {navItems.map(item => (
+        {primaryNav.map(item => (
           <button
             key={item.id}
             className={`sidebar-item ${item.active ? 'active' : ''}`}
             onClick={item.onClick}
           >
             <span className="sidebar-item-icon">{item.icon}</span>
-            <span className="sidebar-item-label">
-              {item.label}
-              {item.sublabel && <span className="sidebar-item-sublabel">{item.sublabel}</span>}
-            </span>
+            <span className="sidebar-item-label">{item.label}</span>
             {item.badge && <span className="sidebar-item-badge">{item.badge}</span>}
           </button>
         ))}
+        {secondaryNav.length > 0 && (
+          <>
+            <div className="sidebar-nav-divider" />
+            {secondaryNav.map(item => (
+              <button
+                key={item.id}
+                className={`sidebar-item sidebar-item--secondary ${item.active ? 'active' : ''}`}
+                onClick={item.onClick}
+              >
+                <span className="sidebar-item-icon">{item.icon}</span>
+                <span className="sidebar-item-label">{item.label}</span>
+              </button>
+            ))}
+          </>
+        )}
       </nav>
 
       <div className="sidebar-bottom">
@@ -1211,12 +1253,37 @@ function Sidebar({ student, view, onCourses, onDashboard, onCareerPath, onProfil
             </a>
           )}
         </div>
-        <button className="sidebar-founder-btn" onClick={onContact}>
+        <a className="sidebar-founder-btn" href="mailto:sudharsan@bversity.io?subject=Question about Bversity" style={{ textDecoration: 'none' }}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/>
           </svg>
           <span>Talk to Sudharsan</span>
-        </button>
+        </a>
+        {subscription?.status === 'trial' && (() => {
+          const _trialEnd = subscription.trial_end && !subscription.trial_end.endsWith('Z') ? subscription.trial_end + 'Z' : subscription.trial_end;
+          const daysLeft = _trialEnd
+            ? Math.max(0, Math.ceil((new Date(_trialEnd) - new Date()) / 86400000))
+            : null;
+          const price = (userCountry && userCountry !== 'IN') ? '$29/mo' : '₹799/mo';
+          return (
+            <div className="sidebar-trial-pill">
+              <div className="sidebar-trial-top">
+                <span className="sidebar-trial-dot" />
+                <span className="sidebar-trial-text">
+                  Free trial{daysLeft !== null ? ` · ${daysLeft}d left` : ''} · {price} after
+                </span>
+              </div>
+              {upgradeError && <div className="sidebar-upgrade-error">{upgradeError}</div>}
+              <button
+                className="sidebar-upgrade-btn"
+                onClick={onUpgrade}
+                disabled={upgradeLoading}
+              >
+                {upgradeLoading ? 'Loading…' : 'Pay now to upgrade →'}
+              </button>
+            </div>
+          );
+        })()}
         <div className="sidebar-user" onClick={onProfile} style={{ cursor: 'pointer' }} title="Edit profile">
           {avatarNum
             ? <img src={`/avatars/Number=${avatarNum}.png`} alt={student.name} className="sidebar-avatar-img" />
@@ -1832,7 +1899,7 @@ const US_CITIES = [
 
 const US_EXP_OPTIONS = ['< 1 year', '1–3 years', '3–5 years', '5–10 years', '10+ years'];
 
-function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
+function ProfileView({ student, profileData, subscription, onBack, onProfileUpdated }) {
   const [college, setCollege]         = useState(profileData?.college || '');
   const [year, setYear]               = useState(profileData?.year_of_study || '');
   const [aspirations, setAspirations] = useState(profileData?.aspirations || '');
@@ -2083,6 +2150,42 @@ function ProfileView({ student, profileData, onBack, onProfileUpdated }) {
           </label>
         </div>
 
+        {subscription && (
+          <div className="profile-section profile-section--subscription">
+            <h3 className="profile-section-title">Subscription</h3>
+            <div className="profile-sub-status">
+              <div className="profile-sub-row">
+                <span className="profile-sub-label">Plan</span>
+                <span className={`profile-sub-badge profile-sub-badge--${subscription.status}`}>
+                  {subscription.status === 'trial' ? 'Free trial' : subscription.status === 'active' ? 'Active' : 'Expired'}
+                </span>
+              </div>
+              {subscription.status === 'trial' && subscription.trial_end && (
+                <div className="profile-sub-row">
+                  <span className="profile-sub-label">Trial ends</span>
+                  <span className="profile-sub-value">
+                    {new Date(subscription.trial_end.endsWith('Z') ? subscription.trial_end : subscription.trial_end + 'Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </span>
+                </div>
+              )}
+              {subscription.status === 'active' && (
+                <div className="profile-sub-row">
+                  <span className="profile-sub-label">Status</span>
+                  <span className="profile-sub-value">Paid · renews monthly</span>
+                </div>
+              )}
+            </div>
+            {(subscription.status === 'active' || subscription.status === 'trial') && (
+              <a
+                className="profile-sub-cancel-link"
+                href={`mailto:sudharsan@bversity.io?subject=Cancel subscription — ${student.name}&body=Hi Sudharsan,%0A%0AI would like to cancel my Bversity subscription.%0A%0AAccount email: ${student.email || ''}`}
+              >
+                Cancel subscription
+              </a>
+            )}
+          </div>
+        )}
+
         <div className="profile-save-bar">
           {saved && <span className="profile-saved-msg">Saved!</span>}
           <button className="profile-save-btn" onClick={handleSave} disabled={saving}>
@@ -2112,7 +2215,7 @@ function OnboardingView({ student, careerProfile, onComplete }) {
   const [saving, setSaving]               = useState(false);
 
   useEffect(() => {
-    fetch('/api/careers').then(r => r.json()).then(setCareers).catch(() => {});
+    fetch('/api/careers').then(r => r.json()).then(setCareers).catch(() => setCareers([]));
   }, []);
 
   async function handleFinish(skipLocation = false) {
@@ -2665,7 +2768,7 @@ function HowItWorksOverlay({ onClose, onGetStarted, onRequestAccess }) {
             <div className="hiw-step-num">3</div>
             <div className="hiw-step-text">
               <strong>Learn with AI industry experts</strong>
-              <span>One-on-one sessions with AI tutors who have real industry backgrounds — adaptive, deep, and built around you.</span>
+              <span>One-on-one sessions with AI industry experts who have real domain backgrounds — adaptive, deep, and built around you.</span>
             </div>
           </div>
           <div className="hiw-step">
@@ -2678,14 +2781,8 @@ function HowItWorksOverlay({ onClose, onGetStarted, onRequestAccess }) {
         </div>
 
         <div className="hiw-footer-ctas">
-          <button className="welcome-cta" onClick={onRequestAccess}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-            </svg>
-            Request Access
-          </button>
-          <button className="welcome-cta-ghost" onClick={onGetStarted}>
-            Sign In
+          <button className="welcome-cta" onClick={onGetStarted}>
+            Start Using
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
@@ -2709,7 +2806,7 @@ function WelcomeScreen({ onGetStarted }) {
   }, []);
 
   if (showWaitlist) {
-    return <WaitlistForm onBack={() => setShowWaitlist(false)} onCountUpdate={setWaitlistCount} />;
+    return <WaitlistForm onBack={() => setShowWaitlist(false)} onCountUpdate={setWaitlistCount} product={ACTIVE_REGION === 'us' ? 'certifications' : 'career_pathways'} />;
   }
 
   return (
@@ -2721,7 +2818,7 @@ function WelcomeScreen({ onGetStarted }) {
 
       <header className="welcome-header">
         <img src="/logo-3.png" alt="Bversity" className="welcome-logo-img" />
-        <button className="welcome-signin-btn" onClick={onGetStarted}>Sign In</button>
+        <button className="welcome-signin-btn" onClick={onGetStarted}>Start Using</button>
       </header>
 
       <div className="welcome-content-block">
@@ -2738,23 +2835,12 @@ function WelcomeScreen({ onGetStarted }) {
             </p>
             <div className="welcome-cta-row">
               <button className="welcome-cta" onClick={onGetStarted}>
-                Start your prep
+                Start your free trial
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
               </button>
-              <button className="welcome-cta-ghost" onClick={() => setShowWaitlist(true)}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
-                Request Access
-              </button>
             </div>
-            {waitlistCount !== null && waitlistCount > 0 && (
-              <p className="welcome-waitlist-count">
-                Join {waitlistCount} {waitlistCount === 1 ? 'person' : 'people'} already on the waitlist
-              </p>
-            )}
           </div>
         ) : (
           <div className="welcome-hero">
@@ -2768,24 +2854,16 @@ function WelcomeScreen({ onGetStarted }) {
               and build the skills that get you hired.
             </p>
             <div className="welcome-cta-row">
-              <button className="welcome-cta" onClick={() => setShowHowItWorks(true)}>
-                How it works
+              <button className="welcome-cta" onClick={onGetStarted}>
+                Start your free trial
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M5 12h14M12 5l7 7-7 7"/>
                 </svg>
               </button>
-              <button className="welcome-cta-ghost" onClick={() => setShowWaitlist(true)}>
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                </svg>
-                Request Access
+              <button className="welcome-cta-ghost" onClick={() => setShowHowItWorks(true)}>
+                How it works
               </button>
             </div>
-            {waitlistCount !== null && waitlistCount > 0 && (
-              <p className="welcome-waitlist-count">
-                Join {waitlistCount} {waitlistCount === 1 ? 'person' : 'people'} already on the waitlist
-              </p>
-            )}
           </div>
         )}
 
@@ -2827,7 +2905,7 @@ function WelcomeScreen({ onGetStarted }) {
 
 // ── Waitlist Form ────────────────────────────────────────────────────────────
 
-function WaitlistForm({ onBack, onCountUpdate }) {
+function WaitlistForm({ onBack, onCountUpdate, product = 'career_pathways' }) {
   const [form, setForm] = useState({ name: '', email: '', phone: '', university: '', year_of_study: '', country: '', reason: '' });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted]   = useState(null);
@@ -2843,7 +2921,7 @@ function WaitlistForm({ onBack, onCountUpdate }) {
       const res = await fetch('/api/request-access', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, product }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Something went wrong');
@@ -3321,38 +3399,67 @@ function ReEntryScreen({ student, onGo, onDismiss }) {
 // ── Login ───────────────────────────────────────────────────────────────────
 
 function LoginView({ onLogin, onBack }) {
-  const [step, setStep]             = useState(1);
-  const [name, setName]             = useState('');
-  const [email, setEmail]           = useState('');
-  const [code, setCode]             = useState('');
-  const [loading, setLoading]       = useState(false);
-  const [error, setError]           = useState('');
-  const [showReport, setShowReport] = useState(false);
+  const product = ACTIVE_REGION === 'us' ? 'certifications' : 'career_pathways';
+  // step 1 = email, step 2 = name (new users only), step 3 = verify code
+  const [step, setStep]               = useState(1);
+  const [email, setEmail]             = useState('');
+  const [name, setName]               = useState('');
+  const [code, setCode]               = useState('');
+  const [isReturning, setIsReturning] = useState(false);
+  const [loading, setLoading]         = useState(false);
+  const [error, setError]             = useState('');
+  const [showReport, setShowReport]   = useState(false);
 
-  async function handleRequestCode(e) {
+  // Step 1: check if email exists → branch new vs returning
+  async function handleCheckEmail(e) {
     e.preventDefault();
-    if (!name.trim() || !email.trim()) return;
+    if (!email.trim()) return;
     setLoading(true); setError('');
     try {
-      const res = await fetch('/api/request-code', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), email: email.trim() }),
-      });
+      const res  = await fetch(`/api/check-email?email=${encodeURIComponent(email.trim())}`);
       const data = await res.json();
-      if (!res.ok) { setError(data.detail || 'Something went wrong.'); return; }
-      setStep(2);
+      if (data.exists) {
+        setName(data.name);
+        setIsReturning(true);
+        await sendCode(data.name);
+      } else {
+        setIsReturning(false);
+        setStep(2);
+      }
     } catch { setError('Connection error. Please try again.'); }
     finally { setLoading(false); }
   }
 
+  // Step 2: new user submits name → send code
+  async function handleCreateAccount(e) {
+    e.preventDefault();
+    if (!name.trim()) return;
+    setLoading(true); setError('');
+    await sendCode(name.trim());
+    setLoading(false);
+  }
+
+  async function sendCode(nameVal) {
+    try {
+      const res  = await fetch('/api/request-code', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: nameVal, email: email.trim(), product }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.detail || 'Something went wrong.'); return; }
+      setStep(3);
+    } catch { setError('Connection error. Please try again.'); }
+  }
+
+  // Step 3: verify code
   async function handleVerifyCode(e) {
     e.preventDefault();
     if (!code.trim()) return;
     setLoading(true); setError('');
     try {
-      const res = await fetch('/api/verify-code', {
+      const res  = await fetch('/api/verify-code', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), code: code.trim() }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), code: code.trim(), product }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.detail || 'Invalid code.'); return; }
@@ -3361,90 +3468,131 @@ function LoginView({ onLogin, onBack }) {
     finally { setLoading(false); }
   }
 
+  function goBack() {
+    if (step === 3 && !isReturning) { setStep(2); setCode(''); setError(''); }
+    else if (step === 2)            { setStep(1); setName(''); setError(''); }
+    else if (step === 3)            { setStep(1); setCode(''); setName(''); setError(''); }
+    else if (onBack)                { onBack(); }
+  }
+
+  const leftPanel = (
+    <div className="login-left">
+      <div className="login-left-inner">
+        <div className="login-brand">
+          <img src="/logo-3.png" alt="Bversity" className="login-logo-img" />
+        </div>
+        <h2 className="login-headline">Learn biotech like you're already working in it.</h2>
+        <p className="login-subline">Industry faculty from Broad Institute, Illumina, Genentech, and Novartis — teaching the exact curriculum your career requires.</p>
+        <div className="login-features">
+          <div className="login-feature"><span className="login-feature-dot" />Career-mapped curriculum, only what you need to know</div>
+          <div className="login-feature"><span className="login-feature-dot" />AI industry experts that adapt to your pace and prior knowledge</div>
+          <div className="login-feature"><span className="login-feature-dot" />Real-world capstone projects, marked by faculty</div>
+        </div>
+        <div className="login-chips">
+          {['Bioinformatics', 'Genomics', 'Drug Discovery', 'Clinical Trials', 'Gen AI & ML', 'Biotech Business'].map(s => (
+            <span key={s} className="login-chip">{s}</span>
+          ))}
+        </div>
+        <button className="login-sample-report-btn" onClick={() => setShowReport(true)}>
+          📄 See a sample weekly progress report →
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <div className="login-page">
-      <div className="login-left">
-        <div className="login-left-inner">
-          <div className="login-brand">
-            <img src="/logo-3.png" alt="Bversity" className="login-logo-img" />
-          </div>
-          <h2 className="login-headline">Learn biotech like you're already working in it.</h2>
-          <p className="login-subline">Industry faculty from Broad Institute, Illumina, Genentech, and Novartis  -  teaching the exact curriculum your career requires.</p>
-          <div className="login-features">
-            <div className="login-feature"><span className="login-feature-dot" />Career-mapped curriculum, only what you need to know</div>
-            <div className="login-feature"><span className="login-feature-dot" />AI industry experts that adapt to your pace and prior knowledge</div>
-            <div className="login-feature"><span className="login-feature-dot" />Real-world capstone projects, marked by faculty</div>
-          </div>
-          <div className="login-chips">
-            {['Bioinformatics', 'Genomics', 'Drug Discovery', 'Clinical Trials', 'Gen AI & ML', 'Biotech Business'].map(s => (
-              <span key={s} className="login-chip">{s}</span>
-            ))}
-          </div>
-          <button className="login-sample-report-btn" onClick={() => setShowReport(true)}>
-            📄 See a sample weekly progress report →
-          </button>
-        </div>
-      </div>
+      {leftPanel}
       {showReport && <SampleReportModal onClose={() => setShowReport(false)} />}
       <div className="login-right">
         <div className="login-form-wrap">
-          {step === 1 ? (
+
+          {/* ── Step 1: Email ── */}
+          {step === 1 && (
             <>
               <div className="login-form-top">
-                {onBack && (
-                  <button className="login-back-link" onClick={onBack}>← Back</button>
-                )}
-                <h2>Welcome to Bversity</h2>
-                <p>Enter your details and we'll send a verification code to your email.</p>
+                {onBack && <button className="login-back-link" onClick={onBack}>← Back</button>}
+                <h2>Start your free trial</h2>
+                <p>Enter your email to get started. No card required.</p>
               </div>
-              <form className="login-form" onSubmit={handleRequestCode}>
-                <div className="form-group">
-                  <label htmlFor="name">Full name</label>
-                  <input id="name" type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Your name" autoFocus required />
-                </div>
+              <form className="login-form" onSubmit={handleCheckEmail}>
                 <div className="form-group">
                   <label htmlFor="email">Email address</label>
-                  <input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com" required />
+                  <input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)}
+                    placeholder="your@email.com" autoFocus required />
                 </div>
                 {error && <p className="form-error">{error}</p>}
-                <button type="submit" className="login-btn" disabled={loading || !name.trim() || !email.trim()}>
-                  {loading ? 'Sending code...' : 'Send verification code →'}
+                <button type="submit" className="login-btn" disabled={loading || !email.trim()}>
+                  {loading ? 'Checking…' : 'Continue →'}
                 </button>
               </form>
-              <p className="login-note">Access is invite-only. Contact sudharsan@bversity.io to request access.</p>
+              <p className="login-note">Already have an account? Just enter your email above.</p>
             </>
-          ) : (
+          )}
+
+          {/* ── Step 2: Name (new users only) ── */}
+          {step === 2 && (
             <>
               <div className="login-form-top">
-                <button className="login-back-link" onClick={() => { setStep(1); setCode(''); setError(''); }}>
-                  ← Back
+                <button className="login-back-link" onClick={goBack}>← Back</button>
+                <h2>Create your account</h2>
+                <p>Start your 5-day free trial of Bversity. No card required.</p>
+              </div>
+              <form className="login-form" onSubmit={handleCreateAccount}>
+                <div className="form-group">
+                  <label htmlFor="name">Full name</label>
+                  <input id="name" type="text" value={name} onChange={e => setName(e.target.value)}
+                    placeholder="Your name" autoFocus required />
+                </div>
+                <div className="form-group">
+                  <label>Email</label>
+                  <input type="email" value={email} disabled style={{ opacity: 0.6 }} />
+                </div>
+                {error && <p className="form-error">{error}</p>}
+                <button type="submit" className="login-btn" disabled={loading || !name.trim()}>
+                  {loading ? 'Sending code…' : 'Create account →'}
                 </button>
-                <h2>Check your email</h2>
-                <p>We sent a 6-digit code to <strong>{email}</strong>. It expires in 15 minutes.</p>
+              </form>
+              <p className="login-note">By creating an account you agree to our terms of service.</p>
+            </>
+          )}
+
+          {/* ── Step 3: Verify code ── */}
+          {step === 3 && (
+            <>
+              <div className="login-form-top">
+                <button className="login-back-link" onClick={goBack}>← Back</button>
+                {isReturning
+                  ? <><h2>Welcome back{name ? `, ${name.split(' ')[0]}` : ''}!</h2>
+                      <p>We sent a sign-in code to <strong>{email}</strong>. It expires in 15 minutes.</p></>
+                  : <><h2>Check your inbox</h2>
+                      <p>We sent a verification code to <strong>{email}</strong>. It expires in 15 minutes.</p></>
+                }
               </div>
               <form className="login-form" onSubmit={handleVerifyCode}>
                 <div className="form-group">
-                  <label htmlFor="code">Verification code</label>
+                  <label htmlFor="code">6-digit code</label>
                   <input
-                    id="code"
-                    type="text"
-                    inputMode="numeric"
+                    id="code" type="text" inputMode="numeric"
                     value={code}
                     onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                    placeholder="000000"
-                    className="code-input"
-                    autoFocus
-                    required
+                    placeholder="000000" className="code-input" autoFocus required
                   />
                 </div>
                 {error && <p className="form-error">{error}</p>}
                 <button type="submit" className="login-btn" disabled={loading || code.length < 6}>
-                  {loading ? 'Verifying...' : 'Enter Bversity →'}
+                  {loading ? 'Verifying…' : isReturning ? 'Sign in →' : 'Enter Bversity →'}
                 </button>
               </form>
-              <p className="login-note">Didn't receive it? Check spam, or <button className="login-resend-btn" onClick={() => { setStep(1); setCode(''); setError(''); }}>resend code</button>.</p>
+              <p className="login-note">
+                Didn't receive it? Check spam, or{' '}
+                <button className="login-resend-btn" onClick={() => { setStep(isReturning ? 1 : 2); setCode(''); setError(''); }}>
+                  resend code
+                </button>.
+              </p>
             </>
           )}
+
         </div>
       </div>
     </div>
@@ -3601,7 +3749,7 @@ function USExamBlueprintView({ student, careerProfile, onBack }) {
   if (!certSubject || !examData) {
     return (
       <div className="us-blueprint-view">
-        <p className="us-blueprint-empty">No certification selected. Go to Courses to pick your cert.</p>
+        <p className="us-blueprint-empty">Pick a certification target in Courses and your full prep blueprint will appear here — domains, exam topics, and a gap analysis tailored to your exam.</p>
       </div>
     );
   }
@@ -3730,7 +3878,7 @@ function USExamBlueprintView({ student, careerProfile, onBack }) {
           {sampleQuestions.map((q, i) => (
             <USPracticeQuestion key={i} question={q} index={i} />
           ))}
-          <p className="us-pq-more-note">More questions per domain coming soon. Ask your tutor to quiz you in chat anytime.</p>
+          <p className="us-pq-more-note">More questions per domain coming soon. Ask your expert to quiz you in chat anytime.</p>
         </div>
       )}
 
@@ -3864,14 +4012,39 @@ function CareerMapView({ student, careerProfile, onBack, onChangePath, onStudy }
   const imgs = useImgs();
   const [dashData, setDashData] = useState(null);
   const [paceData, setPaceData] = useState(null);
+  const [dashError, setDashError] = useState('');
 
   useEffect(() => {
-    fetch(`/api/dashboard/${student.id}`).then(r => r.json()).then(setDashData).catch(() => {});
+    fetch(`/api/dashboard/${student.id}`)
+      .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+      .then(setDashData)
+      .catch(() => setDashError('Could not load progress data. Please refresh.'));
     fetch(`/api/career-pace/${student.id}`).then(r => r.json()).then(setPaceData).catch(() => {});
   }, [student.id]);
 
   const career = careerProfile?.career;
-  if (!career) return null;
+  if (!career) return (
+    <div className="career-map-view">
+      <div className="career-map-nav">
+        <button className="chat-back-btn" onClick={onBack}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          Back
+        </button>
+      </div>
+      <div className="career-map-empty-state">
+        <div className="cme-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#00A896" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+          </svg>
+        </div>
+        <h2 className="cme-title">Your learning path is yours to shape.</h2>
+        <p className="cme-sub">Tell us where you want to go in biotech. Whether you're targeting a specific role, a certification, or building long-term expertise — your AI industry experts will adapt every session around it.</p>
+        <button className="cme-cta" onClick={onChangePath}>Choose a career destination →</button>
+      </div>
+    </div>
+  );
 
   const clusterColor = CLUSTER_COLORS[career.cluster] || '#00A896';
 
@@ -3919,6 +4092,7 @@ function CareerMapView({ student, careerProfile, onBack, onChangePath, onStudy }
         </button>
         <button className="change-path-btn" onClick={onChangePath}>Change career path</button>
       </div>
+      {dashError && <div style={{ margin: '0 24px', padding: '10px 14px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', borderRadius: 8, fontSize: '0.82rem', color: '#ef4444' }}>{dashError}</div>}
 
       <div
         className="career-map-hero"
@@ -4243,6 +4417,103 @@ function LearnerPopup({ learner, onClose }) {
 
 // ── Degree Programs ────────────────────────────────────────────────────────
 
+function IndustryNewsView() {
+  const [articles, setArticles] = useState([]);
+  const [newsletter, setNewsletter] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [activeArticle, setActiveArticle] = useState(null);
+  const iframeRef = useRef(null);
+
+  useEffect(() => {
+    fetch('/api/industry-news')
+      .then(r => r.json())
+      .then(d => {
+        setArticles(d.articles || []);
+        setNewsletter(d.newsletter || []);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  const fmt = (iso) => {
+    if (!iso) return '';
+    try { return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); }
+    catch { return ''; }
+  };
+
+  const handleIframeLoad = () => {
+    try {
+      const doc = iframeRef.current?.contentDocument;
+      // No error thrown means same-origin or blocked — check if body has real content
+      if (!doc || !doc.body || doc.body.children.length === 0) {
+        window.open(activeArticle?.url, '_blank', 'noreferrer');
+      }
+    } catch {
+      // SecurityError = cross-origin content loaded successfully — iframe is working fine
+    }
+  };
+
+  const selectArticle = (a) => {
+    setActiveArticle(a);
+  };
+
+  const allCards = [...newsletter.map(p => ({ ...p, _type: 'newsletter' })), ...articles.map(a => ({ ...a, _type: 'news' }))];
+
+  return (
+    <div className={`news-view${activeArticle ? ' news-split' : ''}`}>
+      <div className="news-list-pane">
+        {!activeArticle && (
+          <div className="news-view-header">
+            <h2 className="news-view-title">What's happening in the industry</h2>
+            <p className="news-view-sub">Technology breakthroughs, AI in biotech, and what's shaping life sciences right now</p>
+          </div>
+        )}
+        {loading ? (
+          <div className="news-loading">
+            <div className="news-loading-dots"><span/><span/><span/></div>
+            <span>Loading latest news…</span>
+          </div>
+        ) : allCards.length === 0 ? (
+          <div className="news-empty">Industry news refreshes every 6 hours. Nothing here yet — check back in a minute or try refreshing the page.</div>
+        ) : (
+          <div className="news-feed">
+            {allCards.map(a => (
+              <button
+                key={`${a._type}-${a.id}`}
+                className={`news-card${a._type === 'newsletter' ? ' news-card-newsletter' : ''}${activeArticle?.id === a.id && activeArticle?._type === a._type ? ' news-card-active' : ''}`}
+                onClick={() => selectArticle(a)}
+              >
+                <div className="news-card-source">{a._type === 'newsletter' ? 'BVST Outlook' : a.source}</div>
+                <div className="news-card-title">{a.title}</div>
+                {a.content && <div className="news-card-excerpt">{a.content}</div>}
+                <div className="news-card-date">{fmt(a.published_at)}</div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {activeArticle && (
+        <div className="news-article-pane">
+          <div className="news-article-topbar">
+            <span className="news-article-topbar-title">{activeArticle.title}</span>
+            <a href={activeArticle.url} target="_blank" rel="noreferrer" className="news-open-tab-btn">Open in browser ↗</a>
+          </div>
+          <iframe
+            ref={iframeRef}
+            key={activeArticle.url}
+            src={activeArticle.url}
+            className="news-article-iframe"
+            title={activeArticle.title}
+            onLoad={handleIframeLoad}
+            sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function DegreeProgramsView() {
   const imgs = useImgs();
   const programs = [
@@ -4395,6 +4666,8 @@ function CommunityMapView({ student, onAddLocation }) {
         )}
       </div>
 
+      <CommunitySearch learners={learners} currentId={student.id} />
+
       <div className="community-map-wrap">
         <div className="community-map-glass" ref={mapRef} onMouseLeave={() => setHovered(null)}>
           <ComposableMap
@@ -4514,6 +4787,79 @@ function CommunityMapView({ student, onAddLocation }) {
   );
 }
 
+function CommunitySearch({ learners, currentId }) {
+  const [query, setQuery] = useState('');
+
+  const results = query.trim().length < 2 ? [] : learners.filter(l => {
+    if (l.student_id === currentId) return false;
+    const q = query.toLowerCase();
+    return (l.city || '').toLowerCase().includes(q) ||
+           (l.state || '').toLowerCase().includes(q) ||
+           (l.name || '').toLowerCase().includes(q);
+  });
+
+  const initials = (name) => (name || '?').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+  return (
+    <div className="comm-search-section">
+      <div className="comm-search-header">
+        <h3 className="comm-search-title">Find learners near you</h3>
+        <p className="comm-search-sub">Search by city, state, or name to connect on LinkedIn</p>
+      </div>
+      <div className="comm-search-bar-wrap">
+        <svg className="comm-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input
+          className="comm-search-input"
+          type="text"
+          placeholder="Search by city, state or name…"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          autoComplete="off"
+        />
+        {query && <button className="comm-search-clear" onClick={() => setQuery('')}>×</button>}
+      </div>
+
+      {query.trim().length >= 2 && (
+        <div className="comm-search-results">
+          {results.length === 0 ? (
+            <div className="comm-search-empty">No one found for "{query}". Try searching by city, state, or a partial name.</div>
+          ) : (
+            <>
+              <div className="comm-search-count">{results.length} learner{results.length !== 1 ? 's' : ''} found</div>
+              <div className="comm-search-grid">
+                {results.map(l => (
+                  <div key={l.student_id} className="comm-learner-card">
+                    <div className="comm-learner-avatar" style={{ background: l.avatar_color || '#16c1ad' }}>
+                      {l.avatar_num
+                        ? <img src={`/avatars/Number=${l.avatar_num}.png`} alt={l.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                        : initials(l.name)
+                      }
+                    </div>
+                    <div className="comm-learner-info">
+                      <div className="comm-learner-name">{l.name}</div>
+                      <div className="comm-learner-location">
+                        {[l.city, l.state].filter(Boolean).join(', ') || 'Location not set'}
+                      </div>
+                    </div>
+                    {l.linkedin_url ? (
+                      <a href={l.linkedin_url} target="_blank" rel="noreferrer" className="comm-learner-linkedin">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>
+                        Connect
+                      </a>
+                    ) : (
+                      <span className="comm-learner-no-linkedin">No LinkedIn</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Career Change Interstitial ─────────────────────────────────────────────
 
 const CHANGE_REASONS = [
@@ -4610,7 +4956,7 @@ function CareerChangeView({ student, careerProfile, onProceed, onTalkToTutor, on
             {saving ? 'Saving...' : 'Continue to change path →'}
           </button>
           <button className="career-change-tutor-btn" onClick={onTalkToTutor}>
-            Talk to my expert first
+            Go back to my courses
           </button>
         </div>
       </div>
@@ -4759,7 +5105,7 @@ function CapstoneView({ subject, student, onBack }) {
         <div className="capstone-locked-banner">
           <span className="capstone-lock-icon"><IcoLock /></span>
           <div>
-            <strong>Capstone is locked.</strong> Cover {needed} more concept{needed !== 1 ? 's' : ''} in {subject.name} to unlock your capstone project. Keep chatting with {subject.tutor.split(' ')[1] || subject.tutor}!
+            <strong>Capstone is locked.</strong> Cover {needed} more concept{needed !== 1 ? 's' : ''} in {subject.name} to unlock your capstone project. Keep chatting with {subject.tutor?.split(' ')[1] || subject.tutor}!
           </div>
         </div>
       )}
@@ -4880,7 +5226,7 @@ const FEEDBACK_Q1_OPTIONS = [
   'Just curious / exploring',
 ];
 const FEEDBACK_Q2_OPTIONS = [
-  'The AI tutor explaining concepts',
+  'The AI industry expert explaining concepts',
   'The structured learning path',
   'The quizzes testing my knowledge',
   'The career roadmap',
@@ -4894,25 +5240,25 @@ const FEEDBACK_Q3_OPTIONS = [
 ];
 
 function FreeTrialModal({ onClose }) {
+  const price = ACTIVE_REGION === 'india' ? '₹799/month' : '$29/month';
   return (
     <div className="freetrial-overlay">
       <div className="freetrial-modal">
-        <div className="freetrial-badge">Free Trial</div>
-        <h2 className="freetrial-title">You're on a 7-day free trial</h2>
+        <div className="freetrial-badge">5-Day Free Trial</div>
+        <h2 className="freetrial-title">Welcome — you have full access</h2>
         <p className="freetrial-body">
-          We've given you full access to explore Bversity  -  every {ACTIVE_REGION === 'us' ? 'certification, every AI tutor, every exam-prep session' : 'subject, every AI tutor, every concept session'}.
-          This trial runs for <strong>7–10 days</strong>, and we're using it to understand how the platform is being used
-          and what's adding the most value.
+          For the next <strong>5 days</strong>, explore everything Bversity has to offer —
+          every {ACTIVE_REGION === 'us' ? 'certification path, every AI expert, every exam-prep session' : 'career path, every AI industry expert, every subject and concept session'}.
+          No restrictions. Use it however you want.
         </p>
         <p className="freetrial-body">
-          If Bversity is helping you grow and you'd like to continue beyond the trial,
-          reach out to Sudharsan for paid access at <strong>{ACTIVE_REGION === 'us' ? '$29/month' : '₹299/month'}</strong>.
+          After your trial, continue learning for just <strong>{price}</strong>. Cancel anytime.
         </p>
-        <a className="freetrial-contact-link" href="mailto:sudharsan@bversity.io?subject=Paid Access Request">
-          sudharsan@bversity.io
-        </a>
+        <p className="freetrial-body" style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '-0.5rem' }}>
+          Questions about your trial or subscription? <a href="mailto:hello@bversity.io" style={{ color: 'var(--teal)' }}>Contact support</a>
+        </p>
         <button className="freetrial-cta" onClick={onClose}>
-          Continue using the platform →
+          Start exploring →
         </button>
       </div>
     </div>
@@ -5041,9 +5387,16 @@ function AdminView({ onBack }) {
   const [studentDetail, setStudentDetail]         = useState(null);
   const [studentDetailLoading, setStudentDetailLoading] = useState(false);
   const [studentDetailTab, setStudentDetailTab]   = useState('timeline');
+  const sdDrawerRef = useRef(null);
+  useEffect(() => {
+    if (selectedStudentId && sdDrawerRef.current) sdDrawerRef.current.scrollTop = 0;
+  }, [selectedStudentId]);
+  const [archetypeScoring, setArchetypeScoring]   = useState(false);
   const [submissions, setSubmissions] = useState([]);
   const [students, setStudents]       = useState([]);
   const [overview, setOverview]       = useState(null);
+  const [churnRisk, setChurnRisk]     = useState([]);
+  const [engagementHeatmap, setEngagementHeatmap] = useState([]);
   const [loading, setLoading]         = useState(false);
   const [error, setError]             = useState('');
   const [marking, setMarking]         = useState(null);
@@ -5061,6 +5414,7 @@ function AdminView({ onBack }) {
   const [videoForm, setVideoForm]         = useState({ drive_url: '', title: '' });
   const [videoSaving, setVideoSaving]     = useState(false);
   const [videoError, setVideoError]       = useState('');
+  const [lectureVideos, setLectureVideos] = useState({});
   const [conceptNotesMap, setConceptNotesMap] = useState({});
   const [conceptNotesSaving, setConceptNotesSaving] = useState(null);
   const [resSubject, setResSubject]       = useState('');
@@ -5081,9 +5435,14 @@ function AdminView({ onBack }) {
   const [analyticsHeatmap, setAnalyticsHeatmap]       = useState([]);
   const [feedbackList, setFeedbackList]               = useState([]);
   const [cohortData, setCohortData]                   = useState(null);
+  const [revenueData, setRevenueData]                 = useState(null);
+  const [heroVideoUrl, setHeroVideoUrl]               = useState('');
+  const [heroVideoSaving, setHeroVideoSaving]         = useState(false);
+  const [heroVideoMsg, setHeroVideoMsg]               = useState('');
   const [waitlistRequests, setWaitlistRequests]       = useState([]);
   const [waitlistLoading, setWaitlistLoading]         = useState(false);
   const [waitlistAction, setWaitlistAction]           = useState(null);
+  const [waitlistProduct, setWaitlistProduct]         = useState('all');
   const [metrics, setMetrics]                         = useState(null);
   const [metricsLoading, setMetricsLoading]           = useState(false);
   const [weeklySending, setWeeklySending]             = useState(false);
@@ -5113,6 +5472,8 @@ function AdminView({ onBack }) {
   const [stFilter, setStFilter]                       = useState('all');
   const [stRegion, setStRegion]                       = useState('all');
   const [stSearch, setStSearch]                       = useState('');
+  const [stSelected, setStSelected]                   = useState(new Set());
+  const [stAccess, setStAccess]                       = useState('all');
   const [platformConfig, setPlatformConfig]           = useState(null);
   const [configSaving, setConfigSaving]               = useState({});
   const [insights, setInsights]                       = useState(null);
@@ -5120,18 +5481,22 @@ function AdminView({ onBack }) {
 
   async function loadAdminData(key) {
     const headers = { 'X-Admin-Key': key };
-    const [subsRes, overviewRes, studentsRes, emailsRes] = await Promise.all([
-      fetch('/api/admin/submissions',    { headers }),
-      fetch('/api/admin/overview',       { headers }),
-      fetch('/api/admin/students',       { headers }),
-      fetch('/api/admin/approved-emails',{ headers }),
+    const [subsRes, overviewRes, studentsRes, emailsRes, waitlistRes] = await Promise.all([
+      fetch('/api/admin/submissions',     { headers }),
+      fetch('/api/admin/overview',        { headers }),
+      fetch('/api/admin/students',        { headers }),
+      fetch('/api/admin/approved-emails', { headers }),
+      fetch('/api/admin/access-requests', { headers }),
     ]);
     if (!subsRes.ok) throw new Error('Invalid admin key');
     setSubmissions(await subsRes.json());
-    if (overviewRes.ok)  setOverview(await overviewRes.json());
-    if (studentsRes.ok)  setStudents(await studentsRes.json());
-    if (emailsRes.ok)    setApprovedEmails(await emailsRes.json());
+    if (overviewRes.ok)   setOverview(await overviewRes.json());
+    if (studentsRes.ok)   setStudents(await studentsRes.json());
+    if (emailsRes.ok)     setApprovedEmails(await emailsRes.json());
+    if (waitlistRes.ok)   setWaitlistRequests(await waitlistRes.json());
     fetch('/api/admin/health', { headers }).then(r => r.ok ? r.json().then(setHealth) : null).catch(() => {});
+    fetch('/api/admin/churn-risk', { headers }).then(r => r.ok ? r.json().then(setChurnRisk) : null).catch(() => {});
+    fetch('/api/admin/engagement-heatmap', { headers }).then(r => r.ok ? r.json().then(setEngagementHeatmap) : null).catch(() => {});
   }
 
   useEffect(() => {
@@ -5184,6 +5549,17 @@ function AdminView({ onBack }) {
       const res = await fetch(`/api/concept-videos/${subjectId}`);
       setVideoMap(await res.json());
     } catch {}
+  }
+
+  async function loadAllLectureVideos() {
+    const result = {};
+    await Promise.all(SUBJECTS.map(async s => {
+      try {
+        const res = await fetch(`/api/subject-videos/${s.id}`);
+        result[s.id] = await res.json();
+      } catch { result[s.id] = []; }
+    }));
+    setLectureVideos(result);
   }
 
   async function handleVideoSubjectChange(subjectId) {
@@ -5326,6 +5702,13 @@ function AdminView({ onBack }) {
     } catch {}
   }
 
+  async function loadRevenue() {
+    try {
+      const r = await fetch('/api/admin/revenue', { headers: { 'X-Admin-Key': adminKey } });
+      if (r.ok) setRevenueData(await r.json());
+    } catch {}
+  }
+
   async function loadFeedback() {
     try {
       const r = await fetch('/api/admin/feedback', { headers: { 'X-Admin-Key': adminKey } });
@@ -5395,17 +5778,19 @@ function AdminView({ onBack }) {
   async function loadInsights() {
     setInsightsLoading(true);
     try {
-      const [retentionRes, popularityRes, funnelRes, difficultyRes] = await Promise.all([
+      const [retentionRes, popularityRes, funnelRes, difficultyRes, reactionsRes] = await Promise.all([
         fetch('/api/admin/analytics/retention',          { headers: { 'X-Admin-Key': adminKey } }),
         fetch('/api/admin/analytics/subject-popularity', { headers: { 'X-Admin-Key': adminKey } }),
         fetch('/api/admin/analytics/funnel',             { headers: { 'X-Admin-Key': adminKey } }),
         fetch('/api/admin/analytics/concept-difficulty', { headers: { 'X-Admin-Key': adminKey } }),
+        fetch('/api/admin/analytics/concept-reactions',  { headers: { 'X-Admin-Key': adminKey } }),
       ]);
       setInsights({
         retention:   retentionRes.ok   ? await retentionRes.json()   : null,
         popularity:  popularityRes.ok  ? await popularityRes.json()  : null,
         funnel:      funnelRes.ok      ? await funnelRes.json()      : null,
         difficulty:  difficultyRes.ok  ? await difficultyRes.json()  : null,
+        reactions:   reactionsRes.ok   ? await reactionsRes.json()   : null,
       });
     } catch {}
     setInsightsLoading(false);
@@ -5429,6 +5814,28 @@ function AdminView({ onBack }) {
       setPlatformConfig(c => ({ ...c, [product]: { ...c[product], mode } }));
     } catch {}
     setConfigSaving(s => ({ ...s, [product]: false }));
+  }
+
+  async function loadHeroVideoUrl() {
+    try {
+      const r = await fetch('/api/settings/hero_video');
+      if (r.ok) { const d = await r.json(); setHeroVideoUrl(d.url || ''); }
+    } catch {}
+  }
+
+  async function saveHeroVideoUrl() {
+    setHeroVideoSaving(true);
+    setHeroVideoMsg('');
+    try {
+      const r = await fetch('/api/admin/settings/hero_video', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+        body: JSON.stringify({ url: heroVideoUrl.trim() }),
+      });
+      if (r.ok) setHeroVideoMsg('Saved! Video will update on next page load.');
+      else setHeroVideoMsg('Error saving. Check admin key.');
+    } catch { setHeroVideoMsg('Network error.'); }
+    setHeroVideoSaving(false);
   }
 
   async function saveImage(section, key) {
@@ -5465,8 +5872,15 @@ function AdminView({ onBack }) {
     setStudentDetailTab('timeline');
     try {
       const r = await fetch(`/api/admin/students/${studentId}/detail`, { headers: { 'X-Admin-Key': adminKey } });
-      if (r.ok) setStudentDetail(await r.json());
-    } catch {}
+      if (r.ok) {
+        setStudentDetail(await r.json());
+      } else {
+        const body = await r.text().catch(() => '');
+        setStudentDetail({ _error: `HTTP ${r.status}: ${body.slice(0,200)}` });
+      }
+    } catch(e) {
+      setStudentDetail({ _error: `Network error: ${e.message}` });
+    }
     finally { setStudentDetailLoading(false); }
   }
 
@@ -5648,6 +6062,7 @@ function AdminView({ onBack }) {
             { id: 'videos',      label: 'Videos',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg> },
             { id: 'resources',   label: 'Resources',  icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg> },
             { id: 'analytics',   label: 'Analytics',  icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg> },
+            { id: 'revenue',     label: 'Revenue',    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg> },
             { id: 'cohort',      label: 'Cohort',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg> },
             { id: 'emails',      label: 'Emails',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> },
             { id: 'access',      label: 'Access',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> },
@@ -5668,7 +6083,9 @@ function AdminView({ onBack }) {
               className={`admin-sb-item ${tab === item.id ? 'active' : ''}`}
               onClick={() => {
                 setTab(item.id);
+                if (item.id === 'overview') loadAdminData(adminKey);
                 if (item.id === 'analytics') loadAnalytics();
+                if (item.id === 'revenue') loadRevenue();
                 if (item.id === 'cohort') loadCohort();
                 if (item.id === 'emails') loadEmailPreview();
                 if (item.id === 'feedback') loadFeedback();
@@ -5679,7 +6096,8 @@ function AdminView({ onBack }) {
                 if (item.id === 'announce') { loadAnnouncePreview('all'); };
                 if (item.id === 'images') loadImages();
                 if (item.id === 'system') loadSystemHealth();
-                if (item.id === 'settings') loadPlatformConfig();
+                if (item.id === 'settings') { loadPlatformConfig(); loadHeroVideoUrl(); }
+                if (item.id === 'videos') loadAllLectureVideos();
                 if (item.id === 'insights') loadInsights();
               }}
             >
@@ -5871,13 +6289,15 @@ function AdminView({ onBack }) {
         <div className="admin-content">
           <div className="admin-overview-grid">
             {[
-              { label: 'Total Learners',      value: overview?.total_students    ?? '-', sub: 'registered accounts' },
-              { label: 'Active This Week',    value: overview?.active_week       ?? '-', sub: 'sent a message in 7 days' },
-              { label: 'Concepts Covered',    value: overview?.total_concepts    ?? '-', sub: 'across all students' },
-              { label: 'Messages Sent',       value: overview?.total_messages    ?? '-', sub: 'student messages total' },
-              { label: 'Pending Capstones',   value: overview?.pending_capstones ?? '-', sub: 'awaiting your review', alert: (overview?.pending_capstones > 0) },
+              { label: 'Total Learners',        value: overview?.total_students    ?? '-', sub: 'all accounts: trial + paid + expired' },
+              { label: 'Paying Active',          value: overview?.paying_active     ?? '-', sub: 'current paid subscribers', highlight: true },
+              { label: 'On Trial',               value: overview?.on_trial          ?? '-', sub: 'active free trial' },
+              { label: 'Expiring This Week',     value: overview?.expiring_this_week ?? '-', sub: 'trial ends in ≤7 days', alert: (overview?.expiring_this_week > 0) },
+              { label: 'Trial Expired',          value: overview?.trial_expired     ?? '-', sub: 'trial ended, not converted', alert: false },
+              { label: 'Active This Week',       value: overview?.active_week       ?? '-', sub: 'sent a message in 7 days' },
+              { label: 'Pending Capstones',      value: overview?.pending_capstones ?? '-', sub: 'awaiting your review', alert: (overview?.pending_capstones > 0) },
             ].map(card => (
-              <div key={card.label} className={`admin-ov-card ${card.alert ? 'alert' : ''}`}>
+              <div key={card.label} className={`admin-ov-card ${card.alert ? 'alert' : card.highlight ? 'highlight' : ''}`}>
                 <div className="admin-ov-value">{card.value}</div>
                 <div className="admin-ov-label">{card.label}</div>
                 <div className="admin-ov-sub">{card.sub}</div>
@@ -5903,6 +6323,133 @@ function AdminView({ onBack }) {
               <div className="admin-engage-sub">started but no activity in 7+ days</div>
             </div>
           </div>
+
+          <div className="admin-ov-section-title" style={{ marginTop: '28px' }}>Acquisition Funnel</div>
+          {(() => {
+            const wTotal   = overview?.waitlist_total  ?? 0;
+            const wJoined  = overview?.waitlist_joined ?? 0;
+            const wPending = wTotal - wJoined;
+            const total    = overview?.total_students  ?? 0;
+            const started  = overview?.active_ever     ?? 0;
+            const activeW  = overview?.active_week     ?? 0;
+            const steps = [
+              { label: 'Waitlist Applications', value: wTotal,   sub: 'submitted the form',            color: '#6366f1' },
+              { label: 'Created Account',        value: wJoined,  sub: `${wPending} still pending`,     color: '#00A896' },
+              { label: 'Started Learning',       value: started,  sub: `${total - started} never opened a session`, color: '#0ea5e9' },
+              { label: 'Active This Week',       value: activeW,  sub: 'sent a message in last 7 days', color: '#f59e0b' },
+            ];
+            const max = wTotal || 1;
+            return (
+              <div className="admin-funnel">
+                {steps.map((s, i) => (
+                  <div key={s.label} className="admin-funnel-row">
+                    <div className="admin-funnel-label">
+                      <span className="admin-funnel-num">{s.value}</span>
+                      <span className="admin-funnel-name">{s.label}</span>
+                      <span className="admin-funnel-sub">{s.sub}</span>
+                    </div>
+                    <div className="admin-funnel-bar-bg">
+                      <div className="admin-funnel-bar-fill" style={{ width: `${Math.round((s.value / max) * 100)}%`, background: s.color }} />
+                    </div>
+                    {i < steps.length - 1 && (
+                      <div className="admin-funnel-drop">
+                        ↓ {steps[i+1].value > 0 ? Math.round((steps[i+1].value / (s.value || 1)) * 100) : 0}% converted
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            );
+          })()}
+
+          {/* ── Churn Risk ── */}
+          <div className="admin-ov-section-title" style={{ marginTop: '28px' }}>
+            Churn Risk — Trials Expiring This Week
+            {churnRisk.length > 0 && (
+              <span className="admin-churn-badge">{churnRisk.length} at risk</span>
+            )}
+          </div>
+          {churnRisk.length === 0 ? (
+            <div className="admin-churn-empty">No trials expiring in the next 7 days.</div>
+          ) : (
+            <div className="admin-churn-table">
+              <div className="admin-churn-header">
+                <span>Learner</span>
+                <span>Career Path</span>
+                <span>Trial Ends</span>
+                <span>Days Left</span>
+                <span>Messages</span>
+                <span>Last Active</span>
+                <span>Reach Out</span>
+              </div>
+              {churnRisk.map(u => {
+                const urgency = u.days_left <= 2 ? 'high' : u.days_left <= 4 ? 'med' : 'low';
+                const lastActiveLabel = u.last_active_days === null
+                  ? 'Never started'
+                  : u.last_active_days === 0
+                  ? 'Today'
+                  : `${u.last_active_days}d ago`;
+                const mailSubject = encodeURIComponent(`How's Bversity going for you?`);
+                const mailBody = encodeURIComponent(`Hi ${u.name.split(' ')[0]},\n\nJust checking in — your Bversity trial ends soon. Would love to hear how it's going and answer any questions.\n\nBest,\nSudharsan`);
+                return (
+                  <div key={u.id} className={`admin-churn-row admin-churn-row--${urgency}`}>
+                    <div className="admin-churn-name">
+                      <div className="admin-st-avatar admin-st-avatar--sm" style={{ background: '#00A896' }}>
+                        {u.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '0.82rem' }}>{u.name}</div>
+                        <div style={{ fontSize: '0.72rem', opacity: 0.6 }}>{u.email}</div>
+                      </div>
+                    </div>
+                    <div style={{ fontSize: '0.78rem', opacity: 0.75 }}>{u.career_path || '—'}</div>
+                    <div style={{ fontSize: '0.78rem' }}>{u.trial_end ? new Date(u.trial_end).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}</div>
+                    <div>
+                      <span className={`admin-churn-days admin-churn-days--${urgency}`}>{Math.ceil(u.days_left)}d</span>
+                    </div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>{u.messages_sent || '—'}</div>
+                    <div style={{ fontSize: '0.78rem', opacity: u.last_active_days === null ? 0.4 : 0.8 }}>{lastActiveLabel}</div>
+                    <div>
+                      <a href={`mailto:${u.email}?subject=${mailSubject}&body=${mailBody}`} className="admin-churn-mail-btn" title="Send email">
+                        ✉ Email
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* ── Engagement Heatmap ── */}
+          <div className="admin-ov-section-title" style={{ marginTop: '28px' }}>Where Learners Spend Time</div>
+          {engagementHeatmap.length === 0 ? (
+            <div className="admin-churn-empty">No engagement data yet.</div>
+          ) : (
+            <div className="admin-heatmap-grid">
+              {engagementHeatmap.map(row => {
+                const subjectLabels = {
+                  bioinformatics:   'Bioinformatics',
+                  genomics:         'Genomics',
+                  cell_gene_therapy:'Cell & Gene Therapy',
+                  rna_therapeutics: 'RNA Therapeutics',
+                };
+                const label = subjectLabels[row.subject_id] || row.subject_id;
+                const barColor = row.share_pct > 40 ? '#00A896' : row.share_pct > 20 ? '#0ea5e9' : '#6366f1';
+                return (
+                  <div key={row.subject_id} className="admin-heatmap-row">
+                    <div className="admin-heatmap-label">{label}</div>
+                    <div className="admin-heatmap-bar-bg">
+                      <div className="admin-heatmap-bar-fill" style={{ width: `${row.share_pct}%`, background: barColor }} />
+                    </div>
+                    <div className="admin-heatmap-stats">
+                      <span className="admin-heatmap-pct">{row.share_pct}%</span>
+                      <span className="admin-heatmap-meta">{row.message_count} msgs · {row.learner_count} learners</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
           <div className="admin-ov-section-title" style={{ marginTop: '28px' }}>All Learners  -  Usage</div>
           <div className="admin-engage-table">
@@ -5963,12 +6510,33 @@ function AdminView({ onBack }) {
             if (stFilter === 'never') return !s.last_active;
             if (stFilter === 'active') return s.last_active && (Date.now() - new Date(s.last_active).getTime()) <= 7 * 86400000;
             if (stFilter === 'quiet') return s.last_active && (Date.now() - new Date(s.last_active).getTime()) > 7 * 86400000;
+            if (stAccess === 'paying')  return s.access_status === 'active';
+            if (stAccess === 'trial')   return s.access_status === 'trial';
+            if (stAccess === 'expired') return s.access_status === 'expired';
             return true;
           });
         return (
         <div className="admin-content">
           <div className="admin-students-header">
-            <span className="admin-students-count">{filtered.length} of {students.length} learner{students.length !== 1 ? 's' : ''}</span>
+            <div style={{display:'flex',alignItems:'center',gap:'0.75rem'}}>
+              <input type="checkbox" title="Select all visible"
+                checked={filtered.length > 0 && filtered.every(s => stSelected.has(s.id))}
+                onChange={e => setStSelected(e.target.checked ? new Set(filtered.map(s => s.id)) : new Set())}
+              />
+              <span className="admin-students-count">{filtered.length} of {students.length} learner{students.length !== 1 ? 's' : ''}</span>
+              {stSelected.size > 0 && (
+                <button className="admin-st-bulk-delete" onClick={async () => {
+                  if (!window.confirm(`Permanently delete ${stSelected.size} student${stSelected.size > 1 ? 's' : ''}? This cannot be undone.`)) return;
+                  const ids = [...stSelected];
+                  const results = await Promise.all(ids.map(id => fetch(`/api/admin/students/${id}`, { method: 'DELETE', headers: { 'X-Admin-Key': adminKey } }).then(r => ({ id, ok: r.ok }))));
+                  const failed = results.filter(r => !r.ok);
+                  const deleted = results.filter(r => r.ok).map(r => r.id);
+                  setStudents(prev => prev.filter(s => !deleted.includes(s.id)));
+                  setStSelected(new Set(failed.map(r => r.id)));
+                  if (failed.length > 0) alert(`${deleted.length} deleted. ${failed.length} could not be deleted.`);
+                }}>Delete {stSelected.size} selected</button>
+              )}
+            </div>
             <div className="admin-st-filters">
               <input className="admin-st-search" placeholder="Search name or email…" value={stSearch} onChange={e => setStSearch(e.target.value)} />
               <div className="admin-st-filter-btns">
@@ -5981,6 +6549,11 @@ function AdminView({ onBack }) {
                   <button key={v} className={`admin-st-filter-btn ${stFilter === v ? 'active' : ''}`} onClick={() => setStFilter(v)}>{l}</button>
                 ))}
               </div>
+              <div className="admin-st-filter-btns">
+                {[['all','All Access'],['paying','Paying'],['trial','Trial'],['expired','Expired']].map(([v,l]) => (
+                  <button key={v} className={`admin-st-filter-btn ${stAccess === v ? 'active' : ''}`} onClick={() => setStAccess(v)}>{l}</button>
+                ))}
+              </div>
             </div>
           </div>
           <div className="admin-students-list admin-students-list--full">
@@ -5988,6 +6561,10 @@ function AdminView({ onBack }) {
               <div className="admin-empty">No students match.</div>
             ) : filtered.map(s => (
               <div key={s.id} className="admin-student-row" style={{cursor:'pointer'}} onClick={() => loadStudentDetail(s.id)}>
+                <input type="checkbox" className="admin-st-checkbox" checked={stSelected.has(s.id)}
+                  onClick={e => e.stopPropagation()}
+                  onChange={e => setStSelected(prev => { const n = new Set(prev); e.target.checked ? n.add(s.id) : n.delete(s.id); return n; })}
+                />
                 <div className="admin-st-avatar" style={{ background: s.avatar_color || '#00A896' }}>
                   {s.name.charAt(0).toUpperCase()}
                 </div>
@@ -6008,6 +6585,12 @@ function AdminView({ onBack }) {
                     <div className="admin-st-career admin-st-career--none">No path selected</div>
                   )}
                 </div>
+                {(() => {
+                  const st = s.access_status;
+                  const label = st === 'active' ? 'Paying' : st === 'trial' ? 'Trial' : st === 'expired' ? 'Expired' : 'No sub';
+                  const cls = st === 'active' ? 'admin-sub-badge--active' : st === 'trial' ? 'admin-sub-badge--trial' : 'admin-sub-badge--expired';
+                  return <span className={`admin-sub-badge ${cls}`}>{label}</span>;
+                })()}
                 <div className="admin-st-progress-col">
                   <div className="admin-st-prog-label">{s.concepts_covered} covered · {s.concepts_mastered} mastered</div>
                   <div className="admin-st-prog-bar-track">
@@ -6044,13 +6627,27 @@ function AdminView({ onBack }) {
       {/* ── Student Detail Drawer ── */}
       {selectedStudentId && (
         <div className="sd-overlay" onClick={() => setSelectedStudentId(null)}>
-          <div className="sd-drawer" onClick={e => e.stopPropagation()}>
+          <div className="sd-drawer" ref={sdDrawerRef} onClick={e => e.stopPropagation()}>
             <button className="sd-close" onClick={() => setSelectedStudentId(null)}>✕</button>
 
             {studentDetailLoading && <div className="sd-loading">Loading...</div>}
 
-            {studentDetail && (() => {
-              const { student, stats, progress_by_subject, sessions, session_summaries, timeline, quizzes, platform_feedback, concept_feedback, daily_activity, study_plan, retention } = studentDetail;
+            {studentDetail && studentDetail._error && (
+              <div style={{padding:'1.5rem',color:'#cf1322',fontSize:'0.85rem',background:'#fff1f0',borderRadius:8,margin:'1rem 0'}}>
+                <strong>Failed to load student.</strong><br/>{studentDetail._error}
+              </div>
+            )}
+            {studentDetail && !studentDetail._error && (() => {
+              try {
+              const { student, stats, retention, archetype } = studentDetail;
+              const progress_by_subject = studentDetail.progress_by_subject || {};
+              const sessions = studentDetail.sessions || [];
+              const session_summaries = studentDetail.session_summaries || [];
+              const timeline = studentDetail.timeline || [];
+              const quizzes = studentDetail.quizzes || [];
+              const platform_feedback = studentDetail.platform_feedback || [];
+              const concept_feedback = studentDetail.concept_feedback || [];
+              const daily_activity = studentDetail.daily_activity || [];
               const SUBJECTS_MAP = Object.fromEntries([...US_SUBJECTS, ...INDIA_SUBJECTS].map(s => [s.id, s]));
 
               // daily heatmap
@@ -6084,8 +6681,9 @@ function AdminView({ onBack }) {
                       </div>
                       <div style={{marginTop:'0.6rem',display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
                         <button className="sd-action-btn" onClick={async () => {
-                          const days = prompt('Extend trial by how many days?', '15');
+                          const days = prompt('Extend trial by how many days? (1–365)', '15');
                           if (!days || isNaN(days)) return;
+                          if (parseInt(days) < 1 || parseInt(days) > 365) { alert('Enter a value between 1 and 365 days.'); return; }
                           const product = student.region === 'us' ? 'certifications' : 'career_pathways';
                           const r = await fetch(`/api/admin/students/${student.id}/extend-trial?product=${product}`, {
                             method: 'POST',
@@ -6109,15 +6707,21 @@ function AdminView({ onBack }) {
                     </div>
                   </div>
 
-                  {/* Stats row */}
+                  {/* Tabs — immediately below header */}
+                  <div className="sd-tabs">
+                    {[['timeline','Overview'],['progress','Progress'],['sessions','Conversations'],['feedback','Feedback'],['archetype','Archetype']].map(([v,l]) => (
+                      <button key={v} className={`sd-tab ${studentDetailTab === v ? 'active' : ''}`} onClick={() => setStudentDetailTab(v)}>{l}</button>
+                    ))}
+                  </div>
+
+                  {/* Stats inside Overview tab */}
+                  {studentDetailTab === 'timeline' && (<>
                   <div className="sd-stats">
                     {[
                       ['Days Active', stats.days_active],
                       ['Sessions', stats.total_sessions],
-                      ['Messages', stats.total_messages],
-                      ['Concepts Covered', stats.total_concepts_covered],
+                      ['Streak', `${stats.streak_count}d`],
                       ['Concepts Mastered', stats.total_concepts_mastered],
-                      ['Streak', `${stats.streak_count} days`],
                     ].map(([label, val]) => (
                       <div key={label} className="sd-stat-box">
                         <div className="sd-stat-val">{val}</div>
@@ -6125,36 +6729,7 @@ function AdminView({ onBack }) {
                       </div>
                     ))}
                   </div>
-                  {/* Retention badges */}
-                  {retention && (
-                    <div style={{display:'flex',gap:'0.4rem',flexWrap:'wrap',marginBottom:'0.5rem'}}>
-                      {[['D1','d1'],['D7','d7'],['D14','d14'],['D30','d30']].map(([label, key]) => {
-                        const val = retention[key];
-                        const bg = val === null ? '#f0f0f0' : val ? '#dcfce7' : '#fee2e2';
-                        const color = val === null ? '#bbb' : val ? '#16a34a' : '#dc2626';
-                        const text = val === null ? `${label} —` : val ? `${label} ✓` : `${label} ✗`;
-                        return <span key={key} style={{fontSize:'0.68rem',fontWeight:700,padding:'0.2rem 0.55rem',borderRadius:4,background:bg,color}}>{text}</span>;
-                      })}
-                    </div>
-                  )}
-
-                  {/* Activity heatmap */}
-                  <div className="sd-section">
-                    <div className="sd-section-title">Activity — last 12 weeks</div>
-                    <div className="sd-heatmap">
-                      {heatmapDays.map(d => (
-                        <div key={d.key} className="sd-heatmap-cell" title={`${d.key}: ${d.count} messages`}
-                          style={{background: d.count === 0 ? 'rgba(255,255,255,0.05)' : d.count < 3 ? '#0d9e8c55' : d.count < 8 ? '#0d9e8c99' : '#0d9e8c'}} />
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Tabs */}
-                  <div className="sd-tabs">
-                    {[['timeline','Timeline'],['progress','Progress'],['sessions','Conversations'],['feedback','Feedback'],['plan','Study Plan']].map(([v,l]) => (
-                      <button key={v} className={`sd-tab ${studentDetailTab === v ? 'active' : ''}`} onClick={() => setStudentDetailTab(v)}>{l}</button>
-                    ))}
-                  </div>
+                  </>)}
 
                   {/* Timeline */}
                   {studentDetailTab === 'timeline' && (
@@ -6274,22 +6849,108 @@ function AdminView({ onBack }) {
                     </div>
                   )}
 
-                  {/* Study Plan */}
-                  {studentDetailTab === 'plan' && (
-                    <div className="sd-plan-list">
-                      {study_plan.length === 0 && <div className="sd-empty">No study plan generated yet.</div>}
-                      {study_plan.map((p, i) => (
-                        <div key={i} className="sd-plan-row">
-                          <span className="sd-plan-day">Day {p.day_number}</span>
-                          <span className="sd-plan-concept">{p.concept_id}</span>
-                          <span className="sd-plan-subj">{SUBJECTS_MAP[p.subject_id]?.name || p.subject_id}</span>
-                          <span className="sd-plan-date">{p.target_date}</span>
+                  {/* Archetype */}
+                  {studentDetailTab === 'archetype' && (() => {
+                    const ARCHETYPES_UI = {
+                      challenger:           { label: 'The Challenger',          emoji: '⚔️',  color: '#6366f1', desc: 'Loves to question everything. Learns through debate and intellectual friction.' },
+                      credential_hunter:    { label: 'The Credential Hunter',   emoji: '🏆',  color: '#f59e0b', desc: 'Exam-focused and strategic. Optimises for passing, not deep mastery.' },
+                      scattered_genius:     { label: 'The Scattered Genius',    emoji: '🌀',  color: '#06b6d4', desc: 'Curious and wide-ranging. Brilliant sparks but struggles to stay on track.' },
+                      imposter:             { label: 'The Imposter',            emoji: '🫥',  color: '#8b5cf6', desc: 'Highly capable but plagued by self-doubt. Needs consistent encouragement.' },
+                      professional_upgrader:{ label: 'The Professional Upgrader',emoji: '🚀', color: '#10b981', desc: 'Efficient and goal-oriented. Here to upskill fast and move on.' },
+                      ghost:                { label: 'The Ghost',               emoji: '👻',  color: '#6b7280', desc: 'Shows up infrequently. High dropout risk — needs re-engagement.' },
+                    };
+                    const SIGNAL_LABELS = {
+                      question_depth:       'Question Depth',
+                      exam_focus:           'Exam Focus',
+                      help_seeking:         'Help-Seeking',
+                      session_regularity:   'Session Regularity',
+                      breadth_seeking:      'Breadth Seeking',
+                      engagement_depth:     'Engagement Depth',
+                      self_doubt:           'Self-Doubt',
+                      efficiency_bias:      'Efficiency Bias',
+                    };
+                    const arc = archetype || {};
+                    const arcKey = arc.archetype;
+                    const arcInfo = arcKey ? ARCHETYPES_UI[arcKey] : null;
+                    const scores = arc.scores || {};
+                    const scored = arc.sessions_scored || 0;
+                    const updatedAt = arc.updated_at;
+                    const scoring = archetypeScoring;
+                    const setScoring = setArchetypeScoring;
+
+                    return (
+                      <div className="sd-archetype-panel">
+                        {arcInfo ? (
+                          <div className="sd-arc-hero" style={{borderColor: arcInfo.color + '44', background: arcInfo.color + '0d'}}>
+                            <div className="sd-arc-emoji">{arcInfo.emoji}</div>
+                            <div>
+                              <div className="sd-arc-label" style={{color: arcInfo.color}}>{arcInfo.label}</div>
+                              <div className="sd-arc-desc">{arcInfo.desc}</div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="sd-arc-hero sd-arc-hero--empty">
+                            <div className="sd-arc-emoji">🔍</div>
+                            <div>
+                              <div className="sd-arc-label">Not yet scored</div>
+                              <div className="sd-arc-desc">Archetype is derived after 5 messages in a session. Click Score Now to analyse manually.</div>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="sd-arc-meta">
+                          {scored > 0 && <span>{scored} session{scored !== 1 ? 's' : ''} analysed</span>}
+                          {updatedAt && <span>Last scored {new Date(updatedAt).toLocaleDateString('en-IN', {day:'numeric',month:'short',year:'numeric'})}</span>}
+                          <button
+                            className="sd-action-btn"
+                            disabled={scoring}
+                            onClick={async () => {
+                              setScoring(true);
+                              try {
+                                const r = await fetch(`/api/admin/students/${student.id}/score-archetype`, {
+                                  method: 'POST',
+                                  headers: { 'X-Admin-Key': adminKey },
+                                });
+                                if (r.ok) {
+                                  const d = await r.json();
+                                  alert(`Scored: ${d.archetype ? ARCHETYPES_UI[d.archetype]?.label || d.archetype : 'no archetype yet'}`);
+                                  loadStudentDetail(student.id);
+                                } else {
+                                  alert('Scoring failed — not enough session data?');
+                                }
+                              } finally { setScoring(false); }
+                            }}
+                          >{scoring ? 'Scoring…' : 'Score Now'}</button>
                         </div>
-                      ))}
-                    </div>
-                  )}
+
+                        {Object.keys(scores).length > 0 && (
+                          <div className="sd-arc-signals">
+                            <div className="sd-section-title">Signal Scores</div>
+                            {Object.entries(scores).map(([key, val]) => {
+                              const pct = Math.round((val || 0) * 100);
+                              const barColor = pct >= 70 ? '#10b981' : pct >= 40 ? '#f59e0b' : '#ef4444';
+                              return (
+                                <div key={key} className="sd-arc-signal-row">
+                                  <span className="sd-arc-signal-label">{SIGNAL_LABELS[key] || key}</span>
+                                  <div className="sd-arc-signal-track">
+                                    <div className="sd-arc-signal-fill" style={{width:`${pct}%`, background: barColor}} />
+                                  </div>
+                                  <span className="sd-arc-signal-pct">{pct}%</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </>
               );
+              } catch(e) {
+                return <div style={{padding:'1.5rem',color:'#cf1322',fontSize:'0.85rem',background:'#fff1f0',borderRadius:8,margin:'1rem 0'}}>
+                  <strong>Could not render student detail.</strong><br/>{e.message}
+                </div>;
+              }
             })()}
           </div>
         </div>
@@ -6504,19 +7165,41 @@ function AdminView({ onBack }) {
                               </div>
                             </div>
                           )}
-                          <ConceptNoteRow
-                            conceptId={concept.id}
-                            notes={conceptNotesMap[concept.id] || ''}
-                            saving={conceptNotesSaving === concept.id}
-                            onSave={saveConceptNote}
-                            color={subjectObj?.color}
-                          />
                         </div>
                       );
                   })}
                 </div>
               );
             })()}
+          </div>
+
+          <div className="videos-section" style={{ marginTop: '2.5rem' }}>
+            <h3 className="access-title">Lecture Videos</h3>
+            <p className="access-subtitle">All lecture videos currently stored in the backend, grouped by subject.</p>
+            {SUBJECTS.map(s => {
+              const vids = lectureVideos[s.id] || [];
+              return (
+                <div key={s.id} className="lv-subject-block">
+                  <div className="lv-subject-header" style={{ borderLeft: `3px solid ${s.color}` }}>
+                    <span className="lv-subject-name">{s.name}</span>
+                    <span className="lv-subject-count">{vids.length} videos</span>
+                  </div>
+                  {vids.length === 0 ? (
+                    <div className="lv-empty">No videos added yet</div>
+                  ) : (
+                    <div className="lv-list">
+                      {vids.map((v, i) => (
+                        <div key={v.id} className="lv-row">
+                          <span className="lv-index">{i + 1}</span>
+                          <span className="lv-title">{v.title}</span>
+                          <a className="lv-link" href={v.drive_url} target="_blank" rel="noreferrer">Open ↗</a>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
@@ -6835,6 +7518,126 @@ function AdminView({ onBack }) {
         </div>
       )}
 
+      {tab === 'revenue' && (
+        <div className="admin-content">
+          {!revenueData ? (
+            <div className="admin-empty">Loading revenue data…</div>
+          ) : (() => {
+            const fmt = (cents, currency) => {
+              if (!cents) return currency === 'inr' ? '₹0' : '$0';
+              if (currency === 'inr') return '₹' + (cents / 100).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+              return '$' + (cents / 100).toLocaleString('en-US', { maximumFractionDigits: 0 });
+            };
+            const allCurrencies = Object.keys(revenueData.currency_totals);
+            const maxMonthTotal = Math.max(...revenueData.monthly.map(m => Object.values(m.totals).reduce((a, v) => a + v, 0)), 1);
+            return (
+              <>
+                {/* Top stats */}
+                <div className="rev-stats-row">
+                  <div className="rev-stat-card rev-stat-card--primary">
+                    <div className="rev-stat-label">Active Subscribers</div>
+                    <div className="rev-stat-value">{revenueData.active_subscribers}</div>
+                    <div className="rev-stat-sub">paying right now</div>
+                  </div>
+                  <div className="rev-stat-card">
+                    <div className="rev-stat-label">Total Payments</div>
+                    <div className="rev-stat-value">{revenueData.total_payments}</div>
+                    <div className="rev-stat-sub">transactions recorded</div>
+                  </div>
+                  <div className="rev-stat-card">
+                    <div className="rev-stat-label">This Month</div>
+                    <div className="rev-stat-value">{revenueData.this_month.count}</div>
+                    <div className="rev-stat-sub">
+                      {Object.entries(revenueData.this_month.totals).map(([c, v]) => fmt(v, c)).join(' · ') || '—'}
+                    </div>
+                  </div>
+                  {allCurrencies.map(c => (
+                    <div key={c} className="rev-stat-card">
+                      <div className="rev-stat-label">Total {c.toUpperCase()} Revenue</div>
+                      <div className="rev-stat-value">{fmt(revenueData.currency_totals[c], c)}</div>
+                      <div className="rev-stat-sub">all time</div>
+                    </div>
+                  ))}
+                  {allCurrencies.length === 0 && (
+                    <div className="rev-stat-card">
+                      <div className="rev-stat-label">Total Revenue</div>
+                      <div className="rev-stat-value">—</div>
+                      <div className="rev-stat-sub">no payments yet</div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Monthly chart */}
+                <div className="rev-section-title">Monthly Revenue (last 12 months)</div>
+                <div className="rev-chart">
+                  {revenueData.monthly.map(m => {
+                    const total = Object.values(m.totals).reduce((a, v) => a + v, 0);
+                    const pct = Math.round((total / maxMonthTotal) * 100);
+                    return (
+                      <div key={m.month} className="rev-chart-col">
+                        <div className="rev-chart-bar-wrap">
+                          <div className="rev-chart-bar" style={{ height: `${Math.max(pct, total > 0 ? 4 : 0)}%` }} title={Object.entries(m.totals).map(([c,v]) => fmt(v,c)).join(' · ')} />
+                        </div>
+                        <div className="rev-chart-count">{m.count > 0 ? m.count : ''}</div>
+                        <div className="rev-chart-label">{m.month.split(' ')[0]}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* By gateway */}
+                {Object.keys(revenueData.by_gateway).length > 0 && (
+                  <>
+                    <div className="rev-section-title">By Payment Gateway</div>
+                    <div className="rev-gateway-row">
+                      {Object.entries(revenueData.by_gateway).map(([gw, data]) => (
+                        <div key={gw} className="rev-gateway-card">
+                          <div className="rev-gateway-name">{gw === 'stripe' ? '💳 Stripe' : '🇮🇳 Razorpay'}</div>
+                          <div className="rev-gateway-count">{data.count} payment{data.count !== 1 ? 's' : ''}</div>
+                          <div className="rev-gateway-amounts">
+                            {Object.entries(data.totals).map(([c, v]) => (
+                              <span key={c}>{fmt(v, c)}</span>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* Recent payments */}
+                <div className="rev-section-title">Recent Payments</div>
+                {revenueData.recent_payments.length === 0 ? (
+                  <div className="rev-empty">No payments recorded yet. Once your Stripe and Razorpay webhooks fire, every payment will appear here.</div>
+                ) : (
+                  <div className="rev-table">
+                    <div className="rev-table-header">
+                      <span>Student</span>
+                      <span>Product</span>
+                      <span>Amount</span>
+                      <span>Gateway</span>
+                      <span>Date</span>
+                    </div>
+                    {revenueData.recent_payments.map(p => (
+                      <div key={p.id} className="rev-table-row">
+                        <div>
+                          <div className="rev-table-name">{p.name}</div>
+                          <div className="rev-table-email">{p.email}</div>
+                        </div>
+                        <div className="rev-table-product">{p.product === 'career_pathways' ? 'Career Pathways' : 'Certifications'}</div>
+                        <div className="rev-table-amount">{fmt(p.amount_cents, p.currency)}</div>
+                        <div className="rev-table-gateway">{p.gateway === 'stripe' ? '💳 Stripe' : '🇮🇳 Razorpay'}</div>
+                        <div className="rev-table-date">{new Date(p.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            );
+          })()}
+        </div>
+      )}
+
       {tab === 'cohort' && (
         <div className="admin-content">
           <div className="cohort-analytics">
@@ -6974,65 +7777,87 @@ function AdminView({ onBack }) {
         </div>
       )}
 
-      {tab === 'waitlist' && (
-        <div className="admin-content">
-          <div className="feedback-admin-section">
-            <h3 className="access-title">Waitlist Requests</h3>
-            <p className="access-subtitle">
-              {waitlistRequests.length} total · {waitlistRequests.filter(w => w.status === 'pending').length} pending review
-            </p>
-            {waitlistLoading ? (
-              <p className="access-empty">Loading...</p>
-            ) : waitlistRequests.length === 0 ? (
-              <p className="access-empty">No requests yet. Share the waitlist link to start collecting applications.</p>
-            ) : (
-              <div className="waitlist-admin-list">
-                {waitlistRequests.map(w => (
-                  <div key={w.id} className={`waitlist-admin-row waitlist-status-${w.status}`}>
-                    <div className="waitlist-admin-header">
-                      <div className="waitlist-admin-identity">
-                        <span className="waitlist-admin-name">{w.name}</span>
-                        <span className="waitlist-admin-email">{w.email}</span>
-                        {w.phone && <span className="waitlist-admin-phone">{w.phone}</span>}
-                      </div>
-                      <span className={`waitlist-admin-status waitlist-status-badge-${w.status}`}>{w.status}</span>
-                    </div>
-                    <div className="waitlist-admin-details">
-                      {w.university && <span><strong>University:</strong> {w.university}</span>}
-                      {w.year_of_study && <span><strong>Year:</strong> {w.year_of_study}</span>}
-                      {w.country && <span><strong>Country:</strong> {w.country}</span>}
-                      <span><strong>Applied:</strong> {new Date(w.submitted_at).toLocaleDateString()}</span>
-                    </div>
-                    {w.reason && (
-                      <div className="waitlist-admin-reason">
-                        <strong>Why they want access:</strong> {w.reason}
-                      </div>
-                    )}
-                    {w.status === 'pending' && (
-                      <div className="waitlist-admin-actions">
-                        <button
-                          className="waitlist-approve-btn"
-                          disabled={waitlistAction === w.id + '_approve'}
-                          onClick={() => handleWaitlistApprove(w.id)}
-                        >
-                          {waitlistAction === w.id + '_approve' ? 'Approving...' : '✓ Approve & Grant Access'}
-                        </button>
-                        <button
-                          className="waitlist-reject-btn"
-                          disabled={waitlistAction === w.id + '_reject'}
-                          onClick={() => handleWaitlistReject(w.id)}
-                        >
-                          {waitlistAction === w.id + '_reject' ? 'Rejecting...' : '✕ Reject'}
-                        </button>
-                      </div>
-                    )}
-                  </div>
+      {tab === 'waitlist' && (() => {
+        const filteredWaitlist = waitlistProduct === 'all'
+          ? waitlistRequests
+          : waitlistRequests.filter(w => (w.product || 'career_pathways') === waitlistProduct);
+        const cpCount   = waitlistRequests.filter(w => (w.product || 'career_pathways') === 'career_pathways').length;
+        const certCount = waitlistRequests.filter(w => w.product === 'certifications').length;
+        return (
+          <div className="admin-content">
+            <div className="feedback-admin-section">
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                <h3 className="access-title">Waitlist Requests</h3>
+                <button onClick={loadWaitlist} style={{background:'none',border:'1px solid #333',borderRadius:6,padding:'0.3rem 0.8rem',color:'#aaa',fontSize:12,cursor:'pointer'}}>↻ Refresh</button>
+              </div>
+              <p className="access-subtitle">
+                {waitlistRequests.length} total · {waitlistRequests.filter(w => w.status === 'pending').length} pending review
+              </p>
+
+              <div className="wl-product-tabs">
+                {[['all', `All (${waitlistRequests.length})`], ['career_pathways', `Career Pathways (${cpCount})`], ['certifications', `Certifications (${certCount})`]].map(([val, label]) => (
+                  <button key={val} className={`wl-product-tab ${waitlistProduct === val ? 'active' : ''}`} onClick={() => setWaitlistProduct(val)}>{label}</button>
                 ))}
               </div>
-            )}
+
+              {waitlistLoading ? (
+                <p className="access-empty">Loading...</p>
+              ) : filteredWaitlist.length === 0 ? (
+                <p className="access-empty">No requests yet.</p>
+              ) : (
+                <div className="waitlist-admin-list">
+                  {filteredWaitlist.map(w => (
+                    <div key={w.id} className={`waitlist-admin-row waitlist-status-${w.status}`}>
+                      <div className="waitlist-admin-header">
+                        <div className="waitlist-admin-identity">
+                          <span className="waitlist-admin-name">{w.name}</span>
+                          <span className="waitlist-admin-email">{w.email}</span>
+                          {w.phone && <span className="waitlist-admin-phone">{w.phone}</span>}
+                        </div>
+                        <div style={{display:'flex',gap:'0.5rem',alignItems:'center'}}>
+                          <span className={`wl-product-badge wl-product-badge--${w.product === 'certifications' ? 'cert' : 'cp'}`}>
+                            {w.product === 'certifications' ? 'Certifications' : 'Career Pathways'}
+                          </span>
+                          <span className={`waitlist-admin-status waitlist-status-badge-${w.status}`}>{w.status}</span>
+                        </div>
+                      </div>
+                      <div className="waitlist-admin-details">
+                        {w.university && <span><strong>University:</strong> {w.university}</span>}
+                        {w.year_of_study && <span><strong>Year:</strong> {w.year_of_study}</span>}
+                        {w.country && <span><strong>Country:</strong> {w.country}</span>}
+                        <span><strong>Applied:</strong> {new Date(w.submitted_at).toLocaleDateString()}</span>
+                      </div>
+                      {w.reason && (
+                        <div className="waitlist-admin-reason">
+                          <strong>Why they want access:</strong> {w.reason}
+                        </div>
+                      )}
+                      {w.status === 'pending' && (
+                        <div className="waitlist-admin-actions">
+                          <button
+                            className="waitlist-approve-btn"
+                            disabled={waitlistAction === w.id + '_approve'}
+                            onClick={() => handleWaitlistApprove(w.id)}
+                          >
+                            {waitlistAction === w.id + '_approve' ? 'Approving...' : '✓ Approve & Grant Access'}
+                          </button>
+                          <button
+                            className="waitlist-reject-btn"
+                            disabled={waitlistAction === w.id + '_reject'}
+                            onClick={() => handleWaitlistReject(w.id)}
+                          >
+                            {waitlistAction === w.id + '_reject' ? 'Rejecting...' : '✕ Reject'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {tab === 'feedback' && (
         <div className="admin-content">
@@ -7359,7 +8184,7 @@ function AdminView({ onBack }) {
           <p className="access-subtitle">Live view of server resources and platform limits. Use this to know when to scale up.</p>
           {systemHealthLoading && <div className="sys-loading">Loading…</div>}
           {systemHealth && (() => {
-            const { disk, memory, db, students, messages, limits } = systemHealth;
+            const { disk, memory, db, students, messages, limits, anthropic_api } = systemHealth;
             function Gauge({ label, used, total, unit, softLimit, note, color }) {
               const pct = Math.min(100, Math.round(used / total * 100));
               const atSoft = softLimit && (used / total * 100) >= softLimit;
@@ -7423,6 +8248,17 @@ function AdminView({ onBack }) {
                     <span className="sys-stat-label">Total messages (all time)</span>
                     <span className="sys-stat-val">{messages.total.toLocaleString()}</span>
                   </div>
+                  {anthropic_api && (
+                    <div className={`sys-api-status ${anthropic_api.ok === true ? 'sys-api-status--ok' : anthropic_api.ok === false ? 'sys-api-status--error' : 'sys-api-status--unknown'}`}>
+                      <div className="sys-api-status-row">
+                        <span className="sys-api-dot" />
+                        <strong>Anthropic API: </strong>
+                        <span>{anthropic_api.ok === true ? 'Operational' : anthropic_api.ok === false ? 'Error' : 'Not yet checked'}</span>
+                      </div>
+                      {anthropic_api.error && <div className="sys-api-error-msg">{anthropic_api.error}</div>}
+                      {anthropic_api.checked_at && <div className="sys-api-time">Last checked: {new Date(anthropic_api.checked_at + 'Z').toLocaleTimeString()}</div>}
+                    </div>
+                  )}
                   <div className="sys-info-box">
                     <strong>Email (Resend free tier):</strong><br/>
                     <span className="sys-info-note">{limits.email_daily.note}</span>
@@ -7590,6 +8426,37 @@ function AdminView({ onBack }) {
                     </div>
                   </div>
                 )}
+
+                {/* ── Concept reactions ─────────────────────────────────── */}
+                {insights.reactions && insights.reactions.length > 0 && (
+                  <div className="ins-section">
+                    <div className="ins-section-title">Concept Reactions</div>
+                    <div className="ins-section-sub">👍 / 👎 feedback from students on individual concepts</div>
+                    <div className="ins-diff-list">
+                      <div className="ins-diff-header" style={{gridTemplateColumns:'2fr 1.5fr 60px 60px 100px'}}>
+                        <span>Concept</span><span>Subject</span><span>👍</span><span>👎</span><span>Sentiment</span>
+                      </div>
+                      {insights.reactions.slice(0, 30).map((c, i) => {
+                        const subj = SUBJECTS_MAP[c.subject_id];
+                        const total = c.thumbs_up + c.thumbs_down;
+                        const pct = total > 0 ? Math.round(c.thumbs_up / total * 100) : 0;
+                        const color = pct >= 70 ? '#10b981' : pct >= 40 ? '#f59e0b' : '#ef4444';
+                        return (
+                          <div key={i} className="ins-diff-row" style={{gridTemplateColumns:'2fr 1.5fr 60px 60px 100px'}}>
+                            <span className="ins-diff-concept">{c.concept_title}</span>
+                            <span className="ins-diff-subj" style={{color: subj?.color || '#888'}}>{subj?.name || c.subject_id}</span>
+                            <span className="ins-diff-num" style={{color:'#10b981'}}>{c.thumbs_up}</span>
+                            <span className="ins-diff-num" style={{color:'#ef4444'}}>{c.thumbs_down}</span>
+                            <span className="ins-diff-rate" style={{color}}>
+                              {pct}%
+                              <div className="ins-diff-rate-bar" style={{background: color, width:`${pct}%`}} />
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
               </>
             );
           })()}
@@ -7608,7 +8475,7 @@ function AdminView({ onBack }) {
                 { key: 'career_pathways', label: 'Career Pathways', desc: 'university.bversity.io — career building for biotech', color: '#00796B' },
                 { key: 'certifications',  label: 'Certifications',  desc: 'usa.bversity.io — CCRA, CCRP, RAC, MSL, CDM', color: '#0066CC' },
               ].map(({ key, label, desc, color }) => {
-                const cfg  = platformConfig[key] || { mode: 'invite_only', trial_days: 15 };
+                const cfg  = platformConfig[key] || { mode: 'self_serve', trial_days: 5 };
                 const isSelf = cfg.mode === 'self_serve';
                 return (
                   <div key={key} className="cfg-card">
@@ -7638,7 +8505,7 @@ function AdminView({ onBack }) {
                     </div>
                     <div className="cfg-row">
                       <span className="cfg-label">Payment gateway</span>
-                      <span className="cfg-value">{key === 'certifications' ? 'Stripe only' : 'Stripe (intl) + Razorpay (India)'}<span className="cfg-coming-soon"> · not yet live</span></span>
+                      <span className="cfg-value">{key === 'certifications' ? 'Razorpay' : 'Razorpay (India + International)'}</span>
                     </div>
                     {isSelf && <div className="cfg-notice">Self-serve is active. Anyone can sign up and start a {cfg.trial_days}-day trial immediately.</div>}
                   </div>
@@ -7657,6 +8524,40 @@ function AdminView({ onBack }) {
               const r = await fetch('/api/admin/check-trial-expiry', { method: 'POST', headers: { 'X-Admin-Key': adminKey } });
               if (r.ok) { const d = await r.json(); alert(`Done — ${d.warned} warned, ${d.expired} expired.`); }
             }}>Run Now</button>
+          </div>
+
+          <div className="cfg-section-title" style={{marginTop:'2rem'}}>Forté Hero Video</div>
+          <div style={{background:'#1a1a2e',border:'1px solid #2a2a3e',borderRadius:12,padding:'1.5rem',maxWidth:640}}>
+            <div style={{color:'#aaa',fontSize:13,marginBottom:'1rem'}}>
+              Paste a direct MP4 video URL. This sets the background video on university.bversity.io without any code change.
+              The page fetches it fresh on every load.
+            </div>
+            <div style={{display:'flex',gap:'0.75rem',alignItems:'center'}}>
+              <input
+                type="text"
+                value={heroVideoUrl}
+                onChange={e => setHeroVideoUrl(e.target.value)}
+                placeholder="https://videos.pexels.com/video-files/..."
+                style={{flex:1,background:'#0d0d1a',border:'1px solid #333',borderRadius:8,padding:'0.6rem 0.9rem',color:'#fff',fontSize:13,outline:'none'}}
+              />
+              <button
+                onClick={saveHeroVideoUrl}
+                disabled={heroVideoSaving || !heroVideoUrl.trim()}
+                style={{background:'#00796B',color:'#fff',border:'none',borderRadius:8,padding:'0.6rem 1.2rem',fontWeight:600,fontSize:13,cursor:'pointer',whiteSpace:'nowrap',opacity:heroVideoSaving?0.6:1}}
+              >
+                {heroVideoSaving ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+            {heroVideoUrl && (
+              <div style={{marginTop:'0.75rem',fontSize:12}}>
+                <a href={heroVideoUrl} target="_blank" rel="noreferrer" style={{color:'#00bcd4'}}>Preview video ↗</a>
+              </div>
+            )}
+            {heroVideoMsg && (
+              <div style={{marginTop:'0.6rem',fontSize:12,color: heroVideoMsg.startsWith('Saved') ? '#4ade80' : '#f87171'}}>
+                {heroVideoMsg}
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -7871,18 +8772,45 @@ function StudyPlanSection({ planDays, spWeeks, spDoneDays, spTotalConcepts, spCo
 
 // ── Concept Library ────────────────────────────────────────────────────────
 
-function ConceptLibraryView({ student }) {
+function ConceptLibraryView({ student, onStudy }) {
+  const [tab, setTab]           = useState('browse');
   const [cards, setCards]       = useState([]);
   const [loading, setLoading]   = useState(true);
   const [search, setSearch]     = useState('');
   const [filterSubject, setFilterSubject] = useState('all');
+
+  // Browse tab state
+  const [curriculum, setCurriculum]         = useState({});
+  const [conceptProgress, setConceptProgress] = useState({});
+  const [conceptSummaries, setConceptSummaries] = useState({});
+  const [browseLoading, setBrowseLoading]   = useState(true);
+  const [expandedSubject, setExpandedSubject] = useState(null);
+  const [expandedConcept, setExpandedConcept] = useState(null);
 
   useEffect(() => {
     fetch(`/api/saved-concepts/${student.id}`)
       .then(r => r.json())
       .then(data => { setCards(data); setLoading(false); })
       .catch(() => setLoading(false));
+    fetch(`/api/curriculum`)
+      .then(r => r.json())
+      .then(data => { setCurriculum(data); setBrowseLoading(false); })
+      .catch(() => setBrowseLoading(false));
+    fetch(`/api/concept-progress/${student.id}`)
+      .then(r => r.json())
+      .then(setConceptProgress)
+      .catch(() => {});
   }, [student.id]);
+
+  async function loadSummariesForSubject(subjectId) {
+    if (conceptSummaries[subjectId] !== undefined) return;
+    try {
+      const data = await fetch(`/api/concept-summaries/${subjectId}`).then(r => r.json());
+      setConceptSummaries(prev => ({ ...prev, [subjectId]: data }));
+    } catch {
+      setConceptSummaries(prev => ({ ...prev, [subjectId]: {} }));
+    }
+  }
 
   async function handleUnsave(id) {
     await fetch(`/api/saved-concepts/${student.id}/${id}`, { method: 'DELETE' });
@@ -7907,70 +8835,175 @@ function ConceptLibraryView({ student }) {
     }))
     .filter(g => g.items.length > 0);
 
+  // Browse tab: all subjects from current product
+  const browseSubjects = SUBJECTS.filter(s => curriculum[s.id]);
+
+  const browseFiltered = browseSubjects.filter(s =>
+    filterSubject === 'all' || s.id === filterSubject
+  );
+
   return (
     <div className="lib-view">
       <div className="lib-header">
         <div>
-          <h1 className="lib-title">Concept Library</h1>
-          <p className="lib-sub">{cards.length} concept{cards.length !== 1 ? 's' : ''} saved across {subjectIds.length} subject{subjectIds.length !== 1 ? 's' : ''}</p>
-        </div>
-        <div className="lib-controls">
-          <div className="lib-search-wrap">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-            </svg>
-            <input
-              className="lib-search"
-              placeholder="Search concepts…"
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-            />
-          </div>
-          <select className="lib-filter" value={filterSubject} onChange={e => setFilterSubject(e.target.value)}>
-            <option value="all">All subjects</option>
-            {subjectIds.map(sid => (
-              <option key={sid} value={sid}>{SUBJECTS_BY_ID[sid]?.name || sid}</option>
-            ))}
-          </select>
+          <h1 className="lib-title">My Library</h1>
+          <p className="lib-sub">Browse all concepts or review what you've saved.</p>
         </div>
       </div>
 
-      {loading ? (
-        <div className="lib-empty">Loading your library…</div>
-      ) : cards.length === 0 ? (
-        <div className="lib-empty">
-          <div className="lib-empty-icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
-            </svg>
-          </div>
-          <div className="lib-empty-title">No saved concepts yet</div>
-          <div className="lib-empty-sub">When your expert introduces a concept during a session, tap the bookmark icon on the card to save it here.</div>
-        </div>
-      ) : grouped.length === 0 ? (
-        <div className="lib-empty">No concepts match your search.</div>
-      ) : (
-        <div className="lib-groups">
-          {grouped.map(({ sid, subject, items }) => (
-            <div key={sid} className="lib-group">
-              <div className="lib-group-header">
-                <span className="lib-group-dot" style={{ background: subject?.color || 'var(--teal)' }} />
-                <span className="lib-group-name">{subject?.name || sid}</span>
-                <span className="lib-group-count">{items.length}</span>
-              </div>
-              <div className="lib-cards">
-                {items.map(item => (
-                  <LibConceptCard
-                    key={item.id}
-                    item={item}
-                    color={subject?.color}
-                    onUnsave={() => handleUnsave(item.id)}
-                  />
-                ))}
-              </div>
+      <div className="lib-tabs">
+        <button className={`lib-tab ${tab === 'browse' ? 'active' : ''}`} onClick={() => setTab('browse')}>Browse All Concepts</button>
+        <button className={`lib-tab ${tab === 'saved' ? 'active' : ''}`} onClick={() => setTab('saved')}>
+          Saved {cards.length > 0 && <span className="lib-tab-count">{cards.length}</span>}
+        </button>
+      </div>
+
+      {tab === 'browse' && (
+        <div className="lib-browse">
+          <div className="lib-controls">
+            <div className="lib-search-wrap">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input className="lib-search" placeholder="Search concepts…" value={search} onChange={e => setSearch(e.target.value)} />
             </div>
-          ))}
+            <select className="lib-filter" value={filterSubject} onChange={e => setFilterSubject(e.target.value)}>
+              <option value="all">All subjects</option>
+              {browseSubjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+            </select>
+          </div>
+          {browseLoading ? (
+            <div className="lib-empty">Loading curriculum…</div>
+          ) : (
+            <div className="lib-browse-subjects">
+              {browseFiltered.map(subject => {
+                const concepts = (curriculum[subject.id] || []).filter(c =>
+                  !search || c.name.toLowerCase().includes(search.toLowerCase()) || c.desc.toLowerCase().includes(search.toLowerCase())
+                );
+                if (concepts.length === 0) return null;
+                const coveredCount = concepts.filter(c => conceptProgress[c.id]?.covered).length;
+                const masteredCount = concepts.filter(c => conceptProgress[c.id]?.mastered).length;
+                const isExpanded = expandedSubject === subject.id;
+                return (
+                  <div key={subject.id} className="lib-browse-subject">
+                    <div className="lib-browse-subject-header" onClick={() => { const next = isExpanded ? null : subject.id; setExpandedSubject(next); setExpandedConcept(null); if (next) loadSummariesForSubject(next); }}>
+                      <div className="lib-browse-subject-left">
+                        <span className="lib-browse-subject-dot" style={{ background: subject.color || '#00A896' }} />
+                        <div>
+                          <div className="lib-browse-subject-name">{subject.name}</div>
+                          <div className="lib-browse-subject-meta">
+                            {masteredCount > 0 && <span className="lib-browse-badge lib-browse-badge--mastered">{masteredCount} mastered</span>}
+                            {(coveredCount - masteredCount) > 0 && <span className="lib-browse-badge lib-browse-badge--covered">{coveredCount - masteredCount} covered</span>}
+                            <span className="lib-browse-badge lib-browse-badge--total">{concepts.length} concepts</span>
+                          </div>
+                        </div>
+                      </div>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s', flexShrink: 0 }}>
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
+                    </div>
+                    {isExpanded && (
+                      <div className="lib-browse-concepts">
+                        {concepts.map(concept => {
+                          const prog = conceptProgress[concept.id];
+                          const summary = (conceptSummaries[subject.id] || {})[concept.id];
+                          const isConceptExpanded = expandedConcept === concept.id;
+                          return (
+                            <div key={concept.id} className={`lib-browse-concept${summary ? ' lib-browse-concept--clickable' : ''}`}
+                              onClick={() => summary && setExpandedConcept(isConceptExpanded ? null : concept.id)}>
+                              <div className="lib-browse-concept-status">
+                                {prog?.mastered ? (
+                                  <span className="lib-concept-dot lib-concept-dot--mastered" title="Mastered" />
+                                ) : prog?.covered ? (
+                                  <span className="lib-concept-dot lib-concept-dot--covered" title="Covered" />
+                                ) : (
+                                  <span className="lib-concept-dot lib-concept-dot--new" title="Not yet covered" />
+                                )}
+                              </div>
+                              <div className="lib-browse-concept-body">
+                                <div className="lib-browse-concept-name">{concept.name}
+                                  {summary && <span className="lib-concept-expand-icon">{isConceptExpanded ? '▲' : '▼'}</span>}
+                                </div>
+                                {!isConceptExpanded && <div className="lib-browse-concept-desc">{concept.desc}</div>}
+                                {isConceptExpanded && summary && (
+                                  <div className="lib-summary-card">
+                                    <p className="lib-summary-what">{summary.what}</p>
+                                    <p className="lib-summary-why"><strong>Why it matters:</strong> {summary.why}</p>
+                                    <ul className="lib-summary-points">
+                                      {summary.key_points.map((pt, i) => <li key={i}>{pt}</li>)}
+                                    </ul>
+                                    {summary.real_world && (
+                                      <p className="lib-summary-realworld"><strong>In practice:</strong> {summary.real_world}</p>
+                                    )}
+                                    {summary.interview_q && (
+                                      <div className="lib-summary-interview">
+                                        <span className="lib-summary-interview-label">Interview Q</span>
+                                        <p className="lib-summary-interview-q">{summary.interview_q}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
+      )}
+
+      {tab === 'saved' && (
+        <>
+          <div className="lib-controls">
+            <div className="lib-search-wrap">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+              </svg>
+              <input className="lib-search" placeholder="Search saved concepts…" value={search} onChange={e => setSearch(e.target.value)} />
+            </div>
+            <select className="lib-filter" value={filterSubject} onChange={e => setFilterSubject(e.target.value)}>
+              <option value="all">All subjects</option>
+              {subjectIds.map(sid => <option key={sid} value={sid}>{SUBJECTS_BY_ID[sid]?.name || sid}</option>)}
+            </select>
+          </div>
+          {loading ? (
+            <div className="lib-empty">Loading your library…</div>
+          ) : cards.length === 0 ? (
+            <div className="lib-empty">
+              <div className="lib-empty-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"/>
+                </svg>
+              </div>
+              <div className="lib-empty-title">Your reference library starts here.</div>
+              <div className="lib-empty-sub">Bookmark any concept during a session and it lives here — ready to review before an exam, a project, or an interview.</div>
+            </div>
+          ) : grouped.length === 0 ? (
+            <div className="lib-empty">Nothing saved matches that search. Try a broader term, or explore more concepts in your sessions.</div>
+          ) : (
+            <div className="lib-groups">
+              {grouped.map(({ sid, subject, items }) => (
+                <div key={sid} className="lib-group">
+                  <div className="lib-group-header">
+                    <span className="lib-group-dot" style={{ background: subject?.color || 'var(--teal)' }} />
+                    <span className="lib-group-name">{subject?.name || sid}</span>
+                    <span className="lib-group-count">{items.length}</span>
+                  </div>
+                  <div className="lib-cards">
+                    {items.map(item => (
+                      <LibConceptCard key={item.id} item={item} color={subject?.color} onUnsave={() => handleUnsave(item.id)} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -8243,7 +9276,7 @@ function LabProjectView({ student, project, subject, onBack }) {
   const stepsDone  = new Set(labProgress?.steps_done || []);
   const isCompleted = labProgress?.status === 'completed';
   const allStepsDone = project.steps.every(s => stepsDone.has(s.id));
-  const tutorFirstName = subject.tutor.split(' ')[1] || subject.tutor;
+  const tutorFirstName = subject.tutor?.split(' ')[1] || subject.tutor || 'Expert';
 
   async function toggleStep(stepId) {
     if (isCompleted) return;
@@ -9144,6 +10177,43 @@ function DashboardView({ student, careerProfile, onStudy, onCapstone, onCertific
           );
         })}
       </div>
+
+      {(() => {
+        const focusItems = [];
+        SUBJECTS.forEach(subject => {
+          const prog = (data.subjects || {})[subject.id];
+          if (!prog) return;
+          const gaps = (prog.concepts || []).filter(c => c.covered && !c.mastered);
+          if (gaps.length > 0) focusItems.push({ subject, gaps });
+        });
+        if (focusItems.length === 0) return null;
+        return (
+          <div className="dash-focus-section">
+            <div className="dash-focus-title">Where to focus next</div>
+            <div className="dash-focus-cards">
+              {focusItems.map(({ subject, gaps }) => (
+                <div key={subject.id} className="dash-focus-card" style={{ '--focus-color': subject.color }}>
+                  <div className="dash-focus-card-header">
+                    <span className="dash-focus-subject-dot" style={{ background: subject.color }} />
+                    <span className="dash-focus-subject-name">{subject.name}</span>
+                    <span className="dash-focus-count">{gaps.length} to reinforce</span>
+                  </div>
+                  <ul className="dash-focus-list">
+                    {gaps.slice(0, 5).map(c => (
+                      <li key={c.id} className="dash-focus-concept">{c.name}</li>
+                    ))}
+                    {gaps.length > 5 && <li className="dash-focus-more">+{gaps.length - 5} more</li>}
+                  </ul>
+                  <button className="dash-focus-cta" style={{ color: subject.color }} onClick={() => onStudy(subject)}>
+                    Study now →
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+
       {videoModal && (
         <div className="modal-overlay" onClick={() => setVideoModal(null)}>
           <div className="dash-video-modal" onClick={e => e.stopPropagation()}>
@@ -9597,7 +10667,7 @@ function ExpertIntroScreen({ subject, student, onReady, onBack }) {
         >
           {!tutorPhoto && (
             <div className="intro-hero-initials">
-              {subject.tutor.split(' ').filter(w => w.length > 2).slice(-2).map(w => w[0]).join('')}
+              {(subject.tutor || '').split(' ').filter(w => w.length > 2).slice(-2).map(w => w[0]).join('')}
             </div>
           )}
           <div className="intro-hero-overlay-text">
@@ -9618,7 +10688,7 @@ function ExpertIntroScreen({ subject, student, onReady, onBack }) {
             style={{ background: subject.color }}
             onClick={handleReady}
           >
-            Start learning with {subject.tutor.split(' ')[subject.tutor.startsWith('Dr') ? 2 : 0] || subject.tutor.split(' ')[0]} →
+            Start learning with {subject.tutor?.split(' ')[subject.tutor?.startsWith('Dr') ? 2 : 0] || subject.tutor?.split(' ')[0] || 'Expert'} →
           </button>
         </div>
       </div>
@@ -10066,6 +11136,7 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
   const [progress, setProgress]   = useState({});
   const [statuses, setStatuses]   = useState({});
   const [unlocking, setUnlocking] = useState(null); // { subject, mode: 'unlock'|'resume'|'at_cap' }
+  const [exploreSwap, setExploreSwap] = useState(null); // subject to swap into explore slot
   const [showShare, setShowShare] = useState(false);
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
 
@@ -10083,13 +11154,18 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
   const recommendedIds = new Set(career?.relevant_subjects || []);
   const totalCoveredConcepts = Object.values(progress || {}).reduce((sum, p) => sum + (p.covered_count ?? 0), 0);
   const showCareerNudge = !career && !selectedUsCert && totalCoveredConcepts >= 5 && careerProfile?.motivation === 'stay_ahead' && !nudgeDismissed;
-  const activeCount    = Object.values(statuses || {}).filter(s => s.status === 'active').length;
-  const careerSubjects = career
+  const activeCount       = Object.values(statuses || {}).filter(s => s.status === 'active').length;
+  const careerSubjects    = career
     ? (career.relevant_subjects || []).map(id => SUBJECTS.find(s => s.id === id)).filter(Boolean)
     : [];
-  const exploreSubjects = career
+  const exploreSubjects   = career
     ? SUBJECTS.filter(s => !recommendedIds.has(s.id))
     : SUBJECTS;
+  const careerActiveCount = careerSubjects.filter(s => statuses[s.id]?.status === 'active').length;
+  const exploreActiveSubject = exploreSubjects.find(s => statuses[s.id]?.status === 'active') || null;
+  const continueSubject = !isFirstTime
+    ? SUBJECTS.find(s => statuses[s.id]?.status === 'active') || null
+    : null;
 
   const [certSaving, setCertSaving] = useState(false);
   const [switchPrompt, setSwitchPrompt] = useState(null); // cert object
@@ -10138,12 +11214,29 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
     } else if (st === 'paused') {
       setUnlocking({ subject, mode: 'resume' });
     } else {
-      if (activeCount >= 2) {
+      if (careerActiveCount >= 2) {
         setUnlocking({ subject, mode: 'at_cap' });
       } else {
         setUnlocking({ subject, mode: 'unlock' });
       }
     }
+  }
+
+  async function handleExploreCardClick(subject) {
+    const st = statuses[subject.id]?.status;
+    if (st === 'active') { onSelect(subject); return; }
+    if (st === 'paused') { setUnlocking({ subject, mode: 'resume' }); return; }
+    // If another explore subject is already active, show swap prompt
+    if (exploreActiveSubject) {
+      setExploreSwap(subject);
+      return;
+    }
+    // Free slot — unlock and go
+    try {
+      await fetch(`/api/subjects/unlock/${student.id}/${subject.id}`, { method: 'POST' });
+      setStatuses(prev => ({ ...prev, [subject.id]: { status: 'active' } }));
+      onSelect(subject);
+    } catch {}
   }
 
   function handleAfterUnlock(subject) {
@@ -10163,22 +11256,19 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
         {isFirstTime ? (
           <>
             <h1>Welcome to Bversity, <span>{student.name.split(' ')[0]}</span></h1>
-            <p>{ACTIVE_REGION === 'us' ? 'Your AI tutors are ready to help you prep. Pick a certification subject to begin.' : 'Your AI industry experts will guide you through a structured curriculum adapted to you. Pick a subject to begin.'}</p>
+            <p>{ACTIVE_REGION === 'us' ? 'Your AI industry experts are ready to help you prep. Pick a certification subject to begin.' : 'Your AI industry experts will guide you through a structured curriculum adapted to you. Pick a subject to begin.'}</p>
           </>
         ) : (
-          <>
-            <div className="home-hero-top">
-              <h1><span className="home-hero-greeting">Welcome back,</span> <span>{student.name.split(' ')[0]}</span></h1>
-              {careerProfile?.streak_count > 0 && (
-                <div className={`streak-badge${careerProfile.streak_at_risk ? ' streak-badge--risk' : careerProfile.streak_today ? ' streak-badge--done' : ''}`}>
-                  <span className="streak-flame">{careerProfile.streak_at_risk ? '⚠️' : '🔥'}</span>
-                  <span className="streak-count">{careerProfile.streak_count}</span>
-                  <span className="streak-label">{careerProfile.streak_at_risk ? 'streak at risk' : 'day streak'}</span>
-                </div>
-              )}
-            </div>
-            <p>{ACTIVE_REGION === 'us' ? 'Your tutors remember where you left off. Pick a subject to continue your prep.' : 'Your experts remember where you left off. Pick a subject to continue.'}</p>
-          </>
+          <div className="home-hero-top">
+            <h1><span className="home-hero-greeting">Welcome back,</span> <span>{student.name.split(' ')[0]}</span></h1>
+            {careerProfile?.streak_count > 0 && (
+              <div className={`streak-badge${careerProfile?.streak_at_risk ? ' streak-badge--risk' : careerProfile?.streak_today ? ' streak-badge--done' : ''}`}>
+                <span className="streak-flame">{careerProfile?.streak_at_risk ? '⚠️' : '🔥'}</span>
+                <span className="streak-count">{careerProfile?.streak_count}</span>
+                <span className="streak-label">{careerProfile?.streak_at_risk ? 'streak at risk' : 'day streak'}</span>
+              </div>
+            )}
+          </div>
         )}
         {selectedUsCert ? (
           <div className="career-path-badge" style={{ '--career-color': selectedUsCert.color }}>
@@ -10212,22 +11302,46 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
         ) : (
           <div className="career-path-nudge" onClick={onViewPath} role="button" tabIndex={0} onKeyDown={e => e.key === 'Enter' && onViewPath()}>
             <span className="career-path-nudge-icon"><IcoTarget /></span>
-            {ACTIVE_REGION === 'us' ? 'Pick your certification target. Your tutors will focus every session around it.' : 'Set your career destination. Your experts will personalise your learning path'}
-          </div>
-        )}
-        {activeCount > 0 && (
-          <div className="home-active-hint">
-            {activeCount === 2
-              ? 'You have 2 active subjects. Pause one to start another.'
-              : `You have ${activeCount} active subject. You can run up to 2 at once.`}
+            {ACTIVE_REGION === 'us' ? 'Pick your certification target. Your experts will focus every session around it.' : 'Set your career destination. Your experts will personalise your learning path'}
           </div>
         )}
       </div>
 
       <div className="home-body">
+      {continueSubject && (() => {
+        const cp = progress[continueSubject.id] || {};
+        const covered = cp.covered_count ?? 0;
+        const total = cp.total ?? 36;
+        const pct = total > 0 ? Math.round((covered / total) * 100) : 0;
+        return (
+          <div
+            className="home-continue-card"
+            style={{ '--continue-color': continueSubject.color }}
+            onClick={() => handleCardClick(continueSubject)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={e => e.key === 'Enter' && handleCardClick(continueSubject)}
+          >
+            <img src={SUBJECT_IMAGES[continueSubject.id]} className="home-continue-bg" alt="" aria-hidden="true" />
+            <div className="home-continue-overlay" style={{ background: `linear-gradient(to right, ${continueSubject.color}F0 0%, ${continueSubject.color}99 50%, transparent 100%)` }} />
+            <div className="home-continue-content">
+              <div className="home-continue-eyebrow">Continue learning</div>
+              <div className="home-continue-title">{continueSubject.name}</div>
+              <div className="home-continue-meta">
+                <img src={TUTOR_AVATARS[continueSubject.tutor]} className="home-continue-avatar" alt={continueSubject.tutor} onError={e => { e.target.style.display = 'none'; }} />
+                <span>{continueSubject.tutor}{covered > 0 ? ` · ${pct}% complete` : ' · Ready to begin'}</span>
+              </div>
+            </div>
+            <div className="home-continue-cta">
+              Pick up where you left off
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </div>
+          </div>
+        );
+      })()}
       <CareerReadinessScore careerProfile={careerProfile} progress={progress} onViewPath={onViewPath} onShare={() => setShowShare(true)} />
 
-      {career ? (
+      {career && ACTIVE_REGION !== 'us' ? (
         <>
           <LearningPathTrack
             student={student}
@@ -10256,7 +11370,7 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
                     status={statuses[s.id]?.status}
                     isRecommended={false}
                     activeCount={activeCount}
-                    onClick={() => handleCardClick(s)}
+                    onClick={() => handleExploreCardClick(s)}
                     onPause={() => onPauseSubject(s)}
                   />
                 ))}
@@ -10318,7 +11432,7 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
             <div className="subjects-section">
               <div className="subjects-section-header">
                 <h2 className="subjects-section-title">Choose Your Certification</h2>
-                <p className="subjects-section-sub">Select the certification you're preparing for and your AI tutor will guide you through the full exam curriculum.</p>
+                <p className="subjects-section-sub">Select the certification you're preparing for and your AI industry expert will guide you through the full exam curriculum.</p>
               </div>
               <div className="subjects-grid">
                 {SUBJECTS.map(s => (
@@ -10373,7 +11487,32 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
           onAfterUnlock={handleAfterUnlock}
           onPauseActive={handlePauseFromModal}
           onCancel={() => setUnlocking(null)}
+          onGoToActive={(activeSubject) => { setUnlocking(null); onSelect(activeSubject); }}
         />
+      )}
+
+      {exploreSwap && exploreActiveSubject && (
+        <div className="modal-overlay" onClick={() => setExploreSwap(null)}>
+          <div className="unlock-modal" style={{ '--card-color': exploreSwap.color }} onClick={e => e.stopPropagation()}>
+            <button className="unlock-modal-close" onClick={() => setExploreSwap(null)} aria-label="Close">×</button>
+            <div className="unlock-modal-body">
+              <h3>Switch explore subject?</h3>
+              <p>You're currently exploring <strong>{exploreActiveSubject.name}</strong>. Switch to <strong>{exploreSwap.name}</strong>? Your progress in {exploreActiveSubject.name} will be saved.</p>
+            </div>
+            <div className="unlock-modal-actions">
+              <button className="unlock-modal-cancel" onClick={() => { setExploreSwap(null); onSelect(exploreActiveSubject); }}>Keep exploring {exploreActiveSubject.name}</button>
+              <button className="unlock-modal-confirm" style={{ background: exploreSwap.color }} onClick={async () => {
+                try {
+                  await fetch(`/api/subjects/pause/${student.id}/${exploreActiveSubject.id}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ reason: 'explore_switch', notes: '' }) });
+                  await fetch(`/api/subjects/unlock/${student.id}/${exploreSwap.id}`, { method: 'POST' });
+                  setStatuses(prev => ({ ...prev, [exploreActiveSubject.id]: { status: 'paused' }, [exploreSwap.id]: { status: 'active' } }));
+                  setExploreSwap(null);
+                  onSelect(exploreSwap);
+                } catch { setExploreSwap(null); }
+              }}>Switch to {exploreSwap.name} →</button>
+            </div>
+          </div>
+        </div>
       )}
 
       {showShare && (
@@ -10452,19 +11591,12 @@ function SubjectCard({ subject, progress, status, isRecommended, activeCount, on
           alt={subject.name}
           onError={e => { e.target.style.display = 'none'; }}
         />
-        <div className="subject-card-banner-overlay" style={{ background: `linear-gradient(to top, ${subject.color}DD 0%, ${subject.color}66 55%, rgba(0,0,0,0.25) 100%)` }} />
-        <div className="subject-banner-badges">
-          {isRecommended && <span className="subject-badge subject-badge--rec">Recommended</span>}
-          {isActive    && <span className="subject-badge subject-badge--active">Active</span>}
-          {isPaused    && <span className="subject-badge subject-badge--paused">Paused</span>}
-          {isCompleted && <span className="subject-badge subject-badge--done">✓ Done</span>}
-          {isLocked    && <span className="subject-badge subject-badge--locked"><IcoLock /></span>}
-          {isActive && started && (
-            <div className="subject-banner-pct" style={{ color: '#ffffff' }}>
-              {mastPct}<span className="subject-banner-pct-sym">%</span>
-            </div>
-          )}
-        </div>
+        <div className="subject-card-banner-overlay" style={{ background: `linear-gradient(to top, ${subject.color}DD 0%, ${subject.color}55 55%, rgba(0,0,0,0.2) 100%)` }} />
+        {isLocked && (
+          <div className="subject-banner-badges">
+            <span className="subject-badge subject-badge--locked"><IcoLock /></span>
+          </div>
+        )}
         <div className="subject-banner-tutor">
           <img
             src={TUTOR_AVATARS[subject.tutor]}
@@ -10472,24 +11604,12 @@ function SubjectCard({ subject, progress, status, isRecommended, activeCount, on
             alt={subject.tutor}
             onError={e => { e.target.style.display = 'none'; }}
           />
-          <div>
-            <div className="subject-banner-tutor-name">{subject.tutor}</div>
-            <div className="subject-banner-tutor-org">{subject.org}</div>
-          </div>
+          <div className="subject-banner-tutor-name">{subject.tutor}</div>
         </div>
       </div>
       <div className="subject-card-body">
         <div className="subject-name">{subject.name}</div>
         <p className="subject-description">{subject.description}</p>
-        {started && (
-          <div className="subject-progress">
-            <div className="progress-bar-track">
-              <div className="progress-bar-fill" style={{ width: `${covPct}%`, background: subject.color + '50' }} />
-              <div className="progress-bar-fill mastered-fill" style={{ width: `${mastPct}%`, background: subject.color }} />
-            </div>
-            <span className="progress-label">{mastered}/{total}</span>
-          </div>
-        )}
         <div className="subject-cta" style={isLocked ? { color: 'var(--text-muted)', cursor: 'default' } : {}}>
           {ctaText}
           {!isLocked && (
@@ -10498,14 +11618,6 @@ function SubjectCard({ subject, progress, status, isRecommended, activeCount, on
             </svg>
           )}
         </div>
-        {isActive && (
-          <button
-            className="subject-pause-link"
-            onClick={e => { e.stopPropagation(); onPause(); }}
-          >
-            Pause this subject
-          </button>
-        )}
       </div>
     </div>
   );
@@ -10513,7 +11625,7 @@ function SubjectCard({ subject, progress, status, isRecommended, activeCount, on
 
 // ── Subject Unlock Modal ───────────────────────────────────────────────────────
 
-function SubjectUnlockModal({ subject, mode, statuses, progress, student, isRecommended, onAfterUnlock, onPauseActive, onCancel }) {
+function SubjectUnlockModal({ subject, mode, statuses, progress, student, isRecommended, onAfterUnlock, onPauseActive, onCancel, onGoToActive }) {
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState(null);
 
@@ -10631,7 +11743,7 @@ function SubjectUnlockModal({ subject, mode, statuses, progress, student, isReco
               )}
             </div>
             <div className="unlock-modal-actions">
-              <button className="unlock-modal-cancel" onClick={onCancel}>Keep studying {activeSubjects[0]?.name}</button>
+              <button className="unlock-modal-cancel" onClick={() => onGoToActive ? onGoToActive(activeSubjects[0]) : onCancel()}>Keep studying {activeSubjects[0]?.name}</button>
               {activeSubjects.length > 0 && (
                 <button className="unlock-modal-confirm" style={{ background: subject.color }} onClick={() => onPauseActive(activeSubjects[0])}>
                   Pause {activeSubjects[0].name} →
@@ -10850,15 +11962,14 @@ function QuizModal({ moduleId, moduleName, subjectId, studentId, subjectColor, o
 
           {questions && questions.map((q, qi) => {
             const res = results?.results?.[qi];
-            const studentAns = answers[qi];
             return (
-              <div key={qi} className={`quiz-q-block ${results ? (res.student_answer === res.correct_index ? 'q-correct' : 'q-wrong') : ''}`}>
+              <div key={qi} className={`quiz-q-block ${results && res ? (res.student_answer === res.correct_index ? 'q-correct' : 'q-wrong') : ''}`}>
                 <div className="quiz-q-num">Q{qi + 1}</div>
                 <div className="quiz-q-text">{q.question}</div>
                 <div className="quiz-options">
                   {q.options.map((opt, oi) => {
                     let cls = 'quiz-option';
-                    if (results) {
+                    if (results && res) {
                       if (oi === res.correct_index) cls += ' opt-correct';
                       else if (oi === res.student_answer && res.student_answer !== res.correct_index) cls += ' opt-wrong';
                     } else if (answers[qi] === oi) {
@@ -10866,7 +11977,7 @@ function QuizModal({ moduleId, moduleName, subjectId, studentId, subjectColor, o
                     }
                     return (
                       <label key={oi} className={cls}
-                        style={results && oi === res.correct_index ? { borderColor: subjectColor, background: subjectColor + '18' } : {}}>
+                        style={results && res && oi === res.correct_index ? { borderColor: subjectColor, background: subjectColor + '18' } : {}}>
                         <input type="radio" name={`q${qi}`} value={oi} disabled={!!results}
                           checked={answers[qi] === oi}
                           onChange={() => !results && setAnswers(prev => ({ ...prev, [qi]: oi }))} />
@@ -10876,12 +11987,12 @@ function QuizModal({ moduleId, moduleName, subjectId, studentId, subjectColor, o
                     );
                   })}
                 </div>
-                {results && res.student_answer !== res.correct_index && (
+                {results && res && res.student_answer !== res.correct_index && (
                   <div className="quiz-explanation">
                     <strong>Why:</strong> {res.explanation}
                   </div>
                 )}
-                {results && res.student_answer === res.correct_index && (
+                {results && res && res.student_answer === res.correct_index && (
                   <div className="quiz-explanation quiz-explanation--correct">
                     {res.explanation}
                   </div>
@@ -10915,7 +12026,7 @@ function QuizModal({ moduleId, moduleName, subjectId, studentId, subjectColor, o
 
 // ── Chat ───────────────────────────────────────────────────────────────────
 
-function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, onViewCapstone, onViewCertificate, onPauseSubject, revisionModule, onRevisionConsumed, autoStart, autoStartIsFirstVisit, onAutoStartConsumed, onOpenLabs }) {
+function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, onViewCapstone, onViewCertificate, onPauseSubject, revisionModule, onRevisionConsumed, autoStart, autoStartIsFirstVisit, onAutoStartConsumed, onOpenLabs, onSubscriptionExpired }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -10933,6 +12044,11 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
   const [conceptResources, setConceptResources] = useState({});
   const [quizStatus, setQuizStatus]         = useState({});
   const [notesOpen, setNotesOpen]           = useState(false);
+  const [videosOpen, setVideosOpen]         = useState(false);
+  const [subjectVideos, setSubjectVideos]   = useState([]);
+  const [activeVideo, setActiveVideo]       = useState(null);
+  const [lectureModal, setLectureModal]     = useState(null);
+  const [expandedInlineLectures, setExpandedInlineLectures] = useState(new Set());
   const [showTutorAbout, setShowTutorAbout] = useState(false);
   const [notes, setNotes]                 = useState([]);
   const [noteInput, setNoteInput]         = useState('');
@@ -10943,6 +12059,8 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
   const [sessionTimerFired, setSessionTimerFired] = useState(false);
   const [showCertShare, setShowCertShare]     = useState(false);
   const [recallActive, setRecallActive]       = useState(false);
+  const [lastSummary, setLastSummary]         = useState(null);
+  const [summaryDismissed, setSummaryDismissed] = useState(false);
   const [recallInput, setRecallInput]         = useState('');
   const [recallSubmitting, setRecallSubmitting] = useState(false);
   const [labNudgeDismissed, setLabNudgeDismissed] = useState(false);
@@ -11028,6 +12146,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ student_id: student.id, subject_id: subject.id, message: text, recall_warmup: true }),
       });
+      if (res.status === 402) { onSubscriptionExpired?.(); setLoading(false); return; }
       const data = await res.json();
       setMessages(prev => [...prev, { role: 'bot', content: data.reply }]);
     } catch {
@@ -11059,12 +12178,14 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
     let timer;
     async function load() {
       try {
-        const [histRes, progRes, videosRes, resourcesRes, quizRes] = await Promise.all([
+        const [histRes, progRes, videosRes, resourcesRes, quizRes, summaryRes, subjVidsRes] = await Promise.all([
           fetch(`/api/history/${student.id}/${subject.id}`),
           fetch(`/api/progress/${student.id}/${subject.id}`),
           fetch(`/api/concept-videos/${subject.id}`),
           fetch(`/api/resources/${subject.id}`),
           fetch(`/api/quiz/status/${student.id}/${subject.id}`),
+          fetch(`/api/session-summary/${student.id}/${subject.id}`),
+          fetch(`/api/subject-videos/${subject.id}`),
         ]);
         if (cancelled) return;
         const hist = await histRes.json();
@@ -11078,6 +12199,8 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         setConceptVideos(await videosRes.json());
         setConceptResources(await resourcesRes.json());
         setQuizStatus(await quizRes.json());
+        if (summaryRes.ok) { const sd = await summaryRes.json(); if (sd.summary) setLastSummary(sd); }
+        if (subjVidsRes.ok) setSubjectVideos(await subjVidsRes.json());
 
         // Check recall warmup  -  only if no other auto-trigger and not seen today
         const recallKey = `bv_recall_${student.id}_${subject.id}`;
@@ -11100,8 +12223,20 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
           setInput(msg);
           timer = setTimeout(() => { if (!cancelled) { sendMessageText(msg); if (onRevisionConsumed) onRevisionConsumed(); } }, 200);
         } else if (autoStart) {
-          const msg = autoStartIsFirstVisit ? "I'm ready to start." : "I'm ready to continue.";
-          timer = setTimeout(() => { if (!cancelled) { sendMessageText(msg); if (onAutoStartConsumed) onAutoStartConsumed(); } }, 300);
+          timer = setTimeout(async () => {
+            if (cancelled) return;
+            try {
+              setLoading(true);
+              const res = await fetch('/api/chat', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ student_id: student.id, subject_id: subject.id, auto_open: true }),
+              });
+              if (res.status === 402) { onSubscriptionExpired?.(); return; }
+              const data = await res.json();
+              setIsMock(data.mock);
+              setMessages(prev => [...prev, { role: 'bot', content: data.reply }]);
+            } catch {} finally { setLoading(false); if (onAutoStartConsumed) onAutoStartConsumed(); }
+          }, 300);
         } else {
           timer = setTimeout(() => inputRef.current?.focus(), 100);
         }
@@ -11149,13 +12284,19 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ student_id: student.id, subject_id: subject.id, message: text, quiz_mode: isQuiz }),
       });
+      if (res.status === 402) { onSubscriptionExpired?.(); setLoading(false); return; }
       if (res.status === 429) {
         setMessages(prev => [...prev, { role: 'bot', content: "You've sent a lot of messages this hour. Take a short break and come back fresh. Your progress is saved." }]);
         setLoading(false); return;
       }
+      if (!res.ok) {
+        setMessages(prev => [...prev, { role: 'bot', content: 'Something went wrong. Please try again.' }]);
+        setLoading(false); return;
+      }
       const data = await res.json();
       setIsMock(data.mock);
-      const newMsgs = [{ role: 'bot', content: data.reply, quiz: isQuiz }];
+      const replyContent = data.reply || "I'm here — go ahead and ask me anything, or tell me what you'd like to learn today.";
+      const newMsgs = [{ role: 'bot', content: replyContent, quiz: isQuiz }];
       if (data.newly_covered?.length > 0) {
         data.newly_covered.forEach(cid => {
           const vid = conceptVideos[cid]; if (vid) newMsgs.push({ role: 'video', conceptId: cid, driveUrl: vid.drive_url, title: vid.title });
@@ -11163,6 +12304,11 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         });
       }
       if (data.modules_completed?.length > 0) data.modules_completed.forEach(mod => newMsgs.push({ role: 'module-quiz', moduleId: mod.id, moduleName: mod.name }));
+      if (data.concepts_covered !== undefined && data.concepts_covered > conceptsCovered) {
+        for (let li = conceptsCovered + 1; li <= data.concepts_covered; li++) {
+          if (subjectVideos[li]) newMsgs.push({ role: 'lecture-unlock', title: subjectVideos[li].title, drive_url: subjectVideos[li].drive_url });
+        }
+      }
       if (data.subject_completed) { newMsgs.push({ role: 'subject-complete', credentialId: data.subject_completed.credential_id }); setTimeout(() => setShowCertShare(true), 1800); }
       setMessages((prev) => [...prev, ...newMsgs]);
       if (data.concepts_covered  !== undefined) setConceptsCovered(data.concepts_covered);
@@ -11196,6 +12342,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ student_id: student.id, subject_id: subject.id, message: text, quiz_mode: isQuiz }),
       });
+      if (res.status === 402) { onSubscriptionExpired?.(); setLoading(false); return; }
       if (res.status === 429) {
         setMessages(prev => [...prev, { role: 'bot', content: "You've sent a lot of messages this hour. Take a short break and come back fresh. Your progress is saved." }]);
         setLoading(false); return;
@@ -11216,6 +12363,11 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         data.modules_completed.forEach(mod => {
           newMsgs.push({ role: 'module-quiz', moduleId: mod.id, moduleName: mod.name });
         });
+      }
+      if (data.concepts_covered !== undefined && data.concepts_covered > conceptsCovered) {
+        for (let li = conceptsCovered + 1; li <= data.concepts_covered; li++) {
+          if (subjectVideos[li]) newMsgs.push({ role: 'lecture-unlock', title: subjectVideos[li].title, drive_url: subjectVideos[li].drive_url });
+        }
       }
       if (data.subject_completed) { newMsgs.push({ role: 'subject-complete', credentialId: data.subject_completed.credential_id }); setTimeout(() => setShowCertShare(true), 1800); }
       setMessages((prev) => [...prev, ...newMsgs]);
@@ -11267,7 +12419,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
   const career = careerProfile?.career;
 
   return (
-    <div className={`chat-view ${notesOpen ? 'notes-open' : ''}`}>
+    <div className={`chat-view ${notesOpen ? 'notes-open' : ''} ${videosOpen ? 'videos-open' : ''}`}>
       <div className="chat-header">
         <div className="chat-back-group">
           <button className="chat-back-btn" onClick={onBack}>
@@ -11281,10 +12433,16 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
               Pause
             </button>
           )}
-          <button className={`chat-notes-btn ${notesOpen ? 'active' : ''}`} onClick={() => setNotesOpen(v => !v)} title="Notes">
+          <button className={`chat-notes-btn ${notesOpen ? 'active' : ''}`} onClick={() => { setNotesOpen(v => !v); setVideosOpen(false); }} title="Notes">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
             Notes {notes.length > 0 && <span className="chat-notes-count">{notes.length}</span>}
           </button>
+          {subjectVideos.length > 0 && (
+            <button className={`chat-notes-btn ${videosOpen ? 'active' : ''}`} onClick={() => { setVideosOpen(v => !v); setNotesOpen(false); setActiveVideo(null); }} title="Videos">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+              Lectures <span className="chat-notes-count">{subjectVideos.filter((v, i) => i < conceptsCovered + 1).length}/{subjectVideos.length}</span>
+            </button>
+          )}
         </div>
         <div className="chat-subject-info">
           <img
@@ -11350,33 +12508,43 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
       )}
 
       <div className={`messages-area${isFirstVisit ? ' is-empty' : ''}`}>
+        {!summaryDismissed && lastSummary?.summary && messages.length > 0 && (
+          <div className="session-summary-banner">
+            <div className="session-summary-banner-label">Last session recap</div>
+            <div className="session-summary-banner-text">{lastSummary.summary}</div>
+            <button className="session-summary-banner-dismiss" onClick={() => setSummaryDismissed(true)}>✕</button>
+          </div>
+        )}
         {historyLoading ? (
           <div className="history-loading">Loading your session...</div>
         ) : (
           <>
             {isFirstVisit && (
-              <div className="chat-ready-state">
-                <div className="chat-ready-faculty">
-                  <div className="chat-ready-avatar" style={{ background: subject.color + '22', borderColor: subject.color + '44' }}>
-                    <span style={{ color: subject.color }}>{SUBJECT_ICONS[subject.id]}</span>
-                  </div>
-                  <div>
-                    <div className="chat-ready-name">{subject.tutor}</div>
-                    <div className="chat-ready-role">{subject.role} · {subject.org}</div>
+              <div className="chat-expert-intro" style={{ '--expert-color': subject.color }}>
+                <div className="cei-banner" style={{ background: `linear-gradient(135deg, ${subject.color}22 0%, ${subject.color}08 100%)`, borderColor: subject.color + '30' }}>
+                  <img
+                    src={TUTOR_AVATARS[subject.tutor]}
+                    className="cei-photo"
+                    alt={subject.tutor}
+                    onError={e => { e.target.style.display = 'none'; }}
+                  />
+                  <div className="cei-identity">
+                    <div className="cei-name">{subject.tutor}</div>
+                    <div className="cei-role">{subject.role}</div>
+                    <div className="cei-org" style={{ color: subject.color }}>{subject.org}</div>
                   </div>
                 </div>
-                <p className="chat-ready-hint">
-                  {conceptsCovered > 0
-                    ? `${subject.tutor.split(' ')[1] || subject.tutor} will recap where you left off and pick up from your next concept.`
-                    : `${subject.tutor.split(' ')[1] || subject.tutor} will introduce themselves and walk you through what you'll cover today.`}
-                </p>
-                <button
-                  className="chat-ready-btn"
-                  style={{ background: subject.color }}
-                  onClick={() => sendMessageText(conceptsCovered > 0 ? "I'm ready to continue." : "I'm ready to start.")}
-                >
-                  {conceptsCovered > 0 ? 'Ready to continue →' : 'Ready to begin →'}
-                </button>
+                {subject.intro && (
+                  <p className="cei-intro">{subject.intro.split('.').slice(0, 2).join('.') + '.'}</p>
+                )}
+                <div className="cei-footer">
+                  <span className="cei-dot" style={{ background: subject.color }} />
+                  <span className="cei-status">
+                    {conceptsCovered > 0
+                      ? `${subject.tutor?.split(' ')[1] || subject.tutor} is picking up where you left off…`
+                      : `${subject.tutor?.split(' ')[1] || subject.tutor} is getting ready for your first session…`}
+                  </span>
+                </div>
               </div>
             )}
 
@@ -11424,6 +12592,44 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
                     <div className="concept-video-frame-wrap">
                       <iframe src={embedUrl} className="concept-video-frame" allow="autoplay" allowFullScreen title={msg.title || 'Concept video'} />
                     </div>
+                  </div>
+                );
+              }
+              if (msg.role === 'lecture-unlock') {
+                const isExpanded = expandedInlineLectures.has(i);
+                const toggleExpand = () => setExpandedInlineLectures(prev => {
+                  const s = new Set(prev); s.has(i) ? s.delete(i) : s.add(i); return s;
+                });
+                return (
+                  <div key={i} className="inline-lecture-card">
+                    <div className="inline-lecture-header">
+                      <div className="inline-lecture-icon" style={{ color: subject.color }}>
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                      </div>
+                      <div className="inline-lecture-info">
+                        <div className="inline-lecture-label" style={{ color: subject.color }}>Lecture unlocked</div>
+                        <div className="inline-lecture-title">{msg.title}</div>
+                      </div>
+                      <div className="inline-lecture-actions">
+                        <button className="inline-lecture-popout" onClick={() => setLectureModal({ title: msg.title, drive_url: msg.drive_url })} title="Watch full screen">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                        </button>
+                        <button className="inline-lecture-toggle" onClick={toggleExpand}>
+                          {isExpanded ? 'Collapse ↑' : 'Watch here ↓'}
+                        </button>
+                      </div>
+                    </div>
+                    {isExpanded && (
+                      <div className="inline-lecture-frame-wrap">
+                        <iframe
+                          src={msg.drive_url}
+                          className="inline-lecture-frame"
+                          allow="autoplay"
+                          sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+                          title={msg.title}
+                        />
+                      </div>
+                    )}
                   </div>
                 );
               }
@@ -11499,7 +12705,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
               return (
                 <div key={i} ref={isLastBot ? lastAiMsgRef : null} className={`message-row ${msg.role}${msg.quiz ? ' quiz-message' : ''}`}>
                   <div className={`message-avatar ${msg.role}`}>
-                    {msg.role === 'bot' ? subject.tutor.replace(/^Dr\.\s*/, '').charAt(0) : student.name.charAt(0).toUpperCase()}
+                    {msg.role === 'bot' ? (subject.tutor?.replace(/^Dr\.\s*/, '') || 'E').charAt(0) : student.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="message-body">
                     <div className="message-bubble">
@@ -11551,7 +12757,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
 
             {loading && (
               <div className="message-row bot">
-                <div className="message-avatar bot">{subject.tutor.replace(/^Dr\.\s*/, '').charAt(0)}</div>
+                <div className="message-avatar bot">{(subject.tutor?.replace(/^Dr\.\s*/, '') || 'E').charAt(0)}</div>
                 <div className="typing-indicator">
                   <div className="typing-dot" /><div className="typing-dot" /><div className="typing-dot" />
                 </div>
@@ -11625,7 +12831,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={`Ask ${subject.tutor.split(' ')[1] || subject.tutor} anything…`}
+            placeholder={`Ask ${subject.tutor?.split(' ')[1] || subject.tutor || 'your expert'} anything…`}
             rows={1}
             disabled={historyLoading}
           />
@@ -11678,6 +12884,59 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         </div>
       )}
 
+      {videosOpen && (
+        <div className="notes-panel videos-panel">
+          <div className="notes-panel-header">
+            <span className="notes-panel-title">Lectures: {subject.name}</span>
+            <button className="notes-panel-close" onClick={() => { setVideosOpen(false); setActiveVideo(null); }}>×</button>
+          </div>
+          {activeVideo ? (
+            <div className="videos-player-wrap">
+              <div className="videos-player-topbar">
+                <button className="videos-back-btn" onClick={() => setActiveVideo(null)}>← Back to list</button>
+                <button className="videos-expand-btn" onClick={() => setLectureModal(activeVideo)} title="Expand video">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                  Expand
+                </button>
+              </div>
+              <div className="videos-player-title">{activeVideo.title}</div>
+              <div className="videos-frame-wrap">
+                <iframe
+                  src={activeVideo.drive_url}
+                  className="videos-frame"
+                  allow="autoplay"
+                  sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+                  title={activeVideo.title}
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="videos-list">
+              <p className="videos-list-hint">Lectures unlock as you cover concepts. Click any unlocked lecture to watch.</p>
+              {subjectVideos.map((vid, idx) => {
+                const unlocked = idx <= conceptsCovered;
+                return (
+                  <div key={vid.id} className={`videos-item ${unlocked ? 'videos-item--unlocked' : 'videos-item--locked'}`}
+                    onClick={() => unlocked && setActiveVideo(vid)}>
+                    <div className="videos-item-icon">
+                      {unlocked ? (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                      ) : (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+                      )}
+                    </div>
+                    <div className="videos-item-info">
+                      <div className="videos-item-title">{vid.title}</div>
+                      {!unlocked && <div className="videos-item-lock-hint">Cover {idx - conceptsCovered} more concept{idx - conceptsCovered !== 1 ? 's' : ''} to unlock</div>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {quizModal && (
         <QuizModal
           moduleId={quizModal.moduleId}
@@ -11691,6 +12950,29 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
             setQuizModal(null);
           }}
         />
+      )}
+
+      {lectureModal && (
+        <div className="lecture-modal-overlay" onClick={() => setLectureModal(null)}>
+          <div className="lecture-modal" onClick={e => e.stopPropagation()}>
+            <div className="lecture-modal-header">
+              <div className="lecture-modal-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}><path d="M8 5v14l11-7z"/></svg>
+                {lectureModal.title}
+              </div>
+              <button className="lecture-modal-close" onClick={() => setLectureModal(null)}>×</button>
+            </div>
+            <div className="lecture-modal-frame-wrap">
+              <iframe
+                src={lectureModal.drive_url}
+                className="lecture-modal-frame"
+                allow="autoplay"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+                title={lectureModal.title}
+              />
+            </div>
+          </div>
+        </div>
       )}
 
       {showTutorAbout && (
@@ -11735,6 +13017,7 @@ export default function App() {
   const [student, setStudent] = useState(getStoredStudent);
   const [screen, setScreen] = useState('welcome');
   const [subscription, setSubscription] = useState(null);
+  const [userCountry, setUserCountry] = useState(sessionStorage.getItem('bv_country') || null);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [revisionModule, setRevisionModule]   = useState(null);
   const [capstoneSubject, setCapstoneSubject] = useState(null);
@@ -11747,6 +13030,9 @@ export default function App() {
   const [careerProfile, setCareerProfile] = useState(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [showFreeTrial, setShowFreeTrial] = useState(false);
+  const [upgradeLoading, setUpgradeLoading] = useState(false);
+  const [upgradeError, setUpgradeError]     = useState('');
+  const [sidebarOpen, setSidebarOpen]       = useState(false);
   const [showReEntry, setShowReEntry] = useState(false);
   const [showSearch, setShowSearch]     = useState(false);
   const [showLinkedIn, setShowLinkedIn] = useState(false);
@@ -11758,17 +13044,34 @@ export default function App() {
     fetch('/api/images').then(r => r.json()).then(setImgConfig).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (!sessionStorage.getItem('bv_country')) {
+      fetch('/api/payments/detect-country', { method: 'POST' })
+        .then(r => r.json())
+        .then(d => { const c = d.country_code || 'IN'; sessionStorage.setItem('bv_country', c); setUserCountry(c); })
+        .catch(() => {});
+    }
+  }, []);
+
   async function fetchCareerProfile(studentId) {
     try {
-      const res = await fetch(`/api/profile/${studentId}`);
-      if (res.status === 404) {
+      const product = ACTIVE_REGION === 'us' ? 'certifications' : 'career_pathways';
+      const [profileRes, subRes] = await Promise.all([
+        fetch(`/api/profile/${studentId}`),
+        fetch(`/api/subscription/${studentId}/${product}`),
+      ]);
+      if (profileRes.status === 404) {
         clearStudent();
         setStudent(null);
         setScreen('welcome');
         return;
       }
-      const data = await res.json();
+      const data = await profileRes.json();
       setCareerProfile(data);
+      if (subRes.ok) {
+        const subData = await subRes.json();
+        setSubscription(subData);
+      }
       if (!data.onboarded) setShowOnboarding(true);
       else if (!data.linkedin_url) {
         setShowLinkedIn(true);
@@ -11797,16 +13100,34 @@ export default function App() {
     return () => clearInterval(interval);
   }, [student]);
 
+  // Show trial welcome popup once ever (localStorage) — for all trial users including existing ones
   useEffect(() => {
     if (!student) return;
-    const seenKey = `bv_freetrial_seen_${student.id}`;
-    if (sessionStorage.getItem(seenKey)) return;
+    if (subscription?.status !== 'trial') return;
+    const seenKey = `bv_trial_welcome_${student.id}`;
+    if (localStorage.getItem(seenKey)) return;
+    // Small delay so the UI settles before showing the popup
     const t = setTimeout(() => {
-      sessionStorage.setItem(seenKey, '1');
-      setShowFreeTrial(true);
-    }, 10 * 60 * 1000);
+      if (!showOnboarding) {
+        localStorage.setItem(seenKey, '1');
+        setShowFreeTrial(true);
+      }
+    }, 1200);
     return () => clearTimeout(t);
-  }, [student]);
+  }, [student, subscription, showOnboarding]);
+
+  // Handle return from Razorpay payment on the paywall screen
+  useEffect(() => {
+    if (subscription?.status !== 'expired' || !student) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('payment') === 'success') {
+      window.history.replaceState({}, '', window.location.pathname);
+      const product = ACTIVE_REGION === 'us' ? 'certifications' : 'career_pathways';
+      fetch(`/api/subscription/${student.id}/${product}`)
+        .then(r => r.json())
+        .then(d => { if (d.status === 'active') setSubscription(d); });
+    }
+  }, [subscription?.status, student]);
 
   useEffect(() => {
     function onKeyDown(e) {
@@ -11908,7 +13229,11 @@ export default function App() {
 
   function handleCareerSelected(profileData) {
     setCareerProfile(profileData);
-    setView('career-map');
+    if (ACTIVE_REGION === 'us') {
+      setView('home'); // stay on courses so they can start immediately
+    } else {
+      setView('career-map');
+    }
   }
 
   function handleCareerDetected(career_id) {
@@ -11927,6 +13252,57 @@ export default function App() {
     setView('certificate');
   }
 
+  async function handleUpgrade() {
+    if (!student) return;
+    const isUs = ACTIVE_REGION === 'us';
+    const product = isUs ? 'certifications' : 'career_pathways';
+    setUpgradeLoading(true);
+    setUpgradeError('');
+    try {
+      const countryRes = await fetch('/api/payments/detect-country', { method: 'POST' });
+      const { country_code } = await countryRes.json();
+      const checkoutRes = await fetch('/api/payments/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          student_id: student.id,
+          product,
+          country_code,
+          success_url: window.location.origin + window.location.pathname + '?payment=success',
+          cancel_url:  window.location.origin + window.location.pathname + '?payment=cancelled',
+        }),
+      });
+      const checkout = await checkoutRes.json();
+      if (!checkout.enabled) {
+        setUpgradeError('Payments are not yet live. Contact sudharsan@bversity.io to continue access.');
+        return;
+      }
+      await new Promise((resolve, reject) => {
+        if (window.Razorpay) return resolve();
+        const s = document.createElement('script');
+        s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+        s.onload = resolve; s.onerror = reject;
+        document.head.appendChild(s);
+      });
+      const rzp = new window.Razorpay({
+        key: checkout.key_id,
+        subscription_id: checkout.subscription_id,
+        name: 'Bversity',
+        description: checkout.currency === 'INR' ? 'Career Pathways — ₹799/month' : 'Career Pathways — $29/month',
+        prefill: { name: checkout.customer_name, email: checkout.customer_email },
+        theme: { color: '#00A896' },
+        handler: () => {
+          window.location.href = window.location.origin + window.location.pathname + '?payment=success';
+        },
+      });
+      rzp.open();
+    } catch {
+      setUpgradeError('Something went wrong. Please try again.');
+    } finally {
+      setUpgradeLoading(false);
+    }
+  }
+
   if (!student) {
     if (screen === 'welcome') return <WelcomeScreen onGetStarted={() => setScreen('login')} />;
     return <LoginView onLogin={handleLogin} onBack={() => setScreen('welcome')} />;
@@ -11934,21 +13310,81 @@ export default function App() {
 
   if (subscription?.status === 'expired') {
     const isUs = ACTIVE_REGION === 'us';
+    const product = isUs ? 'certifications' : 'career_pathways';
+    const paywallLoading = upgradeLoading;
+    const setPaywallLoading = setUpgradeLoading;
+    const paywallError = upgradeError;
+    const setPaywallError = setUpgradeError;
+
+    const handleSubscribe = async () => {
+      setPaywallLoading(true);
+      setPaywallError('');
+      try {
+        // 1. Detect country
+        const countryRes = await fetch('/api/payments/detect-country', { method: 'POST' });
+        const { country_code } = await countryRes.json();
+
+        // 2. Create checkout
+        const checkoutRes = await fetch('/api/payments/create-checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            student_id: student.id,
+            product,
+            country_code,
+            success_url: window.location.origin + window.location.pathname + '?payment=success',
+            cancel_url:  window.location.origin + window.location.pathname + '?payment=cancelled',
+          }),
+        });
+        const checkout = await checkoutRes.json();
+
+        if (!checkout.enabled) {
+          setPaywallError('Payments are not yet live. Contact sudharsan@bversity.io to continue access.');
+          return;
+        }
+
+        await new Promise((resolve, reject) => {
+          if (window.Razorpay) return resolve();
+          const s = document.createElement('script');
+          s.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          s.onload = resolve; s.onerror = reject;
+          document.head.appendChild(s);
+        });
+        const rzp = new window.Razorpay({
+          key: checkout.key_id,
+          subscription_id: checkout.subscription_id,
+          name: 'Bversity',
+          description: checkout.currency === 'INR' ? 'Career Pathways — ₹799/month' : 'Career Pathways — $29/month',
+          prefill: { name: checkout.customer_name, email: checkout.customer_email },
+          theme: { color: '#00A896' },
+          handler: () => {
+            window.location.href = window.location.origin + window.location.pathname + '?payment=success';
+          },
+        });
+        rzp.open();
+      } catch (e) {
+        setPaywallError('Something went wrong. Please try again.');
+      } finally {
+        setPaywallLoading(false);
+      }
+    };
+
     return (
       <div className="paywall-overlay">
         <div className="paywall-card">
-          <div className="paywall-logo">Forte</div>
+          <div className="paywall-logo">Bversity</div>
           <div className="paywall-title">Your free trial has ended</div>
           <div className="paywall-sub">
-            You've used your 15-day free trial of {isUs ? 'Certifications' : 'Career Pathways'}.
+            You've used your 5-day free trial of {isUs ? 'Certifications' : 'Career Pathways'}.
             Subscribe to continue your learning journey.
           </div>
           <div className="paywall-price">
-            {isUs ? '$29' : ACTIVE_REGION === 'india' ? '₹299' : '$29'}
+            {isUs ? '$29' : ACTIVE_REGION === 'india' ? '₹799' : '$29'}
             <span className="paywall-period">/month</span>
           </div>
-          <button className="paywall-btn paywall-btn--primary" onClick={() => alert('Payment coming soon! Contact sudharsan@bversity.io to continue access.')}>
-            {isUs ? 'Subscribe with Stripe' : 'Subscribe Now'}
+          {paywallError && <div className="paywall-error">{paywallError}</div>}
+          <button className="paywall-btn paywall-btn--primary" onClick={handleSubscribe} disabled={paywallLoading}>
+            {paywallLoading ? 'Loading…' : 'Subscribe Now'}
           </button>
           <button className="paywall-btn paywall-btn--ghost" onClick={handleLogout}>Sign out</button>
           <div className="paywall-help">Questions? <a href="mailto:sudharsan@bversity.io">Contact us</a></div>
@@ -11965,7 +13401,15 @@ export default function App() {
         onComplete={(profileData) => {
           setShowOnboarding(false);
           if (profileData) setCareerProfile(profileData);
-          if (profileData?.career_id) setView('career-map');
+          if (profileData?.career_id) setView(ACTIVE_REGION === 'us' ? 'home' : 'career-map');
+          // Show trial welcome popup right after onboarding for new users
+          if (student && subscription?.status === 'trial') {
+            const seenKey = `bv_trial_welcome_${student.id}`;
+            if (!localStorage.getItem(seenKey)) {
+              localStorage.setItem(seenKey, '1');
+              setTimeout(() => setShowFreeTrial(true), 600);
+            }
+          }
         }}
       />
     );
@@ -11987,23 +13431,34 @@ export default function App() {
   return (
     <ImgCtx.Provider value={imgConfig}>
     <div className="app-shell">
+      <button className="mobile-menu-btn" onClick={() => setSidebarOpen(v => !v)} aria-label="Open menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+      <div className={`sidebar-overlay ${sidebarOpen ? 'mobile-open' : ''}`} onClick={() => setSidebarOpen(false)} />
       <Sidebar
         student={student}
         view={view}
-        onCourses={() => { setSelectedSubject(null); setCapstoneSubject(null); setView('home'); }}
-        onDashboard={() => setView('dashboard')}
-        onCareerPath={handleCareerPath}
-        onProfile={() => setView('profile')}
-        onCommunity={() => setView('community')}
-        onPrograms={() => setView('programs')}
-        onLibrary={() => setView('library')}
-        onLabs={() => setView('labs')}
+        subscription={subscription}
+        onCourses={() => { setSelectedSubject(null); setCapstoneSubject(null); setView('home'); setSidebarOpen(false); }}
+        onDashboard={() => { setView('dashboard'); setSidebarOpen(false); }}
+        onCareerPath={() => { handleCareerPath(); setSidebarOpen(false); }}
+        onProfile={() => { setView('profile'); setSidebarOpen(false); }}
+        onCommunity={() => { setView('community'); setSidebarOpen(false); }}
+        onPrograms={() => { setView('programs'); setSidebarOpen(false); }}
+        onLibrary={() => { setView('library'); setSidebarOpen(false); }}
+        onLabs={() => { setView('labs'); setSidebarOpen(false); }}
+        onNews={() => { setView('news'); setSidebarOpen(false); }}
         onLogout={handleLogout}
         hasCareer={!!careerProfile?.career_id}
         avatarColor={careerProfile?.avatar_color}
         avatarNum={careerProfile?.avatar_num}
-        onSearch={() => setShowSearch(true)}
-        onContact={() => setShowContact(true)}
+        onSearch={() => { setShowSearch(true); setSidebarOpen(false); }}
+        onContact={() => { setShowContact(true); setSidebarOpen(false); }}
+        onUpgrade={handleUpgrade}
+        upgradeLoading={upgradeLoading}
+        upgradeError={upgradeError}
+        mobileOpen={sidebarOpen}
+        userCountry={userCountry}
       />
       {showSearch && (
         <SearchModal
@@ -12068,6 +13523,7 @@ export default function App() {
           autoStartIsFirstVisit={sessionIsFirstVisit}
           onAutoStartConsumed={() => { setAutoStartChat(false); setSessionIsFirstVisit(false); }}
           onOpenLabs={() => setView('labs')}
+          onSubscriptionExpired={() => setSubscription({ status: 'expired' })}
         />
       ) : view === 'dashboard' ? (
         ACTIVE_REGION === 'us' ? (
@@ -12102,6 +13558,7 @@ export default function App() {
         <ProfileView
           student={student}
           profileData={careerProfile}
+          subscription={subscription}
           onBack={() => setView('home')}
           onProfileUpdated={(updates) => setCareerProfile(prev => ({ ...prev, ...updates }))}
         />
@@ -12158,9 +13615,11 @@ export default function App() {
           student={student}
           careerProfile={careerProfile}
           onProceed={() => setView('career-select')}
-          onTalkToTutor={() => setView('home')}
+          onTalkToTutor={() => { setView('home'); }}
           onCancel={() => setView('career-map')}
         />
+      ) : view === 'news' ? (
+        <IndustryNewsView />
       ) : (
         <HomeView
           student={student}
