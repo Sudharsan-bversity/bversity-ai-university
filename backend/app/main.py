@@ -9,7 +9,7 @@ try:
     _SSL_CTX = ssl.create_default_context(cafile=_certifi.where())
 except ImportError:
     _SSL_CTX = ssl.create_default_context()
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from dotenv import load_dotenv
 load_dotenv()
@@ -3010,13 +3010,19 @@ def admin_churn_risk(x_admin_key: str = Header(None)):
     conn.close()
     result = []
     for r in rows:
+        _te = r["trial_end"]
+        if _te and not _te.endswith('Z') and '+' not in _te:
+            _te += 'Z'
         days_left = max(0, round((
-            datetime.fromisoformat(r["trial_end"]) - datetime.utcnow()
+            datetime.fromisoformat(_te) - datetime.now(timezone.utc)
         ).total_seconds() / 86400, 1))
         last_active_days = None
         if r["last_active"]:
             try:
-                delta = (datetime.utcnow() - datetime.fromisoformat(r["last_active"])).days
+                _la = r["last_active"]
+                if not _la.endswith('Z') and '+' not in _la:
+                    _la += 'Z'
+                delta = (datetime.now(timezone.utc) - datetime.fromisoformat(_la)).days
                 last_active_days = delta
             except Exception:
                 pass
