@@ -1260,17 +1260,16 @@ function Sidebar({ student, view, subscription, onCourses, onDashboard, onCareer
           <span>Talk to Sudharsan</span>
         </a>
         {subscription?.status === 'trial' && (() => {
-          const _trialEnd = subscription.trial_end && !subscription.trial_end.endsWith('Z') ? subscription.trial_end + 'Z' : subscription.trial_end;
-          const daysLeft = _trialEnd
-            ? Math.max(0, Math.ceil((new Date(_trialEnd) - new Date()) / 86400000))
-            : null;
+          const used = subscription.messages_used ?? 0;
+          const limit = subscription.messages_limit ?? 30;
+          const remaining = Math.max(0, limit - used);
           const price = (userCountry && userCountry !== 'IN') ? '$29/mo' : '₹799/mo';
           return (
             <div className="sidebar-trial-pill">
               <div className="sidebar-trial-top">
                 <span className="sidebar-trial-dot" />
                 <span className="sidebar-trial-text">
-                  Free trial{daysLeft !== null ? ` · ${daysLeft}d left` : ''} · {price} after
+                  {remaining} free {remaining === 1 ? 'message' : 'messages'} left · {price} after
                 </span>
               </div>
               {upgradeError && <div className="sidebar-upgrade-error">{upgradeError}</div>}
@@ -2160,11 +2159,11 @@ function ProfileView({ student, profileData, subscription, onBack, onProfileUpda
                   {subscription.status === 'trial' ? 'Free trial' : subscription.status === 'active' ? 'Active' : 'Expired'}
                 </span>
               </div>
-              {subscription.status === 'trial' && subscription.trial_end && (
+              {subscription.status === 'trial' && (
                 <div className="profile-sub-row">
-                  <span className="profile-sub-label">Trial ends</span>
+                  <span className="profile-sub-label">Messages used</span>
                   <span className="profile-sub-value">
-                    {new Date(subscription.trial_end.endsWith('Z') ? subscription.trial_end : subscription.trial_end + 'Z').toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    {subscription.messages_used ?? 0} of {subscription.messages_limit ?? 30} free messages
                   </span>
                 </div>
               )}
@@ -13373,10 +13372,9 @@ export default function App() {
       <div className="paywall-overlay">
         <div className="paywall-card">
           <div className="paywall-logo">Bversity</div>
-          <div className="paywall-title">Your free trial has ended</div>
+          <div className="paywall-title">You've used your 30 free messages</div>
           <div className="paywall-sub">
-            You've used your 5-day free trial of {isUs ? 'Certifications' : 'Career Pathways'}.
-            Subscribe to continue your learning journey.
+            Subscribe to keep learning with {isUs ? 'Certifications' : 'Career Pathways'} and pick up right where you left off.
           </div>
           <div className="paywall-price">
             {isUs ? '$29' : ACTIVE_REGION === 'india' ? '₹799' : '$29'}

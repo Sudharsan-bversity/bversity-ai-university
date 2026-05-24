@@ -3526,18 +3526,27 @@ async def razorpay_webhook(request: Request):
 
 @app.get("/subscription/{student_id}/{product}")
 def get_subscription(student_id: str, product: str):
+    FREE_MESSAGE_LIMIT = 30
     conn = get_db()
     sub = conn.execute(
         "SELECT * FROM subscriptions WHERE student_id = ? AND product = ?", (student_id, product)
     ).fetchone()
-    conn.close()
     if not sub:
+        conn.close()
         return {"status": "none"}
     now = datetime.utcnow().isoformat()
-    if sub["status"] == "trial" and sub["trial_end"] and sub["trial_end"] < now:
-        return {"status": "expired", "trial_end": sub["trial_end"]}
     if sub["status"] == "active" and sub["subscription_end"] and sub["subscription_end"] < now:
+        conn.close()
         return {"status": "expired", "subscription_end": sub["subscription_end"]}
+    if sub["status"] == "trial":
+        msg_count = conn.execute(
+            "SELECT COUNT(*) FROM messages WHERE student_id = ? AND role = 'user'", (student_id,)
+        ).fetchone()[0]
+        conn.close()
+        if msg_count >= FREE_MESSAGE_LIMIT:
+            return {"status": "expired", "messages_used": msg_count, "messages_limit": FREE_MESSAGE_LIMIT}
+        return {"status": "trial", "messages_used": msg_count, "messages_limit": FREE_MESSAGE_LIMIT}
+    conn.close()
     return {"status": sub["status"], "trial_end": sub["trial_end"], "subscription_end": sub["subscription_end"]}
 
 # ── Admin: extend trial ───────────────────────────────────────────────────────
@@ -5997,13 +6006,17 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
         raise HTTPException(status_code=404, detail="Student not found")
 
     # ── Subscription gate ────────────────────────────────────────────────────
+    FREE_MESSAGE_LIMIT = 30
     product = "certifications" if req.subject_id.startswith("us_") else "career_pathways"
     sub = conn.execute("SELECT status, trial_end FROM subscriptions WHERE student_id = ? AND product = ?", (req.student_id, product)).fetchone()
     if sub:
-        now_iso = datetime.utcnow().isoformat()
-        if sub["status"] == "trial" and sub["trial_end"] and sub["trial_end"] < now_iso:
-            conn.close()
-            raise HTTPException(status_code=402, detail="trial_expired")
+        if sub["status"] == "trial":
+            msg_count = conn.execute(
+                "SELECT COUNT(*) FROM messages WHERE student_id = ? AND role = 'user'", (req.student_id,)
+            ).fetchone()[0]
+            if msg_count >= FREE_MESSAGE_LIMIT:
+                conn.close()
+                raise HTTPException(status_code=402, detail="trial_expired")
         if sub["status"] == "expired":
             conn.close()
             raise HTTPException(status_code=402, detail="subscription_expired")
