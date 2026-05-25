@@ -6156,7 +6156,7 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
     newly_covered = []
     concepts_tag  = re.search(r'<<<CONCEPTS:([^>]*)>>>', raw_reply)
     reply         = re.sub(r'\n?<<<CONCEPTS:[^>]*>>>', '', raw_reply).strip()
-    reply         = re.sub(r'<<<DEFS:[\s\S]*?>>>', '', reply).strip()
+    reply         = re.sub(r'<<<DEFS:[\s\S]*?(?:>>>|$)', '', reply).strip()
     reply         = reply.replace('—', '-').replace('–', '-')
     reply         = re.sub(r'\*(?!\*|\s)([^*\n]+)\*(?!\*)', r'\1', reply)
     if concepts_tag and api_key:
