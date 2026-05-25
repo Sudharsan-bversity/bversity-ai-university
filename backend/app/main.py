@@ -6158,6 +6158,7 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
     reply         = re.sub(r'\n?<<<CONCEPTS:[^>]*>>>', '', raw_reply).strip()
     reply         = re.sub(r'<<<DEFS:[^>]*>>>', '', reply).strip()
     reply         = reply.replace('—', '-').replace('–', '-')
+    reply         = re.sub(r'\*(?!\*|\s)([^*\n]+)\*(?!\*)', r'\1', reply)
     if concepts_tag and api_key:
         valid_ids  = {c["id"] for c in CURRICULUM[req.subject_id]}
         parsed     = [x.strip() for x in concepts_tag.group(1).split(",") if x.strip() in valid_ids]
