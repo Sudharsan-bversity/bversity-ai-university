@@ -12025,7 +12025,7 @@ function QuizModal({ moduleId, moduleName, subjectId, studentId, subjectColor, o
 
 // ── Chat ───────────────────────────────────────────────────────────────────
 
-function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, onViewCapstone, onViewCertificate, onPauseSubject, revisionModule, onRevisionConsumed, autoStart, autoStartIsFirstVisit, onAutoStartConsumed, onOpenLabs, onSubscriptionExpired }) {
+function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, onViewCapstone, onViewCertificate, onPauseSubject, revisionModule, onRevisionConsumed, autoStart, autoStartIsFirstVisit, onAutoStartConsumed, onOpenLabs, onSubscriptionExpired, onMessageSent }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -12292,6 +12292,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         setMessages(prev => [...prev, { role: 'bot', content: 'Something went wrong. Please try again.' }]);
         setLoading(false); return;
       }
+      onMessageSent?.();
       const data = await res.json();
       setIsMock(data.mock);
       const replyContent = data.reply || "I'm here — go ahead and ask me anything, or tell me what you'd like to learn today.";
@@ -13522,6 +13523,7 @@ export default function App() {
           onAutoStartConsumed={() => { setAutoStartChat(false); setSessionIsFirstVisit(false); }}
           onOpenLabs={() => setView('labs')}
           onSubscriptionExpired={() => setSubscription({ status: 'expired' })}
+          onMessageSent={() => setSubscription(prev => prev?.status === 'trial' ? { ...prev, messages_used: (prev.messages_used ?? 0) + 1 } : prev)}
         />
       ) : view === 'dashboard' ? (
         ACTIVE_REGION === 'us' ? (
