@@ -3276,6 +3276,34 @@ body {
 }
 
 /* ── Chat Input ────────────────────────────────────────────────────────── */
+.trial-warning-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #fff8ed;
+  border-top: 1px solid #f5d08a;
+  padding: 0.6rem 1.75rem;
+}
+.trial-warning-text {
+  font-size: var(--text-sm);
+  color: #92600a;
+  font-weight: 500;
+}
+.trial-warning-btn {
+  background: #f59e0b;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.9rem;
+  font-size: var(--text-xs);
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+}
+.trial-warning-btn:hover { background: #d97706; }
+
 .chat-input-area {
   background: var(--bg-white);
   border-top: 1px solid var(--border-light);

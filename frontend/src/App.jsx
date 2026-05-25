@@ -12025,7 +12025,7 @@ function QuizModal({ moduleId, moduleName, subjectId, studentId, subjectColor, o
 
 // ── Chat ───────────────────────────────────────────────────────────────────
 
-function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, onViewCapstone, onViewCertificate, onPauseSubject, revisionModule, onRevisionConsumed, autoStart, autoStartIsFirstVisit, onAutoStartConsumed, onOpenLabs, onSubscriptionExpired, onMessageSent }) {
+function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, onViewCapstone, onViewCertificate, onPauseSubject, revisionModule, onRevisionConsumed, autoStart, autoStartIsFirstVisit, onAutoStartConsumed, onOpenLabs, onSubscriptionExpired, onMessageSent, subscription }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -12823,6 +12823,22 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         ) : null;
       })()}
 
+      {(() => {
+        if (subscription?.status !== 'trial') return null;
+        const remaining = Math.max(0, (subscription.messages_limit ?? 30) - (subscription.messages_used ?? 0));
+        if (remaining > 5) return null;
+        return (
+          <div className="trial-warning-banner">
+            <span className="trial-warning-text">
+              {remaining === 0
+                ? 'You have used all your free messages.'
+                : `Only ${remaining} free ${remaining === 1 ? 'message' : 'messages'} left.`}
+            </span>
+            <button className="trial-warning-btn" onClick={onSubscriptionExpired}>Subscribe now →</button>
+          </div>
+        );
+      })()}
+
       <div className="chat-input-area">
         <div className="chat-input-row">
           <textarea
@@ -13531,6 +13547,7 @@ export default function App() {
           onOpenLabs={() => setView('labs')}
           onSubscriptionExpired={() => setSubscription({ status: 'expired' })}
           onMessageSent={() => setSubscription(prev => prev?.status === 'trial' ? { ...prev, messages_used: (prev.messages_used ?? 0) + 1 } : prev)}
+          subscription={subscription}
         />
       ) : view === 'dashboard' ? (
         ACTIVE_REGION === 'us' ? (
