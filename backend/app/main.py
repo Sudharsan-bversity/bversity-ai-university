@@ -2826,7 +2826,16 @@ def verify_code(req: VerifyCodeRequest):
 
     subscription = None
     if sub:
-        subscription = {"status": sub["status"], "trial_end": sub["trial_end"]}
+        conn2 = get_db()
+        if sub["status"] == "trial":
+            msg_count = conn2.execute(
+                "SELECT COUNT(*) FROM messages WHERE student_id = ? AND role = 'user'", (student_id,)
+            ).fetchone()[0]
+            conn2.close()
+            subscription = {"status": "trial", "messages_used": msg_count, "messages_limit": 30}
+        else:
+            conn2.close()
+            subscription = {"status": sub["status"], "trial_end": sub["trial_end"]}
 
     return {
         "student_id": student_id,
