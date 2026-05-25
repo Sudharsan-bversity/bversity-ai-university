@@ -12144,6 +12144,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         body: JSON.stringify({ student_id: student.id, subject_id: subject.id, message: text, recall_warmup: true }),
       });
       if (res.status === 402) { onSubscriptionExpired?.(); setLoading(false); return; }
+      onMessageSent?.();
       const data = await res.json();
       setMessages(prev => [...prev, { role: 'bot', content: data.reply }]);
     } catch {
@@ -12229,6 +12230,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
                 body: JSON.stringify({ student_id: student.id, subject_id: subject.id, auto_open: true }),
               });
               if (res.status === 402) { onSubscriptionExpired?.(); return; }
+              onMessageSent?.();
               const data = await res.json();
               setIsMock(data.mock);
               setMessages(prev => [...prev, { role: 'bot', content: data.reply }]);
@@ -12345,6 +12347,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
         setMessages(prev => [...prev, { role: 'bot', content: "You've sent a lot of messages this hour. Take a short break and come back fresh. Your progress is saved." }]);
         setLoading(false); return;
       }
+      onMessageSent?.();
       const data = await res.json();
       setIsMock(data.mock);
       const replyContent = data.reply || "I'm here  -  go ahead and ask me anything, or tell me what you'd like to learn today.";
