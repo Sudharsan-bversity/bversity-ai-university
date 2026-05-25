@@ -13197,6 +13197,13 @@ export default function App() {
     setSubjectEntryPhase(null);
     setAutoStartChat(false);
     setView('home');
+    if (student && subscription?.status === 'trial') {
+      const product = ACTIVE_REGION === 'us' ? 'certifications' : 'career_pathways';
+      fetch(`/api/subscription/${student.id}/${product}`)
+        .then(r => r.json())
+        .then(d => setSubscription(d))
+        .catch(() => {});
+    }
   }
 
   function fireSessionEnd() {
