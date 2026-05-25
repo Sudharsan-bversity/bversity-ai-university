@@ -6369,27 +6369,26 @@ function AdminView({ onBack }) {
             )}
           </div>
           {churnRisk.length === 0 ? (
-            <div className="admin-churn-empty">No trials expiring in the next 7 days.</div>
+            <div className="admin-churn-empty">No users close to their message limit.</div>
           ) : (
             <div className="admin-churn-table">
               <div className="admin-churn-header">
                 <span>Learner</span>
                 <span>Career Path</span>
-                <span>Trial Ends</span>
-                <span>Days Left</span>
-                <span>Messages</span>
+                <span>Msgs Used</span>
+                <span>Msgs Left</span>
                 <span>Last Active</span>
                 <span>Reach Out</span>
               </div>
               {churnRisk.map(u => {
-                const urgency = u.days_left <= 2 ? 'high' : u.days_left <= 4 ? 'med' : 'low';
+                const urgency = u.msgs_left <= 2 ? 'high' : u.msgs_left <= 5 ? 'med' : 'low';
                 const lastActiveLabel = u.last_active_days === null
                   ? 'Never started'
                   : u.last_active_days === 0
                   ? 'Today'
                   : `${u.last_active_days}d ago`;
                 const mailSubject = encodeURIComponent(`How's Bversity going for you?`);
-                const mailBody = encodeURIComponent(`Hi ${u.name.split(' ')[0]},\n\nJust checking in — your Bversity trial ends soon. Would love to hear how it's going and answer any questions.\n\nBest,\nSudharsan`);
+                const mailBody = encodeURIComponent(`Hi ${u.name.split(' ')[0]},\n\nJust checking in — you're almost through your free messages on Bversity. Would love to hear how it's going and answer any questions.\n\nBest,\nSudharsan`);
                 return (
                   <div key={u.id} className={`admin-churn-row admin-churn-row--${urgency}`}>
                     <div className="admin-churn-name">
@@ -6402,11 +6401,10 @@ function AdminView({ onBack }) {
                       </div>
                     </div>
                     <div style={{ fontSize: '0.78rem', opacity: 0.75 }}>{u.career_path || '—'}</div>
-                    <div style={{ fontSize: '0.78rem' }}>{u.trial_end ? new Date(u.trial_end).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }) : '—'}</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>{u.messages_sent} / {u.messages_limit}</div>
                     <div>
-                      <span className={`admin-churn-days admin-churn-days--${urgency}`}>{Math.ceil(u.days_left)}d</span>
+                      <span className={`admin-churn-days admin-churn-days--${urgency}`}>{u.msgs_left} left</span>
                     </div>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 600 }}>{u.messages_sent || '—'}</div>
                     <div style={{ fontSize: '0.78rem', opacity: u.last_active_days === null ? 0.4 : 0.8 }}>{lastActiveLabel}</div>
                     <div>
                       <a href={`mailto:${u.email}?subject=${mailSubject}&body=${mailBody}`} className="admin-churn-mail-btn" title="Send email">
@@ -6680,26 +6678,26 @@ function AdminView({ onBack }) {
                       </div>
                       <div style={{marginTop:'0.6rem',display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
                         <button className="sd-action-btn" onClick={async () => {
-                          const days = prompt('Extend trial by how many days? (1–365)', '15');
-                          if (!days || isNaN(days)) return;
-                          if (parseInt(days) < 1 || parseInt(days) > 365) { alert('Enter a value between 1 and 365 days.'); return; }
+                          const msgs = prompt('Add how many extra messages? (e.g. 20)', '20');
+                          if (!msgs || isNaN(msgs)) return;
+                          if (parseInt(msgs) < 1 || parseInt(msgs) > 10000) { alert('Enter a value between 1 and 10000.'); return; }
                           const product = student.region === 'us' ? 'certifications' : 'career_pathways';
                           const r = await fetch(`/api/admin/students/${student.id}/extend-trial?product=${product}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
-                            body: JSON.stringify({ days: parseInt(days), access_type: 'free' }),
+                            body: JSON.stringify({ messages: parseInt(msgs), access_type: 'paid' }),
                           });
-                          if (r.ok) { const d = await r.json(); alert(`Trial extended to ${new Date(d.trial_end).toLocaleDateString()}`); }
-                          else alert('Failed to extend trial');
-                        }}>+ Extend Trial</button>
+                          if (r.ok) { const d = await r.json(); alert(`Message limit updated to ${d.message_limit}`); }
+                          else alert('Failed to extend messages');
+                        }}>+ Add Messages</button>
                         <button className="sd-action-btn sd-action-btn--free" onClick={async () => {
                           const product = student.region === 'us' ? 'certifications' : 'career_pathways';
                           const r = await fetch(`/api/admin/students/${student.id}/extend-trial?product=${product}`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
-                            body: JSON.stringify({ days: 3650, access_type: 'free' }),
+                            body: JSON.stringify({ messages: 999999, access_type: 'free' }),
                           });
-                          if (r.ok) alert('Granted 10-year free access');
+                          if (r.ok) alert('Granted unlimited free access');
                           else alert('Failed');
                         }}>Grant Free Access</button>
                       </div>
