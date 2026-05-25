@@ -13544,7 +13544,14 @@ export default function App() {
           onAutoStartConsumed={() => { setAutoStartChat(false); setSessionIsFirstVisit(false); }}
           onOpenLabs={() => setView('labs')}
           onSubscriptionExpired={() => setSubscription({ status: 'expired' })}
-          onMessageSent={() => setSubscription(prev => prev?.status === 'trial' ? { ...prev, messages_used: (prev.messages_used ?? 0) + 1 } : prev)}
+          onMessageSent={async () => {
+            if (subscription?.status !== 'trial') return;
+            const product = ACTIVE_REGION === 'us' ? 'certifications' : 'career_pathways';
+            try {
+              const r = await fetch(`/api/subscription/${student.id}/${product}`);
+              if (r.ok) setSubscription(await r.json());
+            } catch {}
+          }}
           subscription={subscription}
         />
       ) : view === 'dashboard' ? (
