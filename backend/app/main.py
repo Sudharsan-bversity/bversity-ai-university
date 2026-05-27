@@ -7816,6 +7816,85 @@ def delete_newsletter_post(post_id: int, x_admin_key: str = Header(None)):
     return {"ok": True}
 
 
+# ── Public Tools API ──────────────────────────────────────────────────────────
+
+@app.post("/api/tools/cv-review")
+async def cv_review(data: dict):
+    cv_text     = (data.get("cv_text") or "").strip()
+    target_role = (data.get("target_role") or "Biotech / Life Sciences").strip()
+    if not cv_text:
+        raise HTTPException(status_code=400, detail="cv_text required")
+    if len(cv_text) > 8000:
+        cv_text = cv_text[:8000]
+
+    prompt = f"""You are an expert biotech and life sciences career consultant. Review this CV for someone targeting: {target_role}.
+
+CV:
+{cv_text}
+
+Give concise, actionable feedback in 5–6 bullet points covering:
+1. Professional summary / objective (is it tailored?)
+2. Skills section (are the right technical keywords present?)
+3. Experience bullet points (are they quantified and impact-focused?)
+4. Education / certifications (are relevant ones highlighted?)
+5. Overall structure and length
+6. One specific improvement they must make immediately
+
+Be direct and specific. Mention exact gaps, not generic advice. Keep each bullet to 2–3 sentences max."""
+
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    msg = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=800,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    feedback = msg.content[0].text.strip()
+    return {"feedback": feedback}
+
+
+@app.post("/api/tools/linkedin-optimize")
+async def linkedin_optimize(data: dict):
+    target_role   = (data.get("target_role") or "").strip()
+    current_title = (data.get("current_title") or "").strip()
+    current_bio   = (data.get("current_bio") or "").strip()
+    if not target_role or not current_title:
+        raise HTTPException(status_code=400, detail="target_role and current_title required")
+
+    prompt = f"""You are a LinkedIn profile expert specializing in pharma and biotech careers.
+
+Target role: {target_role}
+Current title: {current_title}
+Current bio: {current_bio if current_bio else "(none provided)"}
+
+Write:
+1. An optimized LinkedIn HEADLINE (max 220 characters) that includes the target role, a value statement, and relevant keywords for biotech/pharma recruiters.
+2. An optimized LinkedIn ABOUT section (200–280 words) that is professional, first-person, highlights the transition/aspiration toward {target_role}, mentions relevant skills/education, and ends with a clear call to action.
+
+Format your response EXACTLY as:
+HEADLINE: <headline text>
+ABOUT: <about text>"""
+
+    client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+    msg = client.messages.create(
+        model="claude-haiku-4-5-20251001",
+        max_tokens=700,
+        messages=[{"role": "user", "content": prompt}]
+    )
+    text = msg.content[0].text.strip()
+    headline, about = "", ""
+    for line in text.split('\n'):
+        if line.startswith("HEADLINE:"):
+            headline = line.replace("HEADLINE:", "").strip()
+        elif line.startswith("ABOUT:"):
+            about = line.replace("ABOUT:", "").strip()
+    if not about:
+        # fallback: split on ABOUT:
+        parts = text.split("ABOUT:", 1)
+        if len(parts) == 2:
+            about = parts[1].strip()
+    return {"headline": headline, "about": about}
+
+
 # ── Automated daily scheduler ─────────────────────────────────────────────────
 
 def _run_daily_jobs():
