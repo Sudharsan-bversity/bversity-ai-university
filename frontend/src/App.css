@@ -13737,6 +13737,8 @@ body {
 .sd-action-btn:hover { background: #00A896; color: #fff; }
 .sd-action-btn--free { border-color: #6366f1; color: #6366f1; }
 .sd-action-btn--free:hover { background: #6366f1; color: #fff; }
+.sd-action-btn--activate { border-color: #16c1ad; color: #16c1ad; font-weight: 700; }
+.sd-action-btn--activate:hover { background: #16c1ad; color: #fff; }
 
 /* ── Cross-product sidebar link ── */
 .sidebar-cross-product { padding: 0 0.75rem 0.5rem; }

@@ -6700,6 +6700,16 @@ function AdminView({ onBack }) {
                           if (r.ok) alert('Granted unlimited free access');
                           else alert('Failed');
                         }}>Grant Free Access</button>
+                        <button className="sd-action-btn sd-action-btn--activate" onClick={async () => {
+                          const product = student.region === 'us' ? 'certifications' : 'career_pathways';
+                          if (!window.confirm(`Manually activate paid subscription for ${student.name}?\n\nUse this when payment was received in Razorpay but the webhook failed.`)) return;
+                          const r = await fetch(`/api/admin/students/${student.id}/activate?product=${product}`, {
+                            method: 'POST',
+                            headers: { 'X-Admin-Key': adminKey },
+                          });
+                          if (r.ok) alert(`✅ Subscription activated for ${student.name}. They now have full access.`);
+                          else alert('Failed to activate. Check server logs.');
+                        }}>✓ Activate Paid</button>
                       </div>
                     </div>
                   </div>

@@ -3580,6 +3580,26 @@ def extend_trial(student_id: str, product: str, body: ExtendTrialRequest, x_admi
     conn.commit(); conn.close()
     return {"ok": True, "message_limit": new_limit}
 
+# ── Admin: manually activate subscription (for payment webhook failures) ─────
+
+@app.post("/admin/students/{student_id}/activate")
+def admin_activate_subscription(student_id: str, x_admin_key: str = Header(None), product: str = "career_pathways"):
+    require_admin(x_admin_key)
+    conn = get_db()
+    now     = datetime.utcnow().isoformat()
+    sub_end = (datetime.utcnow() + timedelta(days=32)).isoformat()
+    sub = conn.execute("SELECT id FROM subscriptions WHERE student_id = ? AND product = ?", (student_id, product)).fetchone()
+    if sub:
+        conn.execute(
+            "UPDATE subscriptions SET status='active', payment_method='manual', subscription_end=?, updated_at=? WHERE student_id=? AND product=?",
+            (sub_end, now, student_id, product))
+    else:
+        conn.execute(
+            "INSERT INTO subscriptions (id, student_id, product, status, payment_method, started_at, subscription_end, created_at, updated_at) VALUES (?,?,?,'active','manual',?,?,?,?)",
+            (str(uuid.uuid4()), student_id, product, now, sub_end, now, now))
+    conn.commit(); conn.close()
+    return {"ok": True, "status": "active", "product": product}
+
 # ── Platform config ─────────────────────────────────────────────────────────
 
 @app.get("/admin/platform-config")
