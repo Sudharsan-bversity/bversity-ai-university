@@ -3466,8 +3466,46 @@ async def razorpay_webhook(request: Request):
                 notes, rzp_sub_id, _ = _get_sub_notes(event)
             else:
                 rzp_sub_id = payment.get("subscription_id")
+
             student_id = notes.get("student_id")
-            product    = notes.get("product", "career_pathways")
+            product    = notes.get("product")
+
+            # ── Fallback 1: look up student by subscription_id in our DB ──────
+            if not student_id:
+                rzp_sub_id = rzp_sub_id or payment.get("subscription_id")
+                if rzp_sub_id:
+                    row = conn.execute(
+                        "SELECT student_id, product FROM subscriptions WHERE gateway_subscription_id = ?",
+                        (rzp_sub_id,)).fetchone()
+                    if row:
+                        student_id = row["student_id"]
+                        product    = product or row["product"]
+                        print(f"[razorpay-webhook] Resolved student_id={student_id} via gateway_subscription_id={rzp_sub_id}")
+
+            # ── Fallback 2: fetch subscription notes from Razorpay API ────────
+            if not student_id and rzp_sub_id and RAZORPAY_KEY_ID:
+                try:
+                    import razorpay as rz
+                    rz_client = rz.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+                    sub_obj = rz_client.subscription.fetch(rzp_sub_id)
+                    api_notes  = sub_obj.get("notes", {})
+                    student_id = api_notes.get("student_id")
+                    product    = product or api_notes.get("product")
+                    if student_id:
+                        print(f"[razorpay-webhook] Resolved student_id={student_id} via Razorpay API for sub={rzp_sub_id}")
+                except Exception as api_err:
+                    print(f"[razorpay-webhook] Could not fetch sub from API: {api_err}")
+
+            if not product:
+                product = "career_pathways"
+
+            # ── Log clearly if we still can't resolve the student ─────────────
+            if not student_id:
+                print(f"[razorpay-webhook] ⚠️  UNRESOLVED PAYMENT — event={event_type} "
+                      f"payment_id={payment.get('id')} sub_id={rzp_sub_id} "
+                      f"amount={payment.get('amount')} currency={payment.get('currency')} "
+                      f"notes={notes} — MANUAL ACTIVATION REQUIRED")
+
             if student_id:
                 existing = conn.execute(
                     "SELECT id FROM subscriptions WHERE student_id = ? AND product = ?",
