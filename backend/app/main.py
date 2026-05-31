@@ -3640,12 +3640,15 @@ def admin_activate_subscription(student_id: str, body: ActivateRequest = Activat
         conn.execute(
             "INSERT INTO subscriptions (id, student_id, product, status, payment_method, started_at, subscription_end, created_at, updated_at) VALUES (?,?,?,'active','manual',?,?,?,?)",
             (str(uuid.uuid4()), student_id, product, now, sub_end, now, now))
-    # Log payment event so revenue shows up in admin panel
+    conn.commit()
+    # Log payment event so revenue shows up in admin panel (separate connection to avoid locking)
     if body.amount_cents > 0:
-        conn.execute(
+        conn2 = get_db()
+        conn2.execute(
             "INSERT INTO payment_events (id, student_id, product, event_type, amount_cents, currency, gateway, gateway_payment_id, created_at) VALUES (?,?,?,'payment',?,?,'manual',?,?)",
             (str(uuid.uuid4()), student_id, product, body.amount_cents, body.currency.lower(), body.note, now))
-    conn.commit(); conn.close()
+        conn2.commit(); conn2.close()
+    conn.close()
     return {"ok": True, "status": "active", "product": product}
 
 # ── Platform config ─────────────────────────────────────────────────────────
