@@ -3620,8 +3620,13 @@ def extend_trial(student_id: str, product: str, body: ExtendTrialRequest, x_admi
 
 # ── Admin: manually activate subscription (for payment webhook failures) ─────
 
+class ActivateRequest(BaseModel):
+    amount_cents: int = 0
+    currency: str = "inr"
+    note: str = "manual_activation"
+
 @app.post("/admin/students/{student_id}/activate")
-def admin_activate_subscription(student_id: str, x_admin_key: str = Header(None), product: str = "career_pathways"):
+def admin_activate_subscription(student_id: str, body: ActivateRequest = ActivateRequest(), x_admin_key: str = Header(None), product: str = "career_pathways"):
     require_admin(x_admin_key)
     conn = get_db()
     now     = datetime.utcnow().isoformat()
@@ -3635,6 +3640,11 @@ def admin_activate_subscription(student_id: str, x_admin_key: str = Header(None)
         conn.execute(
             "INSERT INTO subscriptions (id, student_id, product, status, payment_method, started_at, subscription_end, created_at, updated_at) VALUES (?,?,?,'active','manual',?,?,?,?)",
             (str(uuid.uuid4()), student_id, product, now, sub_end, now, now))
+    # Log payment event so revenue shows up in admin panel
+    if body.amount_cents > 0:
+        conn.execute(
+            "INSERT INTO payment_events (id, student_id, product, event_type, amount_cents, currency, gateway, gateway_payment_id, created_at) VALUES (?,?,?,'payment',?,?,'manual',?,?)",
+            (str(uuid.uuid4()), student_id, product, body.amount_cents, body.currency.lower(), body.note, now))
     conn.commit(); conn.close()
     return {"ok": True, "status": "active", "product": product}
 
