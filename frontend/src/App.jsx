@@ -6678,7 +6678,7 @@ function AdminView({ onBack }) {
                       </div>
                       <div style={{marginTop:'0.6rem',display:'flex',gap:'0.5rem',flexWrap:'wrap'}}>
                         <button className="sd-action-btn" onClick={async () => {
-                          const msgs = prompt('Add how many extra messages? (e.g. 20)', '20');
+                          const msgs = prompt('Grant how many fresh messages? (resets their count to 0, e.g. 20)', '20');
                           if (!msgs || isNaN(msgs)) return;
                           if (parseInt(msgs) < 1 || parseInt(msgs) > 10000) { alert('Enter a value between 1 and 10000.'); return; }
                           const product = student.region === 'us' ? 'certifications' : 'career_pathways';
@@ -6687,7 +6687,7 @@ function AdminView({ onBack }) {
                             headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
                             body: JSON.stringify({ messages: parseInt(msgs), access_type: 'paid' }),
                           });
-                          if (r.ok) { const d = await r.json(); alert(`Message limit updated to ${d.message_limit}`); }
+                          if (r.ok) { const d = await r.json(); alert(`Granted ${d.message_limit} fresh messages, starting from 0 used.`); }
                           else alert('Failed to extend messages');
                         }}>+ Add Messages</button>
                         <button className="sd-action-btn sd-action-btn--free" onClick={async () => {

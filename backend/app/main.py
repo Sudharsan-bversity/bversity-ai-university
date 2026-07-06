@@ -96,6 +96,15 @@ def get_db():
     return conn
 
 
+def effective_msg_count(conn, student_id, baseline):
+    """Messages counted against a trial limit, net of any baseline reset
+    (e.g. an admin granting extra messages starts the count fresh)."""
+    raw = conn.execute(
+        "SELECT COUNT(*) FROM messages WHERE student_id = ? AND role = 'user'", (student_id,)
+    ).fetchone()[0]
+    return max(0, raw - (baseline or 0))
+
+
 def init_db():
     conn = get_db()
     conn.executescript("""
@@ -338,6 +347,7 @@ def init_db():
         "ALTER TABLE subscriptions ADD COLUMN warning_2d_sent TEXT",
         "ALTER TABLE subscriptions ADD COLUMN warning_1d_sent TEXT",
         "ALTER TABLE subscriptions ADD COLUMN message_limit INTEGER NOT NULL DEFAULT 30",
+        "ALTER TABLE subscriptions ADD COLUMN message_count_baseline INTEGER NOT NULL DEFAULT 0",
     ]:
         try:
             conn.execute(col)
@@ -2832,9 +2842,7 @@ def verify_code(req: VerifyCodeRequest):
         conn2 = get_db()
         if sub["status"] == "trial":
             msg_limit = sub["message_limit"] if sub["message_limit"] else 30
-            msg_count = conn2.execute(
-                "SELECT COUNT(*) FROM messages WHERE student_id = ? AND role = 'user'", (student_id,)
-            ).fetchone()[0]
+            msg_count = effective_msg_count(conn2, student_id, sub["message_count_baseline"])
             conn2.close()
             subscription = {"status": "trial", "messages_used": msg_count, "messages_limit": msg_limit}
         else:
@@ -2999,7 +3007,7 @@ def admin_churn_risk(x_admin_key: str = Header(None)):
             COALESCE(sp.career_id, '') AS career_path,
             sub.product AS product_id,
             COALESCE(sub.message_limit, 30) AS message_limit,
-            COALESCE(msg_stats.msg_count, 0)   AS messages_sent,
+            MAX(0, COALESCE(msg_stats.msg_count, 0) - COALESCE(sub.message_count_baseline, 0)) AS messages_sent,
             COALESCE(msg_stats.last_active, '') AS last_active
         FROM subscriptions sub
         JOIN students s ON s.id = sub.student_id
@@ -3014,9 +3022,9 @@ def admin_churn_risk(x_admin_key: str = Header(None)):
         ) msg_stats ON msg_stats.student_id = s.id
         WHERE sub.status = 'trial'
           AND s.email NOT LIKE '%@bversity.alumni'
-          AND COALESCE(msg_stats.msg_count, 0) >= (COALESCE(sub.message_limit, 30) - 10)
+          AND MAX(0, COALESCE(msg_stats.msg_count, 0) - COALESCE(sub.message_count_baseline, 0)) >= (COALESCE(sub.message_limit, 30) - 10)
           AND COALESCE(sub.message_limit, 30) < 999999
-        ORDER BY (COALESCE(sub.message_limit, 30) - COALESCE(msg_stats.msg_count, 0)) ASC
+        ORDER BY (COALESCE(sub.message_limit, 30) - MAX(0, COALESCE(msg_stats.msg_count, 0) - COALESCE(sub.message_count_baseline, 0))) ASC
     """).fetchall()
     conn.close()
     result = []
@@ -3604,9 +3612,7 @@ def get_subscription(student_id: str, product: str):
         return {"status": "expired", "subscription_end": sub["subscription_end"]}
     if sub["status"] == "trial":
         msg_limit = sub["message_limit"] if sub["message_limit"] else 30
-        msg_count = conn.execute(
-            "SELECT COUNT(*) FROM messages WHERE student_id = ? AND role = 'user'", (student_id,)
-        ).fetchone()[0]
+        msg_count = effective_msg_count(conn, student_id, sub["message_count_baseline"])
         conn.close()
         if msg_count >= msg_limit:
             return {"status": "expired", "messages_used": msg_count, "messages_limit": msg_limit}
@@ -3626,18 +3632,22 @@ def extend_trial(student_id: str, product: str, body: ExtendTrialRequest, x_admi
     conn = get_db()
     now = datetime.utcnow().isoformat()
     sub = conn.execute("SELECT * FROM subscriptions WHERE student_id = ? AND product = ?", (student_id, product)).fetchone()
-    extra = body.messages if body.access_type != "free" else 999999
+    # Reset the counting baseline to their current raw message count, so the
+    # number an admin enters is exactly how many fresh messages the student
+    # gets from here — regardless of messages already used against a prior limit.
+    raw_count = conn.execute(
+        "SELECT COUNT(*) FROM messages WHERE student_id = ? AND role = 'user'", (student_id,)
+    ).fetchone()[0]
+    new_limit = 999999 if body.access_type == "free" else body.messages
     if sub:
-        current_limit = sub["message_limit"] if sub["message_limit"] else 30
-        new_limit = 999999 if body.access_type == "free" else current_limit + body.messages
-        conn.execute("UPDATE subscriptions SET message_limit = ?, status = 'trial', updated_at = ? WHERE student_id = ? AND product = ?",
-                     (new_limit, now, student_id, product))
+        conn.execute(
+            "UPDATE subscriptions SET message_limit = ?, message_count_baseline = ?, status = 'trial', updated_at = ? WHERE student_id = ? AND product = ?",
+            (new_limit, raw_count, now, student_id, product))
     else:
-        new_limit = 999999 if body.access_type == "free" else TRIAL_MESSAGE_LIMIT + body.messages
         conn.execute("""
-            INSERT INTO subscriptions (id, student_id, product, status, message_limit, trial_start, created_at, updated_at)
-            VALUES (?, ?, ?, 'trial', ?, ?, ?, ?)
-        """, (str(uuid.uuid4()), student_id, product, new_limit, now, now, now))
+            INSERT INTO subscriptions (id, student_id, product, status, message_limit, message_count_baseline, trial_start, created_at, updated_at)
+            VALUES (?, ?, ?, 'trial', ?, ?, ?, ?, ?)
+        """, (str(uuid.uuid4()), student_id, product, new_limit, raw_count, now, now, now))
     conn.commit(); conn.close()
     return {"ok": True, "message_limit": new_limit}
 
@@ -6104,13 +6114,11 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
 
     # ── Subscription gate ────────────────────────────────────────────────────
     product = "certifications" if req.subject_id.startswith("us_") else "career_pathways"
-    sub = conn.execute("SELECT status, trial_end, message_limit FROM subscriptions WHERE student_id = ? AND product = ?", (req.student_id, product)).fetchone()
+    sub = conn.execute("SELECT status, trial_end, message_limit, message_count_baseline FROM subscriptions WHERE student_id = ? AND product = ?", (req.student_id, product)).fetchone()
     if sub:
         if sub["status"] == "trial":
             msg_limit = sub["message_limit"] if sub["message_limit"] else 30
-            msg_count = conn.execute(
-                "SELECT COUNT(*) FROM messages WHERE student_id = ? AND role = 'user'", (req.student_id,)
-            ).fetchone()[0]
+            msg_count = effective_msg_count(conn, req.student_id, sub["message_count_baseline"])
             if msg_count >= msg_limit:
                 conn.close()
                 raise HTTPException(status_code=402, detail="trial_expired")
