@@ -5413,6 +5413,9 @@ function AdminView({ onBack }) {
   const [videoForm, setVideoForm]         = useState({ drive_url: '', title: '' });
   const [videoSaving, setVideoSaving]     = useState(false);
   const [videoError, setVideoError]       = useState('');
+  const [videoGenLoading, setVideoGenLoading] = useState(null); // concept_id currently being triggered, or null
+  const [videoGenError, setVideoGenError] = useState('');
+  const [videoPreview, setVideoPreview]   = useState(null); // { conceptId, blobUrl } or null
   const [lectureVideos, setLectureVideos] = useState({});
   const [conceptNotesMap, setConceptNotesMap] = useState({});
   const [conceptNotesSaving, setConceptNotesSaving] = useState(null);
@@ -5614,6 +5617,36 @@ function AdminView({ onBack }) {
       await loadVideoMap(videoSubject);
       if (videoEdit === conceptId) setVideoEdit(null);
     } catch {}
+  }
+
+  async function handleVideoGenerate(conceptId) {
+    setVideoGenLoading(conceptId); setVideoGenError('');
+    try {
+      const res = await fetch(`/api/admin/concept-videos/${videoSubject}/${conceptId}/generate`, {
+        method: 'POST', headers: { 'X-Admin-Key': adminKey },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.detail || 'Failed to start generation');
+      await loadVideoMap(videoSubject); // picks up gen_status='pending' immediately
+    } catch (e) { setVideoGenError(e.message); }
+    finally { setVideoGenLoading(null); }
+  }
+
+  async function handleVideoPreview(conceptId) {
+    setVideoGenError('');
+    try {
+      const res = await fetch(`/api/admin/concept-videos/${videoSubject}/${conceptId}/file`, {
+        headers: { 'X-Admin-Key': adminKey },
+      });
+      if (!res.ok) throw new Error('Could not load video');
+      const blob = await res.blob();
+      setVideoPreview({ conceptId, blobUrl: URL.createObjectURL(blob) });
+    } catch (e) { setVideoGenError(e.message); }
+  }
+
+  function closeVideoPreview() {
+    if (videoPreview?.blobUrl) URL.revokeObjectURL(videoPreview.blobUrl);
+    setVideoPreview(null);
   }
 
   async function loadResMap(subjectId) {
@@ -7113,7 +7146,7 @@ function AdminView({ onBack }) {
         <div className="admin-content">
           <div className="videos-section">
             <h3 className="access-title">Concept Videos</h3>
-            <p className="access-subtitle">Link a Google Drive video to any concept. Students see it in chat when that concept is covered.</p>
+            <p className="access-subtitle">Link a Google Drive video to any concept, or auto-generate a narrated video from free-tier tools (admin-only — students never see or trigger generation). Students see a linked Drive video in chat when that concept is covered.</p>
             <div className="videos-subject-row">
               <select
                 className="videos-subject-select"
@@ -7125,29 +7158,42 @@ function AdminView({ onBack }) {
                   <option key={s.id} value={s.id}>{s.name}</option>
                 ))}
               </select>
+              {videoSubject && (
+                <button className="videos-refresh-btn" onClick={() => loadVideoMap(videoSubject)} title="Refresh generation status">↻ Refresh</button>
+              )}
             </div>
+            {videoGenError && <p className="form-error">{videoGenError}</p>}
             {videoSubject && (() => {
               const subjectObj = SUBJECTS.find(s => s.id === videoSubject);
               return (
                 <div className="videos-concept-list">
                   {videoConcepts.map(concept => {
                       const existing = videoMap[concept.id];
+                      const hasDriveLink = !!existing?.drive_url;
                       const isEditing = videoEdit === concept.id;
+                      const genStatus = existing?.gen_status;
                       return (
-                        <div key={concept.id} className={`videos-concept-row ${existing ? 'has-video' : ''}`}>
+                        <div key={concept.id} className={`videos-concept-row ${hasDriveLink ? 'has-video' : ''}`}>
                           <div className="videos-concept-info">
                             <span className="videos-concept-name">{concept.name}</span>
                             <span className="videos-concept-id">{concept.id}</span>
                           </div>
-                          {existing && !isEditing && (
+                          {hasDriveLink && !isEditing && (
                             <div className="videos-existing">
                               <span className="videos-existing-title">{existing.title || 'Linked'}</span>
                               <button className="videos-edit-btn" onClick={() => { setVideoEdit(concept.id); setVideoForm({ drive_url: existing.drive_url, title: existing.title || '' }); setVideoError(''); }}>Edit</button>
                               <button className="videos-delete-btn" onClick={() => handleVideoDelete(concept.id)}>Remove</button>
                             </div>
                           )}
-                          {!existing && !isEditing && (
-                            <button className="videos-add-btn" onClick={() => { setVideoEdit(concept.id); setVideoForm({ drive_url: '', title: '' }); setVideoError(''); }}>+ Add video</button>
+                          {!hasDriveLink && !isEditing && (
+                            <div className="videos-concept-actions">
+                              <button className="videos-add-btn" onClick={() => { setVideoEdit(concept.id); setVideoForm({ drive_url: '', title: '' }); setVideoError(''); }}>+ Add video</button>
+                              {genStatus !== 'pending' && (
+                                <button className="videos-generate-btn" disabled={videoGenLoading === concept.id} onClick={() => handleVideoGenerate(concept.id)}>
+                                  {videoGenLoading === concept.id ? 'Starting…' : genStatus === 'error' ? '✨ Retry generate' : genStatus === 'done' ? '✨ Regenerate' : '✨ Auto-generate'}
+                                </button>
+                              )}
+                            </div>
                           )}
                           {isEditing && (
                             <div className="videos-edit-form">
@@ -7170,6 +7216,15 @@ function AdminView({ onBack }) {
                                 </button>
                                 <button className="admin-cancel-btn" onClick={() => { setVideoEdit(null); setVideoError(''); }}>Cancel</button>
                               </div>
+                            </div>
+                          )}
+                          {genStatus && !isEditing && (
+                            <div className="videos-gen-status">
+                              {genStatus === 'pending' && <span className="videos-gen-pending">Generating… (refresh to check)</span>}
+                              {genStatus === 'error' && <span className="videos-gen-error-text" title={existing.gen_error}>Generation failed: {existing.gen_error}</span>}
+                              {genStatus === 'done' && (
+                                <button className="videos-preview-btn" onClick={() => handleVideoPreview(concept.id)}>▶ Preview generated video</button>
+                              )}
                             </div>
                           )}
                         </div>
@@ -7207,6 +7262,23 @@ function AdminView({ onBack }) {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {videoPreview && (
+        <div className="lecture-modal-overlay" onClick={closeVideoPreview}>
+          <div className="lecture-modal" onClick={e => e.stopPropagation()}>
+            <div className="lecture-modal-header">
+              <div className="lecture-modal-title">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style={{ flexShrink: 0 }}><path d="M8 5v14l11-7z"/></svg>
+                {videoPreview.conceptId}
+              </div>
+              <button className="lecture-modal-close" onClick={closeVideoPreview}>×</button>
+            </div>
+            <div className="lecture-modal-frame-wrap">
+              <video className="lecture-modal-frame" src={videoPreview.blobUrl} controls autoPlay style={{ width: '100%', height: '100%' }} />
+            </div>
           </div>
         </div>
       )}

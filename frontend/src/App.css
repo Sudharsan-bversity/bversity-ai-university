@@ -8841,7 +8841,7 @@ body {
 }
 .videos-concept-list { display: flex; flex-direction: column; gap: 2px; }
 .videos-concept-row {
-  display: flex; align-items: center; gap: 12px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   padding: 10px 14px;
   border-radius: 8px;
   border: 1px solid transparent;
@@ -8858,6 +8858,23 @@ body {
 .videos-delete-btn { font-size: var(--text-sm); padding: 4px 10px; border-radius: 6px; border: 1px solid #ff444422; background: transparent; color: #ff6b6b; cursor: pointer; }
 .videos-add-btn    { font-size: var(--text-sm); padding: 4px 12px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; }
 .videos-add-btn:hover { border-color: #00A896; color: #00A896; }
+.videos-refresh-btn { font-size: var(--text-sm); padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); cursor: pointer; margin-left: 10px; }
+.videos-refresh-btn:hover { border-color: #00A896; color: #00A896; }
+.videos-concept-actions { display: flex; align-items: center; gap: 8px; }
+.videos-generate-btn {
+  font-size: var(--text-sm); padding: 4px 12px; border-radius: 6px;
+  border: 1px solid rgba(0,168,150,0.4); background: transparent; color: #00A896; cursor: pointer;
+}
+.videos-generate-btn:hover { background: rgba(0,168,150,0.08); }
+.videos-generate-btn:disabled { opacity: 0.5; cursor: default; }
+.videos-gen-status { flex-basis: 100%; font-size: var(--text-xs); padding-left: 2px; }
+.videos-gen-pending { color: #94a3b8; }
+.videos-gen-error-text { color: #ff6b6b; }
+.videos-preview-btn {
+  font-size: var(--text-sm); padding: 4px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: transparent; color: #00A896; cursor: pointer;
+}
+.videos-preview-btn:hover { border-color: #00A896; }
 .videos-edit-form { display: flex; flex-direction: column; gap: 8px; flex: 1; }
 .videos-url-input, .videos-title-input {
   background: var(--surface-2, rgba(255,255,255,0.06));

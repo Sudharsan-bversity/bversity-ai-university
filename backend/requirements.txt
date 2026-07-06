@@ -8,3 +8,6 @@ python-docx
 httpx
 stripe
 razorpay
+google-genai
+Pillow
+piper-tts

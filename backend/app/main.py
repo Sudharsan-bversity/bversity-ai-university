@@ -24,8 +24,10 @@ TRIAL_MESSAGE_LIMIT = 10  # free messages granted to a new trial signup
 
 DB_PATH = os.environ.get("DB_PATH", "/app/bversity.db")
 SUBMISSIONS_DIR = os.environ.get("SUBMISSIONS_DIR", "/app/submissions")
+VIDEOS_DIR = os.environ.get("VIDEOS_DIR", "/app/videos")
 IMAGE_CONFIG_PATH = os.environ.get("IMAGE_CONFIG_PATH", "/app/image_config.json")
 os.makedirs(SUBMISSIONS_DIR, exist_ok=True)
+os.makedirs(VIDEOS_DIR, exist_ok=True)
 
 DEFAULT_IMAGE_CONFIG = {
   "careers": {
@@ -206,7 +208,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS concept_videos (
             subject_id TEXT NOT NULL,
             concept_id TEXT NOT NULL,
-            drive_url  TEXT NOT NULL,
+            drive_url  TEXT,
             title      TEXT,
             added_at   TEXT NOT NULL,
             PRIMARY KEY (subject_id, concept_id)
@@ -348,6 +350,12 @@ def init_db():
         "ALTER TABLE subscriptions ADD COLUMN warning_1d_sent TEXT",
         "ALTER TABLE subscriptions ADD COLUMN message_limit INTEGER NOT NULL DEFAULT 30",
         "ALTER TABLE subscriptions ADD COLUMN message_count_baseline INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE concept_videos ADD COLUMN gen_status TEXT",
+        "ALTER TABLE concept_videos ADD COLUMN gen_error TEXT",
+        "ALTER TABLE concept_videos ADD COLUMN gen_started_at TEXT",
+        "ALTER TABLE concept_videos ADD COLUMN gen_completed_at TEXT",
+        "ALTER TABLE concept_videos ADD COLUMN local_video_path TEXT",
+        "ALTER TABLE concept_videos ADD COLUMN gen_duration_sec REAL",
     ]:
         try:
             conn.execute(col)
@@ -4455,27 +4463,35 @@ def get_concept_summaries(subject_id: str):
     return result
 
 
+def _concept_video_dict(row):
+    return {
+        "drive_url": row["drive_url"], "title": row["title"],
+        "gen_status": row["gen_status"], "gen_error": row["gen_error"],
+        "gen_completed_at": row["gen_completed_at"], "gen_duration_sec": row["gen_duration_sec"],
+        "local_video_path": row["local_video_path"],
+    }
+
 @app.get("/concept-videos")
 def get_all_concept_videos():
     conn = get_db()
-    rows = conn.execute("SELECT subject_id, concept_id, drive_url, title FROM concept_videos").fetchall()
+    rows = conn.execute(
+        "SELECT subject_id, concept_id, drive_url, title, gen_status, gen_error, gen_completed_at, gen_duration_sec, local_video_path FROM concept_videos"
+    ).fetchall()
     conn.close()
     result = {}
     for row in rows:
-        result.setdefault(row["subject_id"], {})[row["concept_id"]] = {
-            "drive_url": row["drive_url"], "title": row["title"]
-        }
+        result.setdefault(row["subject_id"], {})[row["concept_id"]] = _concept_video_dict(row)
     return result
 
 @app.get("/concept-videos/{subject_id}")
 def get_concept_videos(subject_id: str):
     conn = get_db()
     rows = conn.execute(
-        "SELECT concept_id, drive_url, title FROM concept_videos WHERE subject_id = ?",
+        "SELECT concept_id, drive_url, title, gen_status, gen_error, gen_completed_at, gen_duration_sec, local_video_path FROM concept_videos WHERE subject_id = ?",
         (subject_id,)
     ).fetchall()
     conn.close()
-    return {row["concept_id"]: {"drive_url": row["drive_url"], "title": row["title"]} for row in rows}
+    return {row["concept_id"]: _concept_video_dict(row) for row in rows}
 
 @app.put("/admin/concept-videos/{subject_id}/{concept_id}")
 def upsert_concept_video(subject_id: str, concept_id: str, req: ConceptVideoRequest, x_admin_key: str = Header(None)):
@@ -4504,6 +4520,56 @@ def delete_concept_video(subject_id: str, concept_id: str, x_admin_key: str = He
     conn.commit()
     conn.close()
     return {"status": "ok"}
+
+# ── Admin: auto-generate concept video (free-tier Gemini + self-hosted Piper + Pillow + ffmpeg) ──
+
+@app.post("/admin/concept-videos/{subject_id}/{concept_id}/generate")
+def admin_generate_concept_video(subject_id: str, concept_id: str, background_tasks: BackgroundTasks, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    if subject_id not in CURRICULUM:
+        raise HTTPException(status_code=400, detail="Unknown subject")
+    concept = next((c for c in CURRICULUM[subject_id] if c["id"] == concept_id), None)
+    if not concept:
+        raise HTTPException(status_code=400, detail="Unknown concept")
+
+    from app import video_gen
+    if video_gen.video_gen_lock:
+        raise HTTPException(status_code=409, detail="A video is already generating, try again shortly")
+    if not video_gen.has_enough_disk_space():
+        raise HTTPException(status_code=507, detail="Not enough free disk space to generate a video right now")
+
+    conn = get_db()
+    now = datetime.utcnow().isoformat()
+    conn.execute(
+        """INSERT INTO concept_videos (subject_id, concept_id, drive_url, title, added_at, gen_status, gen_started_at, gen_error)
+           VALUES (?, ?, '', ?, ?, 'pending', ?, NULL)
+           ON CONFLICT(subject_id, concept_id) DO UPDATE SET
+             gen_status = 'pending', gen_started_at = excluded.gen_started_at, gen_error = NULL""",
+        (subject_id, concept_id, concept["name"], now, now),
+    )
+    conn.commit()
+    conn.close()
+
+    background_tasks.add_task(
+        video_gen.generate_concept_video, subject_id, concept_id, concept, SUBJECTS[subject_id], VIDEOS_DIR, DB_PATH,
+    )
+    return {"status": "generating"}
+
+@app.get("/admin/concept-videos/{subject_id}/{concept_id}/file")
+def admin_get_concept_video_file(subject_id: str, concept_id: str, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    row = conn.execute(
+        "SELECT local_video_path FROM concept_videos WHERE subject_id = ? AND concept_id = ?",
+        (subject_id, concept_id),
+    ).fetchone()
+    conn.close()
+    if not row or not row["local_video_path"]:
+        raise HTTPException(status_code=404, detail="No generated video for this concept")
+    full_path = os.path.join(VIDEOS_DIR, row["local_video_path"])
+    if not os.path.exists(full_path):
+        raise HTTPException(status_code=404, detail="Video file missing on disk")
+    return FileResponse(full_path, media_type="video/mp4")
 
 # ── Module quiz routes ────────────────────────────────────────────────────────
 
