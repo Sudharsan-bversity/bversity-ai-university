@@ -321,54 +321,6 @@ def init_db():
             fetched_at  TEXT NOT NULL
         );
     """)
-    for col in [
-        "ALTER TABLE capstone_submissions ADD COLUMN ai_score INTEGER",
-        "ALTER TABLE capstone_submissions ADD COLUMN ai_feedback TEXT",
-        "ALTER TABLE capstone_submissions ADD COLUMN ai_graded_at TEXT",
-        "ALTER TABLE concept_progress ADD COLUMN mastered_at TEXT",
-        "ALTER TABLE student_profile ADD COLUMN college TEXT",
-        "ALTER TABLE student_profile ADD COLUMN year_of_study TEXT",
-        "ALTER TABLE student_profile ADD COLUMN aspirations TEXT",
-        "ALTER TABLE student_profile ADD COLUMN motivation TEXT",
-        "ALTER TABLE student_profile ADD COLUMN tutor_note TEXT",
-        "ALTER TABLE student_profile ADD COLUMN onboarded_at TEXT",
-        "ALTER TABLE student_profile ADD COLUMN avatar_color TEXT",
-        "ALTER TABLE student_profile ADD COLUMN linkedin_url TEXT",
-        "ALTER TABLE student_profile ADD COLUMN github_url TEXT",
-        "ALTER TABLE student_profile ADD COLUMN bio TEXT",
-        "ALTER TABLE student_profile ADD COLUMN city TEXT",
-        "ALTER TABLE student_profile ADD COLUMN state TEXT",
-        "ALTER TABLE student_profile ADD COLUMN show_on_map INTEGER DEFAULT 1",
-        "ALTER TABLE student_profile ADD COLUMN avatar_num INTEGER",
-        "ALTER TABLE student_profile ADD COLUMN is_placed INTEGER DEFAULT 0",
-        "ALTER TABLE student_profile ADD COLUMN streak_count INTEGER DEFAULT 0",
-        "ALTER TABLE student_profile ADD COLUMN streak_last_date TEXT",
-        "ALTER TABLE student_profile ADD COLUMN last_active_at TEXT",
-        "ALTER TABLE student_profile ADD COLUMN nudge_sent_at TEXT",
-        "ALTER TABLE student_profile ADD COLUMN weekly_report_sent_at TEXT",
-        "ALTER TABLE approved_emails ADD COLUMN product TEXT NOT NULL DEFAULT 'career_pathways'",
-        "ALTER TABLE approved_emails ADD COLUMN expires_at TEXT",
-        "ALTER TABLE approved_emails ADD COLUMN access_type TEXT NOT NULL DEFAULT 'manual'",
-        "ALTER TABLE access_requests ADD COLUMN product TEXT NOT NULL DEFAULT 'career_pathways'",
-        "ALTER TABLE student_profile ADD COLUMN learner_archetype TEXT",
-        "ALTER TABLE subscriptions ADD COLUMN subscription_end TEXT",
-        "ALTER TABLE subscriptions ADD COLUMN started_at TEXT",
-        "ALTER TABLE subscriptions ADD COLUMN warning_2d_sent TEXT",
-        "ALTER TABLE subscriptions ADD COLUMN warning_1d_sent TEXT",
-        "ALTER TABLE subscriptions ADD COLUMN message_limit INTEGER NOT NULL DEFAULT 30",
-        "ALTER TABLE subscriptions ADD COLUMN message_count_baseline INTEGER NOT NULL DEFAULT 0",
-        "ALTER TABLE concept_videos ADD COLUMN gen_status TEXT",
-        "ALTER TABLE concept_videos ADD COLUMN gen_error TEXT",
-        "ALTER TABLE concept_videos ADD COLUMN gen_started_at TEXT",
-        "ALTER TABLE concept_videos ADD COLUMN gen_completed_at TEXT",
-        "ALTER TABLE concept_videos ADD COLUMN local_video_path TEXT",
-        "ALTER TABLE concept_videos ADD COLUMN gen_duration_sec REAL",
-    ]:
-        try:
-            conn.execute(col)
-        except Exception:
-            pass
-
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS platform_config (
             product     TEXT PRIMARY KEY,
@@ -464,6 +416,57 @@ def init_db():
             created_at   TEXT NOT NULL
         );
     """)
+    # Column migrations run last, after every CREATE TABLE above, so a table being
+    # altered is guaranteed to already exist (a fresh DB previously hit "no such
+    # table" on these, silently swallowed below, since some referenced tables
+    # -- e.g. subscriptions -- are created further down than this loop used to run).
+    for col in [
+        "ALTER TABLE capstone_submissions ADD COLUMN ai_score INTEGER",
+        "ALTER TABLE capstone_submissions ADD COLUMN ai_feedback TEXT",
+        "ALTER TABLE capstone_submissions ADD COLUMN ai_graded_at TEXT",
+        "ALTER TABLE concept_progress ADD COLUMN mastered_at TEXT",
+        "ALTER TABLE student_profile ADD COLUMN college TEXT",
+        "ALTER TABLE student_profile ADD COLUMN year_of_study TEXT",
+        "ALTER TABLE student_profile ADD COLUMN aspirations TEXT",
+        "ALTER TABLE student_profile ADD COLUMN motivation TEXT",
+        "ALTER TABLE student_profile ADD COLUMN tutor_note TEXT",
+        "ALTER TABLE student_profile ADD COLUMN onboarded_at TEXT",
+        "ALTER TABLE student_profile ADD COLUMN avatar_color TEXT",
+        "ALTER TABLE student_profile ADD COLUMN linkedin_url TEXT",
+        "ALTER TABLE student_profile ADD COLUMN github_url TEXT",
+        "ALTER TABLE student_profile ADD COLUMN bio TEXT",
+        "ALTER TABLE student_profile ADD COLUMN city TEXT",
+        "ALTER TABLE student_profile ADD COLUMN state TEXT",
+        "ALTER TABLE student_profile ADD COLUMN show_on_map INTEGER DEFAULT 1",
+        "ALTER TABLE student_profile ADD COLUMN avatar_num INTEGER",
+        "ALTER TABLE student_profile ADD COLUMN is_placed INTEGER DEFAULT 0",
+        "ALTER TABLE student_profile ADD COLUMN streak_count INTEGER DEFAULT 0",
+        "ALTER TABLE student_profile ADD COLUMN streak_last_date TEXT",
+        "ALTER TABLE student_profile ADD COLUMN last_active_at TEXT",
+        "ALTER TABLE student_profile ADD COLUMN nudge_sent_at TEXT",
+        "ALTER TABLE student_profile ADD COLUMN weekly_report_sent_at TEXT",
+        "ALTER TABLE approved_emails ADD COLUMN product TEXT NOT NULL DEFAULT 'career_pathways'",
+        "ALTER TABLE approved_emails ADD COLUMN expires_at TEXT",
+        "ALTER TABLE approved_emails ADD COLUMN access_type TEXT NOT NULL DEFAULT 'manual'",
+        "ALTER TABLE access_requests ADD COLUMN product TEXT NOT NULL DEFAULT 'career_pathways'",
+        "ALTER TABLE student_profile ADD COLUMN learner_archetype TEXT",
+        "ALTER TABLE subscriptions ADD COLUMN subscription_end TEXT",
+        "ALTER TABLE subscriptions ADD COLUMN started_at TEXT",
+        "ALTER TABLE subscriptions ADD COLUMN warning_2d_sent TEXT",
+        "ALTER TABLE subscriptions ADD COLUMN warning_1d_sent TEXT",
+        "ALTER TABLE subscriptions ADD COLUMN message_limit INTEGER NOT NULL DEFAULT 30",
+        "ALTER TABLE subscriptions ADD COLUMN message_count_baseline INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE concept_videos ADD COLUMN gen_status TEXT",
+        "ALTER TABLE concept_videos ADD COLUMN gen_error TEXT",
+        "ALTER TABLE concept_videos ADD COLUMN gen_started_at TEXT",
+        "ALTER TABLE concept_videos ADD COLUMN gen_completed_at TEXT",
+        "ALTER TABLE concept_videos ADD COLUMN local_video_path TEXT",
+        "ALTER TABLE concept_videos ADD COLUMN gen_duration_sec REAL",
+    ]:
+        try:
+            conn.execute(col)
+        except Exception:
+            pass
     conn.execute("""
         INSERT OR IGNORE INTO platform_config (product, mode, trial_days, updated_at) VALUES
             ('career_pathways', 'self_serve', 5, datetime('now')),
