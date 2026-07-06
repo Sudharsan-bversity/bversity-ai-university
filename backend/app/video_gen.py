@@ -147,28 +147,44 @@ def _wrap_lines(draw, text, font, max_width):
     return lines
 
 
+# Bversity brand template: dark teal header bar, pale mint body, bold caps
+# heading, subject color used as a small accent (logo dot, bullet marker)
+# rather than the page background.
+HEADER_H = 64
+HEADER_COLOR = "#173A33"
+BODY_COLOR = "#E7F1E4"
+HEADING_COLOR = "#12241F"
+BULLET_COLOR = "#2F4A43"
+BRAND_TEAL = "#00A896"
+
+
 def _render_slide(heading, bullet, subject_color, subject_name, idx, total, out_png):
-    img = Image.new("RGB", (SLIDE_W, SLIDE_H), "#0f172a")
+    img = Image.new("RGB", (SLIDE_W, SLIDE_H), BODY_COLOR)
     draw = ImageDraw.Draw(img)
-    draw.rectangle([0, 0, SLIDE_W, 14], fill=subject_color)
 
-    heading_font = _load_font(FONT_BOLD, 56)
-    bullet_font = _load_font(FONT_REGULAR, 32)
-    label_font = _load_font(FONT_REGULAR, 24)
+    # Header bar: logo dot + wordmark, slide counter
+    draw.rectangle([0, 0, SLIDE_W, HEADER_H], fill=HEADER_COLOR)
+    draw.ellipse([28, HEADER_H // 2 - 14, 28 + 28, HEADER_H // 2 + 14], fill=BRAND_TEAL)
+    label_font = _load_font(FONT_REGULAR, 20)
+    draw.text((70, HEADER_H // 2 - 10), "BVERSITY SCHOOL OF BIOSCIENCE", font=label_font, fill="#E7F1E4")
+    counter_text = f"{idx + 1}/{total}"
+    counter_bbox = draw.textbbox((0, 0), counter_text, font=label_font)
+    draw.text((SLIDE_W - 30 - (counter_bbox[2] - counter_bbox[0]), HEADER_H // 2 - 10), counter_text, font=label_font, fill="#9FBDB6")
 
-    draw.text((60, 50), subject_name.upper(), font=label_font, fill="#94a3b8")
-    draw.text((SLIDE_W - 160, 50), f"{idx + 1}/{total}", font=label_font, fill="#64748b")
+    heading_font = _load_font(FONT_BOLD, 52)
+    bullet_font = _load_font(FONT_REGULAR, 30)
 
-    lines = _wrap_lines(draw, heading, heading_font, SLIDE_W - 120)
-    y = SLIDE_H // 2 - (len(lines) * 68) // 2 - 40
+    lines = _wrap_lines(draw, heading.upper(), heading_font, SLIDE_W - 120)
+    y = SLIDE_H // 2 - (len(lines) * 64) // 2 - 30
     for line in lines:
-        draw.text((60, y), line, font=heading_font, fill="#f1f5f9")
-        y += 68
+        draw.text((60, y), line, font=heading_font, fill=HEADING_COLOR)
+        y += 64
 
     if bullet:
-        y += 20
-        for line in _wrap_lines(draw, bullet, bullet_font, SLIDE_W - 120):
-            draw.text((60, y), f"•  {line}", font=bullet_font, fill=subject_color)
+        y += 24
+        for line in _wrap_lines(draw, bullet, bullet_font, SLIDE_W - 150):
+            draw.ellipse([60, y + 12, 68, y + 20], fill=subject_color)
+            draw.text((84, y), line, font=bullet_font, fill=BULLET_COLOR)
             y += 42
 
     img.save(out_png)
