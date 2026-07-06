@@ -17,9 +17,11 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Self-hosted Piper TTS voice model (no external API calls at runtime).
-RUN mkdir -p /app/models && \
-    curl -sL -o /app/models/en_US-lessac-medium.onnx "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx" && \
-    curl -sL -o /app/models/en_US-lessac-medium.onnx.json "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json"
+# Deliberately NOT under /app: local dev bind-mounts ./backend over /app
+# (see docker-compose.yml), which would otherwise shadow anything baked in here.
+RUN mkdir -p /opt/piper-voices && \
+    curl -sL -o /opt/piper-voices/en_US-lessac-medium.onnx "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx" && \
+    curl -sL -o /opt/piper-voices/en_US-lessac-medium.onnx.json "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json"
 
 COPY ./app ./app
 

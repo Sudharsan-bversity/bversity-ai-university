@@ -26,7 +26,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
-PIPER_VOICE_MODEL = os.environ.get("PIPER_VOICE_MODEL", "/app/models/en_US-lessac-medium.onnx")
+PIPER_VOICE_MODEL = os.environ.get("PIPER_VOICE_MODEL", "/opt/piper-voices/en_US-lessac-medium.onnx")
 FONT_BOLD = os.environ.get("VIDEO_FONT_BOLD", "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf")
 FONT_REGULAR = os.environ.get("VIDEO_FONT_REGULAR", "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf")
 
