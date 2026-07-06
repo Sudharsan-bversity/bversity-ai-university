@@ -3445,9 +3445,13 @@ async def razorpay_webhook(request: Request):
 
     event_type = event.get("event", "")
 
+    def _notes_dict(n):
+        # Razorpay serializes an empty notes object as [] instead of {}
+        return n if isinstance(n, dict) else {}
+
     def _get_sub_notes(event):
         sub = event.get("payload", {}).get("subscription", {}).get("entity", {})
-        return sub.get("notes", {}), sub.get("id"), sub.get("plan_id")
+        return _notes_dict(sub.get("notes")), sub.get("id"), sub.get("plan_id")
 
     def _get_payment_entity(event):
         return event.get("payload", {}).get("payment", {}).get("entity", {})
@@ -3460,7 +3464,7 @@ async def razorpay_webhook(request: Request):
     try:
         if event_type in ("subscription.charged", "payment.captured"):
             payment    = _get_payment_entity(event)
-            notes      = payment.get("notes", {})
+            notes      = _notes_dict(payment.get("notes"))
             # For subscription events, notes may be on the subscription entity
             if not notes.get("student_id"):
                 notes, rzp_sub_id, _ = _get_sub_notes(event)
@@ -3488,7 +3492,7 @@ async def razorpay_webhook(request: Request):
                     import razorpay as rz
                     rz_client = rz.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
                     sub_obj = rz_client.subscription.fetch(rzp_sub_id)
-                    api_notes  = sub_obj.get("notes", {})
+                    api_notes  = _notes_dict(sub_obj.get("notes"))
                     student_id = api_notes.get("student_id")
                     product    = product or api_notes.get("product")
                     if student_id:
@@ -3505,6 +3509,23 @@ async def razorpay_webhook(request: Request):
                       f"payment_id={payment.get('id')} sub_id={rzp_sub_id} "
                       f"amount={payment.get('amount')} currency={payment.get('currency')} "
                       f"notes={notes} — MANUAL ACTIVATION REQUIRED")
+                admin_email = os.environ.get("ADMIN_NOTIFY_EMAIL", "sudharsan@bversity.io")
+                amount_disp = f"{(payment.get('amount') or 0) / 100:.2f} {(payment.get('currency') or '').upper()}"
+                body = (
+                    _heading("⚠️ Unresolved Razorpay payment") +
+                    _para(f"A payment came in that could not be matched to a student automatically. "
+                          f"It has <strong>not</strong> been applied — the student's access will not "
+                          f"update until this is manually activated.") +
+                    _para(f"<strong>Event:</strong> {event_type}<br>"
+                          f"<strong>Payment ID:</strong> {payment.get('id')}<br>"
+                          f"<strong>Subscription ID:</strong> {rzp_sub_id}<br>"
+                          f"<strong>Amount:</strong> {amount_disp}<br>"
+                          f"<strong>Notes:</strong> {notes}") +
+                    _small("Use the admin panel's manual activation to grant access, "
+                           "then this student's subscription id will be backfilled for future renewals.")
+                )
+                import asyncio as _asyncio
+                _asyncio.create_task(_send_email(admin_email, "⚠️ Unresolved Razorpay payment — action required", _email_wrap(body)))
 
             if student_id:
                 existing = conn.execute(
@@ -3624,6 +3645,7 @@ class ActivateRequest(BaseModel):
     amount_cents: int = 0
     currency: str = "inr"
     note: str = "manual_activation"
+    gateway_subscription_id: str = ""
 
 @app.post("/admin/students/{student_id}/activate")
 def admin_activate_subscription(student_id: str, body: ActivateRequest = ActivateRequest(), x_admin_key: str = Header(None), product: str = "career_pathways"):
@@ -3631,15 +3653,18 @@ def admin_activate_subscription(student_id: str, body: ActivateRequest = Activat
     conn = get_db()
     now     = datetime.utcnow().isoformat()
     sub_end = (datetime.utcnow() + timedelta(days=32)).isoformat()
-    sub = conn.execute("SELECT id FROM subscriptions WHERE student_id = ? AND product = ?", (student_id, product)).fetchone()
+    sub = conn.execute("SELECT id, gateway_subscription_id FROM subscriptions WHERE student_id = ? AND product = ?", (student_id, product)).fetchone()
+    # Preserve any gateway_subscription_id already on file so future renewal webhooks
+    # can still resolve this student via DB lookup; backfill it if the admin supplies one now.
+    gw_sub_id = body.gateway_subscription_id or (sub["gateway_subscription_id"] if sub else None)
     if sub:
         conn.execute(
-            "UPDATE subscriptions SET status='active', payment_method='manual', subscription_end=?, updated_at=? WHERE student_id=? AND product=?",
-            (sub_end, now, student_id, product))
+            "UPDATE subscriptions SET status='active', payment_method='manual', subscription_end=?, gateway_subscription_id=?, updated_at=? WHERE student_id=? AND product=?",
+            (sub_end, gw_sub_id, now, student_id, product))
     else:
         conn.execute(
-            "INSERT INTO subscriptions (id, student_id, product, status, payment_method, started_at, subscription_end, created_at, updated_at) VALUES (?,?,?,'active','manual',?,?,?,?)",
-            (str(uuid.uuid4()), student_id, product, now, sub_end, now, now))
+            "INSERT INTO subscriptions (id, student_id, product, status, payment_method, started_at, subscription_end, gateway_subscription_id, created_at, updated_at) VALUES (?,?,?,'active','manual',?,?,?,?,?)",
+            (str(uuid.uuid4()), student_id, product, now, sub_end, gw_sub_id, now, now))
     conn.commit()
     # Log payment event so revenue shows up in admin panel (separate connection to avoid locking)
     if body.amount_cents > 0:
