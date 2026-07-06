@@ -52,7 +52,7 @@ def has_enough_disk_space():
     return shutil.disk_usage("/").free >= MIN_FREE_DISK_BYTES
 
 
-def _gemini_script(concept_name, concept_desc, subject_name):
+def _gemini_script(concept_name, concept_desc, subject_name, custom_instructions=None):
     if not GEMINI_API_KEY:
         raise VideoGenError("GEMINI_API_KEY not configured")
     from google import genai
@@ -73,9 +73,15 @@ Each slide has:
 - "heading": a short slide title (max 6 words)
 - "bullet": one short supporting phrase (max 10 words), can be empty string
 - "narration": 1-2 sentences a narrator would say for this slide (max 40 words), conversational but precise, for an undergraduate audience
-
+"""
+    if custom_instructions:
+        prompt += f"""
+Additional instructions from the content team (follow these while keeping the JSON output format below):
+{custom_instructions}
+"""
+    prompt += """
 Return ONLY strict JSON, no markdown fences, no commentary, in this exact shape:
-{{"slides": [{{"heading": "...", "bullet": "...", "narration": "..."}}]}}
+{"slides": [{"heading": "...", "bullet": "...", "narration": "..."}]}
 """
     try:
         resp = client.models.generate_content(model=GEMINI_MODEL, contents=prompt)
@@ -240,7 +246,7 @@ def _update_status(db_path, subject_id, concept_id, **fields):
     conn.close()
 
 
-def generate_concept_video(subject_id, concept_id, concept, subject_meta, videos_dir, db_path):
+def generate_concept_video(subject_id, concept_id, concept, subject_meta, videos_dir, db_path, custom_instructions=None):
     """Background-task entry point. Never raises — always records gen_status."""
     global video_gen_lock
     if video_gen_lock:
@@ -252,7 +258,7 @@ def generate_concept_video(subject_id, concept_id, concept, subject_meta, videos
         if not has_enough_disk_space():
             raise VideoGenError("Not enough free disk space to generate a video")
 
-        slides = _gemini_script(concept["name"], concept["desc"], subject_meta["name"])
+        slides = _gemini_script(concept["name"], concept["desc"], subject_meta["name"], custom_instructions)
 
         wavs, durations = [], []
         for i, s in enumerate(slides):

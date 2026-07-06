@@ -213,6 +213,13 @@ def init_db():
             added_at   TEXT NOT NULL,
             PRIMARY KEY (subject_id, concept_id)
         );
+        CREATE TABLE IF NOT EXISTS video_prompt_templates (
+            id           TEXT PRIMARY KEY,
+            name         TEXT NOT NULL UNIQUE,
+            instructions TEXT NOT NULL,
+            created_at   TEXT NOT NULL,
+            updated_at   TEXT NOT NULL
+        );
         CREATE TABLE IF NOT EXISTS subject_completions (
             student_id    TEXT NOT NULL,
             subject_id    TEXT NOT NULL,
@@ -4523,8 +4530,12 @@ def delete_concept_video(subject_id: str, concept_id: str, x_admin_key: str = He
 
 # ── Admin: auto-generate concept video (free-tier Gemini + self-hosted Piper + Pillow + ffmpeg) ──
 
+class GenerateVideoRequest(BaseModel):
+    template_id: Optional[str] = None
+
 @app.post("/admin/concept-videos/{subject_id}/{concept_id}/generate")
-def admin_generate_concept_video(subject_id: str, concept_id: str, background_tasks: BackgroundTasks, x_admin_key: str = Header(None)):
+def admin_generate_concept_video(subject_id: str, concept_id: str, background_tasks: BackgroundTasks,
+                                  body: GenerateVideoRequest = GenerateVideoRequest(), x_admin_key: str = Header(None)):
     require_admin(x_admin_key)
     if subject_id not in CURRICULUM:
         raise HTTPException(status_code=400, detail="Unknown subject")
@@ -4537,6 +4548,15 @@ def admin_generate_concept_video(subject_id: str, concept_id: str, background_ta
         raise HTTPException(status_code=409, detail="A video is already generating, try again shortly")
     if not video_gen.has_enough_disk_space():
         raise HTTPException(status_code=507, detail="Not enough free disk space to generate a video right now")
+
+    custom_instructions = None
+    if body.template_id:
+        conn = get_db()
+        row = conn.execute("SELECT instructions FROM video_prompt_templates WHERE id = ?", (body.template_id,)).fetchone()
+        conn.close()
+        if not row:
+            raise HTTPException(status_code=404, detail="Prompt template not found")
+        custom_instructions = row["instructions"]
 
     conn = get_db()
     now = datetime.utcnow().isoformat()
@@ -4552,8 +4572,70 @@ def admin_generate_concept_video(subject_id: str, concept_id: str, background_ta
 
     background_tasks.add_task(
         video_gen.generate_concept_video, subject_id, concept_id, concept, SUBJECTS[subject_id], VIDEOS_DIR, DB_PATH,
+        custom_instructions,
     )
     return {"status": "generating"}
+
+# ── Admin: video prompt templates ─────────────────────────────────────────────
+
+class PromptTemplateRequest(BaseModel):
+    name: str
+    instructions: str
+
+@app.get("/admin/video-prompt-templates")
+def list_prompt_templates(x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    rows = conn.execute("SELECT * FROM video_prompt_templates ORDER BY name").fetchall()
+    conn.close()
+    return [dict(r) for r in rows]
+
+@app.post("/admin/video-prompt-templates")
+def create_prompt_template(req: PromptTemplateRequest, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    if not req.name.strip() or not req.instructions.strip():
+        raise HTTPException(status_code=400, detail="Name and instructions are required")
+    conn = get_db()
+    now = datetime.utcnow().isoformat()
+    try:
+        conn.execute(
+            "INSERT INTO video_prompt_templates (id, name, instructions, created_at, updated_at) VALUES (?, ?, ?, ?, ?)",
+            (str(uuid.uuid4()), req.name.strip(), req.instructions.strip(), now, now),
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        raise HTTPException(status_code=400, detail="A template with this name already exists")
+    finally:
+        conn.close()
+    return {"status": "ok"}
+
+@app.put("/admin/video-prompt-templates/{template_id}")
+def update_prompt_template(template_id: str, req: PromptTemplateRequest, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    if not req.name.strip() or not req.instructions.strip():
+        raise HTTPException(status_code=400, detail="Name and instructions are required")
+    conn = get_db()
+    now = datetime.utcnow().isoformat()
+    try:
+        conn.execute(
+            "UPDATE video_prompt_templates SET name = ?, instructions = ?, updated_at = ? WHERE id = ?",
+            (req.name.strip(), req.instructions.strip(), now, template_id),
+        )
+        conn.commit()
+    except sqlite3.IntegrityError:
+        raise HTTPException(status_code=400, detail="A template with this name already exists")
+    finally:
+        conn.close()
+    return {"status": "ok"}
+
+@app.delete("/admin/video-prompt-templates/{template_id}")
+def delete_prompt_template(template_id: str, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    conn.execute("DELETE FROM video_prompt_templates WHERE id = ?", (template_id,))
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
 
 @app.get("/admin/concept-videos/{subject_id}/{concept_id}/file")
 def admin_get_concept_video_file(subject_id: str, concept_id: str, x_admin_key: str = Header(None)):

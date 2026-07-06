@@ -5416,6 +5416,12 @@ function AdminView({ onBack }) {
   const [videoGenLoading, setVideoGenLoading] = useState(null); // concept_id currently being triggered, or null
   const [videoGenError, setVideoGenError] = useState('');
   const [videoPreview, setVideoPreview]   = useState(null); // { conceptId, blobUrl } or null
+  const [promptTemplates, setPromptTemplates] = useState([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState('');
+  const [templateForm, setTemplateForm]   = useState({ name: '', instructions: '' });
+  const [templateEditingId, setTemplateEditingId] = useState(null); // null = not editing, 'new' = creating, or an id
+  const [templateSaving, setTemplateSaving] = useState(false);
+  const [templateError, setTemplateError] = useState('');
   const [lectureVideos, setLectureVideos] = useState({});
   const [conceptNotesMap, setConceptNotesMap] = useState({});
   const [conceptNotesSaving, setConceptNotesSaving] = useState(null);
@@ -5496,6 +5502,7 @@ function AdminView({ onBack }) {
     if (studentsRes.ok)   setStudents(await studentsRes.json());
     if (emailsRes.ok)     setApprovedEmails(await emailsRes.json());
     if (waitlistRes.ok)   setWaitlistRequests(await waitlistRes.json());
+    fetch('/api/admin/video-prompt-templates', { headers }).then(r => r.ok ? r.json().then(setPromptTemplates) : null).catch(() => {});
     fetch('/api/admin/health', { headers }).then(r => r.ok ? r.json().then(setHealth) : null).catch(() => {});
     fetch('/api/admin/churn-risk', { headers }).then(r => r.ok ? r.json().then(setChurnRisk) : null).catch(() => {});
     fetch('/api/admin/engagement-heatmap', { headers }).then(r => r.ok ? r.json().then(setEngagementHeatmap) : null).catch(() => {});
@@ -5623,13 +5630,56 @@ function AdminView({ onBack }) {
     setVideoGenLoading(conceptId); setVideoGenError('');
     try {
       const res = await fetch(`/api/admin/concept-videos/${videoSubject}/${conceptId}/generate`, {
-        method: 'POST', headers: { 'X-Admin-Key': adminKey },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+        body: JSON.stringify({ template_id: selectedTemplateId || null }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.detail || 'Failed to start generation');
       await loadVideoMap(videoSubject); // picks up gen_status='pending' immediately
     } catch (e) { setVideoGenError(e.message); }
     finally { setVideoGenLoading(null); }
+  }
+
+  async function loadPromptTemplates() {
+    try {
+      const res = await fetch('/api/admin/video-prompt-templates', { headers: { 'X-Admin-Key': adminKey } });
+      const data = await res.json();
+      setPromptTemplates(data);
+      // If the previously selected template got deleted elsewhere, fall back to "No template".
+      if (selectedTemplateId && !data.some(t => t.id === selectedTemplateId)) setSelectedTemplateId('');
+    } catch {}
+  }
+
+  async function handleTemplateSave() {
+    if (!templateForm.name.trim() || !templateForm.instructions.trim()) {
+      setTemplateError('Name and instructions are required.');
+      return;
+    }
+    setTemplateSaving(true); setTemplateError('');
+    try {
+      const isNew = templateEditingId === 'new';
+      const url = isNew ? '/api/admin/video-prompt-templates' : `/api/admin/video-prompt-templates/${templateEditingId}`;
+      const res = await fetch(url, {
+        method: isNew ? 'POST' : 'PUT',
+        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+        body: JSON.stringify({ name: templateForm.name.trim(), instructions: templateForm.instructions.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.detail || 'Failed to save template');
+      await loadPromptTemplates();
+      setTemplateEditingId(null);
+      setTemplateForm({ name: '', instructions: '' });
+    } catch (e) { setTemplateError(e.message); }
+    finally { setTemplateSaving(false); }
+  }
+
+  async function handleTemplateDelete(id) {
+    try {
+      await fetch(`/api/admin/video-prompt-templates/${id}`, { method: 'DELETE', headers: { 'X-Admin-Key': adminKey } });
+      await loadPromptTemplates();
+      if (templateEditingId === id) { setTemplateEditingId(null); setTemplateForm({ name: '', instructions: '' }); }
+    } catch {}
   }
 
   async function handleVideoPreview(conceptId) {
@@ -7161,6 +7211,17 @@ function AdminView({ onBack }) {
               {videoSubject && (
                 <button className="videos-refresh-btn" onClick={() => loadVideoMap(videoSubject)} title="Refresh generation status">↻ Refresh</button>
               )}
+              <select
+                className="videos-subject-select"
+                value={selectedTemplateId}
+                onChange={e => setSelectedTemplateId(e.target.value)}
+                title="Applies to the next video you auto-generate"
+              >
+                <option value="">No template (default style)</option>
+                {promptTemplates.map(t => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+              </select>
             </div>
             {videoGenError && <p className="form-error">{videoGenError}</p>}
             {videoSubject && (() => {
@@ -7233,6 +7294,48 @@ function AdminView({ onBack }) {
                 </div>
               );
             })()}
+          </div>
+
+          <div className="videos-section" style={{ marginTop: '2.5rem' }}>
+            <h3 className="access-title">Prompt Templates</h3>
+            <p className="access-subtitle">Named instruction sets you can apply to a video generation (e.g. "Beginner-friendly", "Exam-prep style"). Select one from the dropdown above before clicking Auto-generate.</p>
+            {templateEditingId === 'new' || promptTemplates.some(t => t.id === templateEditingId) ? (
+              <div className="videos-edit-form" style={{ maxWidth: 520 }}>
+                <input
+                  className="videos-title-input"
+                  placeholder="Template name (e.g. Beginner-friendly)"
+                  value={templateForm.name}
+                  onChange={e => setTemplateForm(f => ({ ...f, name: e.target.value }))}
+                />
+                <textarea
+                  className="videos-url-input"
+                  placeholder="Instructions (e.g. Use simple analogies, avoid jargon, keep sentences short.)"
+                  rows={4}
+                  value={templateForm.instructions}
+                  onChange={e => setTemplateForm(f => ({ ...f, instructions: e.target.value }))}
+                />
+                {templateError && <p className="form-error">{templateError}</p>}
+                <div className="videos-edit-actions">
+                  <button className="admin-submit-mark-btn" style={{ background: '#00A896' }} disabled={templateSaving} onClick={handleTemplateSave}>
+                    {templateSaving ? 'Saving…' : 'Save template'}
+                  </button>
+                  <button className="admin-cancel-btn" onClick={() => { setTemplateEditingId(null); setTemplateForm({ name: '', instructions: '' }); setTemplateError(''); }}>Cancel</button>
+                </div>
+              </div>
+            ) : (
+              <button className="videos-add-btn" onClick={() => { setTemplateEditingId('new'); setTemplateForm({ name: '', instructions: '' }); setTemplateError(''); }}>+ New template</button>
+            )}
+            <div className="access-list" style={{ marginTop: '1rem' }}>
+              {promptTemplates.length === 0 ? (
+                <p className="access-empty">No prompt templates yet.</p>
+              ) : promptTemplates.map(t => (
+                <div key={t.id} className="access-row">
+                  <span className="access-email" title={t.instructions}>{t.name}</span>
+                  <button className="videos-edit-btn" onClick={() => { setTemplateEditingId(t.id); setTemplateForm({ name: t.name, instructions: t.instructions }); setTemplateError(''); }}>Edit</button>
+                  <button className="access-remove-btn" onClick={() => handleTemplateDelete(t.id)}>Remove</button>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div className="videos-section" style={{ marginTop: '2.5rem' }}>
