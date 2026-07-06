@@ -20,6 +20,8 @@ _ALLOWED_ORIGINS = [o.strip() for o in os.environ.get("ALLOWED_ORIGINS", "*").sp
 _use_credentials = "*" not in _ALLOWED_ORIGINS
 app.add_middleware(CORSMiddleware, allow_origins=_ALLOWED_ORIGINS, allow_credentials=_use_credentials, allow_methods=["*"], allow_headers=["*"])
 
+TRIAL_MESSAGE_LIMIT = 10  # free messages granted to a new trial signup
+
 DB_PATH = os.environ.get("DB_PATH", "/app/bversity.db")
 SUBMISSIONS_DIR = os.environ.get("SUBMISSIONS_DIR", "/app/submissions")
 IMAGE_CONFIG_PATH = os.environ.get("IMAGE_CONFIG_PATH", "/app/image_config.json")
@@ -2818,9 +2820,9 @@ def verify_code(req: VerifyCodeRequest):
     if not sub:
         trial_end = (now_dt + timedelta(days=trial_days)).isoformat() + 'Z'
         conn.execute("""
-            INSERT INTO subscriptions (id, student_id, product, status, trial_start, trial_end, created_at, updated_at)
-            VALUES (?, ?, ?, 'trial', ?, ?, ?, ?)
-        """, (str(uuid.uuid4()), student_id, product, now, trial_end, now, now))
+            INSERT INTO subscriptions (id, student_id, product, status, message_limit, trial_start, trial_end, created_at, updated_at)
+            VALUES (?, ?, ?, 'trial', ?, ?, ?, ?, ?)
+        """, (str(uuid.uuid4()), student_id, product, TRIAL_MESSAGE_LIMIT, now, trial_end, now, now))
         sub = conn.execute("SELECT * FROM subscriptions WHERE student_id = ? AND product = ?", (student_id, product)).fetchone()
 
     conn.commit(); conn.close()
@@ -3631,7 +3633,7 @@ def extend_trial(student_id: str, product: str, body: ExtendTrialRequest, x_admi
         conn.execute("UPDATE subscriptions SET message_limit = ?, status = 'trial', updated_at = ? WHERE student_id = ? AND product = ?",
                      (new_limit, now, student_id, product))
     else:
-        new_limit = 999999 if body.access_type == "free" else 30 + body.messages
+        new_limit = 999999 if body.access_type == "free" else TRIAL_MESSAGE_LIMIT + body.messages
         conn.execute("""
             INSERT INTO subscriptions (id, student_id, product, status, message_limit, trial_start, created_at, updated_at)
             VALUES (?, ?, ?, 'trial', ?, ?, ?, ?)

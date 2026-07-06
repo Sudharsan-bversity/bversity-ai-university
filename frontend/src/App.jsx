@@ -1261,7 +1261,7 @@ function Sidebar({ student, view, subscription, onCourses, onDashboard, onCareer
         </a>
         {subscription?.status === 'trial' && (() => {
           const used = subscription.messages_used ?? 0;
-          const limit = subscription.messages_limit ?? 30;
+          const limit = subscription.messages_limit ?? 10;
           const remaining = Math.max(0, limit - used);
           const price = (userCountry && userCountry !== 'IN') ? '$29/mo' : '₹799/mo';
           return (
@@ -2163,7 +2163,7 @@ function ProfileView({ student, profileData, subscription, onBack, onProfileUpda
                 <div className="profile-sub-row">
                   <span className="profile-sub-label">Messages used</span>
                   <span className="profile-sub-value">
-                    {subscription.messages_used ?? 0} of {subscription.messages_limit ?? 30} free messages
+                    {subscription.messages_used ?? 0} of {subscription.messages_limit ?? 10} free messages
                   </span>
                 </div>
               )}
@@ -12836,7 +12836,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
 
       {(() => {
         if (subscription?.status !== 'trial') return null;
-        const remaining = Math.max(0, (subscription.messages_limit ?? 30) - (subscription.messages_used ?? 0));
+        const remaining = Math.max(0, (subscription.messages_limit ?? 10) - (subscription.messages_used ?? 0));
         if (remaining > 5) return null;
         return (
           <div className="trial-warning-banner">
@@ -13413,7 +13413,7 @@ export default function App() {
         <div className="paywall-card">
           <div className="paywall-logo">Bversity</div>
           <div className="paywall-title">
-            {isTrialExpired ? "You've used your 30 free messages" : 'Your subscription has expired'}
+            {isTrialExpired ? `You've used your ${subscription.messages_limit ?? 10} free messages` : 'Your subscription has expired'}
           </div>
           <div className="paywall-sub">
             {isTrialExpired
