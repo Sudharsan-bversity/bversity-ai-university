@@ -7,3 +7,4 @@ frontend/dist/
 submissions/
 .DS_Store
 .claude/
+docker-compose.override.yml
