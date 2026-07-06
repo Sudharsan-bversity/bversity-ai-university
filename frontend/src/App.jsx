@@ -13345,6 +13345,11 @@ export default function App() {
   if (subscription?.status === 'expired') {
     const isUs = ACTIVE_REGION === 'us';
     const product = isUs ? 'certifications' : 'career_pathways';
+    // Backend distinguishes the two "expired" cases by payload shape: a trial that
+    // ran out of free messages includes messages_used/messages_limit, while a paid
+    // subscription whose subscription_end lapsed does not. Paying customers should
+    // never see trial-exhausted copy — it reads as "you never paid" when they did.
+    const isTrialExpired = subscription.messages_used !== undefined;
     const paywallLoading = upgradeLoading;
     const setPaywallLoading = setUpgradeLoading;
     const paywallError = upgradeError;
@@ -13407,9 +13412,13 @@ export default function App() {
       <div className="paywall-overlay">
         <div className="paywall-card">
           <div className="paywall-logo">Bversity</div>
-          <div className="paywall-title">You've used your 30 free messages</div>
+          <div className="paywall-title">
+            {isTrialExpired ? "You've used your 30 free messages" : 'Your subscription has expired'}
+          </div>
           <div className="paywall-sub">
-            Subscribe to keep learning with {isUs ? 'Certifications' : 'Career Pathways'} and pick up right where you left off.
+            {isTrialExpired
+              ? `Subscribe to keep learning with ${isUs ? 'Certifications' : 'Career Pathways'} and pick up right where you left off.`
+              : `Renew to keep learning with ${isUs ? 'Certifications' : 'Career Pathways'} and pick up right where you left off.`}
           </div>
           <div className="paywall-price">
             {isUs ? '$29' : ACTIVE_REGION === 'india' ? '₹799' : '$29'}
@@ -13417,9 +13426,14 @@ export default function App() {
           </div>
           {paywallError && <div className="paywall-error">{paywallError}</div>}
           <button className="paywall-btn paywall-btn--primary" onClick={handleSubscribe} disabled={paywallLoading}>
-            {paywallLoading ? 'Loading…' : 'Subscribe Now'}
+            {paywallLoading ? 'Loading…' : isTrialExpired ? 'Subscribe Now' : 'Renew Now'}
           </button>
           <button className="paywall-btn paywall-btn--ghost" onClick={handleLogout}>Sign out</button>
+          {!isTrialExpired && (
+            <div className="paywall-help">
+              Already renewed? This can take a few minutes to update — if it's been longer, <a href="mailto:sudharsan@bversity.io">contact us</a> and we'll fix it right away.
+            </div>
+          )}
           <div className="paywall-help">Questions? <a href="mailto:sudharsan@bversity.io">Contact us</a></div>
         </div>
       </div>
