@@ -9249,12 +9249,9 @@ body {
 }
 .videos-item--unlocked { cursor: pointer; }
 .videos-item--unlocked:hover { background: #f0fdfa; border-color: #99e6de; }
-.videos-item--locked { opacity: 0.5; cursor: default; }
 .videos-item-icon { flex-shrink: 0; margin-top: 2px; color: #00A896; }
-.videos-item--locked .videos-item-icon { color: #94a3b8; }
 .videos-item-info { display: flex; flex-direction: column; gap: 2px; }
 .videos-item-title { font-size: 0.81rem; font-weight: 600; color: #1e293b; line-height: 1.4; }
-.videos-item-lock-hint { font-size: var(--text-xs); color: #94a3b8; }
 .videos-player-wrap { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
 .videos-player-topbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px 4px; }
 .videos-back-btn { background: none; border: none; color: #00A896; font-size: var(--text-sm); font-weight: 600; cursor: pointer; padding: 4px 0; text-align: left; }

@@ -12451,7 +12451,7 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
           {subjectVideos.length > 0 && (
             <button className={`chat-notes-btn ${videosOpen ? 'active' : ''}`} onClick={() => { setVideosOpen(v => !v); setNotesOpen(false); setActiveVideo(null); }} title="Videos">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-              Lectures <span className="chat-notes-count">{subjectVideos.filter((v, i) => i < conceptsCovered + 1).length}/{subjectVideos.length}</span>
+              Lectures <span className="chat-notes-count">{subjectVideos.length}</span>
             </button>
           )}
         </div>
@@ -12939,26 +12939,18 @@ function ChatView({ subject, student, careerProfile, onBack, onCareerDetected, o
             </div>
           ) : (
             <div className="videos-list">
-              <p className="videos-list-hint">Lectures unlock as you cover concepts. Click any unlocked lecture to watch.</p>
-              {subjectVideos.map((vid, idx) => {
-                const unlocked = idx <= conceptsCovered;
-                return (
-                  <div key={vid.id} className={`videos-item ${unlocked ? 'videos-item--unlocked' : 'videos-item--locked'}`}
-                    onClick={() => unlocked && setActiveVideo(vid)}>
-                    <div className="videos-item-icon">
-                      {unlocked ? (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-                      ) : (
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
-                      )}
-                    </div>
-                    <div className="videos-item-info">
-                      <div className="videos-item-title">{vid.title}</div>
-                      {!unlocked && <div className="videos-item-lock-hint">Cover {idx - conceptsCovered} more concept{idx - conceptsCovered !== 1 ? 's' : ''} to unlock</div>}
-                    </div>
+              <p className="videos-list-hint">Click any lecture to watch.</p>
+              {subjectVideos.map((vid) => (
+                <div key={vid.id} className="videos-item videos-item--unlocked"
+                  onClick={() => setActiveVideo(vid)}>
+                  <div className="videos-item-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                   </div>
-                );
-              })}
+                  <div className="videos-item-info">
+                    <div className="videos-item-title">{vid.title}</div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>
