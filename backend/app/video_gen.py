@@ -32,7 +32,7 @@ FONT_REGULAR = os.environ.get("VIDEO_FONT_REGULAR", "/usr/share/fonts/truetype/d
 
 SLIDE_W, SLIDE_H = 1280, 720
 PAD_SEC = 0.4
-MAX_SLIDES = 6
+MAX_SLIDES = 8  # hard ceiling; actual count is judged per-concept by the Gemini prompt
 SUBPROCESS_TIMEOUT = 120
 MIN_FREE_DISK_BYTES = 1_500_000_000  # 1.5GB safety margin on a mostly-full disk
 
@@ -63,7 +63,13 @@ def _gemini_script(concept_name, concept_desc, subject_name):
 Concept: {concept_name}
 Key points to cover: {concept_desc}
 
-Produce 4 to 6 slides. Each slide has:
+First, judge how much depth this concept actually needs based on the key points above.
+A narrow, single-idea concept needs only 3-4 slides. A dense concept with several
+distinct sub-ideas needs more, up to {MAX_SLIDES}. Don't pad a simple concept with
+filler slides, and don't cram a complex one into too few — match the slide count to
+the real content. This determines the video's length, so choose deliberately.
+
+Each slide has:
 - "heading": a short slide title (max 6 words)
 - "bullet": one short supporting phrase (max 10 words), can be empty string
 - "narration": 1-2 sentences a narrator would say for this slide (max 40 words), conversational but precise, for an undergraduate audience
