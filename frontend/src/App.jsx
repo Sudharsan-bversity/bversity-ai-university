@@ -311,6 +311,7 @@ const TUTOR_AVATARS = {
   'Dr. Anika Sharma':   'https://i.pravatar.cc/150?img=49',
   'Dr. Lisa Park':      'https://i.pravatar.cc/150?img=20',
   'David Kim':          'https://i.pravatar.cc/150?img=60',
+  'Dr. Meera Iyer':     'https://i.pravatar.cc/150?img=32',
 };
 
 const _urlRegion = new URLSearchParams(window.location.search).get('region');
@@ -380,6 +381,9 @@ const INDIA_SUBJECTS = [
     intro: "I help companies scale their molecules from lab bench to commercial production, and I've seen what happens when that fails. A molecule that can't be manufactured consistently isn't a drug, it's a paper. Manufacturing is where science meets reality, and I want you to respect it as a scientific discipline, not a downstream afterthought." },
   { id: 'longevity_science',  name: 'Longevity Science',                           tutor: 'Dr. Yuki Tanaka',   role: 'Senior Research Scientist',                       org: 'Calico Life Sciences',               color: '#4338CA', description: 'Hallmarks of aging, cellular senescence, epigenetic clocks, longevity pathways, proteostasis, and the geroscience clinical pipeline',
     intro: "I work at the Alphabet-funded company trying to understand why we age. Longevity science has a credibility problem: too much hype, too many supplements, too many claims not backed by human data. I'll be rigorous with you about what the data actually shows, what's mechanism and what's speculation, and where the genuinely exciting frontiers are." },
+  // clinical_research_foundations (Module 1: Pharmacovigilance) is now DB-backed via the
+  // Course Creator (see backend GET /subjects) and merged into the picker dynamically at
+  // runtime instead of hardcoded here -- see dynamicCourses / mergedExploreSubjects below.
 ];
 
 const SUBJECTS = ACTIVE_REGION === 'us' ? US_SUBJECTS : INDIA_SUBJECTS;
@@ -5422,6 +5426,15 @@ function AdminView({ onBack }) {
   const [templateEditingId, setTemplateEditingId] = useState(null); // null = not editing, 'new' = creating, or an id
   const [templateSaving, setTemplateSaving] = useState(false);
   const [templateError, setTemplateError] = useState('');
+  const [courses, setCourses]             = useState([]);
+  const [ccSelectedCourseId, setCcSelectedCourseId] = useState(null);
+  const [ccPlanForm, setCcPlanForm]       = useState({ topic: '', target_hours: 20, num_modules: 3 });
+  const [ccDraftModules, setCcDraftModules] = useState(null); // from plan-curriculum, before course is created
+  const [ccPlanning, setCcPlanning]       = useState(false);
+  const [ccPlanError, setCcPlanError]     = useState('');
+  const [ccMetaForm, setCcMetaForm]       = useState({ name: '', tutor_name: '', tutor_role: '', tutor_org: '', color: '#7C5CFC', description: '', popular: false, region: 'india' });
+  const [ccSaving, setCcSaving]           = useState(false);
+  const [ccError, setCcError]             = useState('');
   const [lectureVideos, setLectureVideos] = useState({});
   const [conceptNotesMap, setConceptNotesMap] = useState({});
   const [conceptNotesSaving, setConceptNotesSaving] = useState(null);
@@ -5569,6 +5582,85 @@ function AdminView({ onBack }) {
       } catch { result[s.id] = []; }
     }));
     setLectureVideos(result);
+  }
+
+  async function loadCourses() {
+    try {
+      const res = await fetch('/api/admin/courses', { headers: { 'X-Admin-Key': adminKey } });
+      setCourses(await res.json());
+    } catch { setCourses([]); }
+  }
+
+  async function planCurriculum() {
+    setCcPlanning(true); setCcPlanError(''); setCcDraftModules(null);
+    try {
+      const res = await fetch('/api/admin/courses/plan-curriculum', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+        body: JSON.stringify(ccPlanForm),
+      });
+      const d = await res.json();
+      if (!res.ok) { setCcPlanError(d.detail || 'Failed to generate curriculum'); return; }
+      setCcDraftModules(d.modules.map(m => ({ title: m.title, topics_desc: m.topics_desc, target_hours: m.target_hours })));
+    } catch { setCcPlanError('Failed to generate curriculum'); }
+    finally { setCcPlanning(false); }
+  }
+
+  async function createCourseFromDraft() {
+    if (!ccMetaForm.name.trim() || !ccMetaForm.tutor_name.trim()) { setCcError('Course name and tutor name are required'); return; }
+    if (!ccDraftModules || ccDraftModules.length === 0) { setCcError('At least one module is required'); return; }
+    setCcSaving(true); setCcError('');
+    try {
+      const res = await fetch('/api/admin/courses', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+        body: JSON.stringify({ ...ccMetaForm, modules: ccDraftModules }),
+      });
+      const d = await res.json();
+      if (!res.ok) { setCcError(d.detail || 'Failed to create course'); return; }
+      setCcDraftModules(null);
+      setCcPlanForm({ topic: '', target_hours: 20, num_modules: 3 });
+      setCcMetaForm({ name: '', tutor_name: '', tutor_role: '', tutor_org: '', color: '#7C5CFC', description: '', popular: false, region: 'india' });
+      await loadCourses();
+      setCcSelectedCourseId(d.course_id);
+    } catch { setCcError('Failed to create course'); }
+    finally { setCcSaving(false); }
+  }
+
+  async function freezeCourse(courseId) {
+    await fetch(`/api/admin/courses/${courseId}/freeze`, { method: 'POST', headers: { 'X-Admin-Key': adminKey } });
+    await loadCourses();
+  }
+
+  async function setModuleItemTemplate(courseId, moduleId, preset) {
+    await fetch(`/api/admin/courses/${courseId}/modules/${moduleId}/item-template`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+      body: JSON.stringify({ preset }),
+    });
+    await loadCourses();
+  }
+
+  async function draftCourseItem(courseId, moduleId, orderIndex, itemTopic, numQuestions) {
+    const res = await fetch(`/api/admin/courses/${courseId}/modules/${moduleId}/items/${orderIndex}/draft`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+      body: JSON.stringify({ item_topic: itemTopic, num_questions: numQuestions || 10 }),
+    });
+    return res.json();
+  }
+
+  async function saveCourseItem(courseId, moduleId, orderIndex, title, durationMin, contentJson) {
+    const res = await fetch(`/api/admin/courses/${courseId}/modules/${moduleId}/items/${orderIndex}`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json', 'X-Admin-Key': adminKey },
+      body: JSON.stringify({ title, duration_min: durationMin, content_json: contentJson }),
+    });
+    const d = await res.json();
+    await loadCourses();
+    return d;
+  }
+
+  async function publishCourse(courseId) {
+    const res = await fetch(`/api/admin/courses/${courseId}/publish`, { method: 'POST', headers: { 'X-Admin-Key': adminKey } });
+    const d = await res.json();
+    await loadCourses();
+    return d;
   }
 
   async function handleVideoSubjectChange(subjectId) {
@@ -6142,6 +6234,7 @@ function AdminView({ onBack }) {
             { id: 'students',    label: 'Students',   icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg> },
             { id: 'submissions', label: 'Capstones',  icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 14l2 2 4-4"/></svg> },
             { id: 'videos',      label: 'Videos',     icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg> },
+            { id: 'coursecreator', label: 'Course Creator', icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg> },
             { id: 'resources',   label: 'Resources',  icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg> },
             { id: 'analytics',   label: 'Analytics',  icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="3" y1="20" x2="21" y2="20"/></svg> },
             { id: 'revenue',     label: 'Revenue',    icon: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg> },
@@ -6180,6 +6273,7 @@ function AdminView({ onBack }) {
                 if (item.id === 'system') loadSystemHealth();
                 if (item.id === 'settings') { loadPlatformConfig(); loadHeroVideoUrl(); }
                 if (item.id === 'videos') loadAllLectureVideos();
+                if (item.id === 'coursecreator') loadCourses();
                 if (item.id === 'insights') loadInsights();
               }}
             >
@@ -7382,6 +7476,91 @@ function AdminView({ onBack }) {
             <div className="lecture-modal-frame-wrap">
               <video className="lecture-modal-frame" src={videoPreview.blobUrl} controls autoPlay style={{ width: '100%', height: '100%' }} />
             </div>
+          </div>
+        </div>
+      )}
+
+      {tab === 'coursecreator' && (
+        <div className="admin-content">
+          <h2 className="admin-section-title">Course Creator</h2>
+          <p className="access-subtitle">Plan a curriculum, freeze it, then auto-generate or hand-write each item before publishing. Structured courses (like Module 1: Pharmacovigilance) appear in the picker once published.</p>
+
+          {!ccSelectedCourseId && (
+            <div className="cc-panel">
+              <h3 className="cc-panel-title">1. Plan a new course</h3>
+              <div className="cc-form-row">
+                <label>Topic</label>
+                <input value={ccPlanForm.topic} onChange={e => setCcPlanForm(f => ({ ...f, topic: e.target.value }))} placeholder="e.g. Regulatory Affairs Fundamentals" />
+              </div>
+              <div className="cc-form-row">
+                <label>Target hours</label>
+                <input type="number" value={ccPlanForm.target_hours} onChange={e => setCcPlanForm(f => ({ ...f, target_hours: Number(e.target.value) }))} style={{ width: 90 }} />
+                <label style={{ marginLeft: 16 }}>Modules</label>
+                <input type="number" value={ccPlanForm.num_modules} onChange={e => setCcPlanForm(f => ({ ...f, num_modules: Number(e.target.value) }))} style={{ width: 70 }} />
+              </div>
+              <div className="cc-form-row">
+                <button className="videos-add-btn" disabled={ccPlanning || !ccPlanForm.topic.trim()} onClick={planCurriculum}>
+                  {ccPlanning ? 'Suggesting…' : '✨ Suggest curriculum'}
+                </button>
+                <button className="videos-edit-btn" disabled={ccPlanning}
+                  onClick={() => setCcDraftModules([{ title: '', topics_desc: '', target_hours: ccPlanForm.target_hours }])}>
+                  Start blank instead
+                </button>
+              </div>
+              {ccPlanError && <div className="admin-error-text">{ccPlanError}</div>}
+
+              {ccDraftModules && (
+                <div style={{ marginTop: 18 }}>
+                  <h4 className="cc-panel-subtitle">Draft modules — edit before creating</h4>
+                  {ccDraftModules.map((m, i) => (
+                    <div key={i} className="cc-module-draft-row">
+                      <input value={m.title} onChange={e => setCcDraftModules(ms => ms.map((x, j) => j === i ? { ...x, title: e.target.value } : x))} placeholder="Module title" />
+                      <textarea value={m.topics_desc} onChange={e => setCcDraftModules(ms => ms.map((x, j) => j === i ? { ...x, topics_desc: e.target.value } : x))} placeholder="What this module teaches" rows={2} />
+                      <input type="number" value={m.target_hours || ''} onChange={e => setCcDraftModules(ms => ms.map((x, j) => j === i ? { ...x, target_hours: Number(e.target.value) } : x))} style={{ width: 70 }} />
+                      <button className="videos-remove-btn" onClick={() => setCcDraftModules(ms => ms.filter((_, j) => j !== i))}>Remove</button>
+                    </div>
+                  ))}
+                  <button className="videos-edit-btn" onClick={() => setCcDraftModules(ms => [...ms, { title: '', topics_desc: '', target_hours: 5 }])}>+ Add module</button>
+
+                  <h4 className="cc-panel-subtitle" style={{ marginTop: 18 }}>Course details</h4>
+                  <div className="cc-form-row"><label>Course name</label><input value={ccMetaForm.name} onChange={e => setCcMetaForm(f => ({ ...f, name: e.target.value }))} placeholder="Module 1: Regulatory Affairs" /></div>
+                  <div className="cc-form-row"><label>Tutor name</label><input value={ccMetaForm.tutor_name} onChange={e => setCcMetaForm(f => ({ ...f, tutor_name: e.target.value }))} /></div>
+                  <div className="cc-form-row"><label>Tutor role</label><input value={ccMetaForm.tutor_role} onChange={e => setCcMetaForm(f => ({ ...f, tutor_role: e.target.value }))} /></div>
+                  <div className="cc-form-row"><label>Tutor org</label><input value={ccMetaForm.tutor_org} onChange={e => setCcMetaForm(f => ({ ...f, tutor_org: e.target.value }))} /></div>
+                  <div className="cc-form-row"><label>Color</label><input type="color" value={ccMetaForm.color} onChange={e => setCcMetaForm(f => ({ ...f, color: e.target.value }))} /></div>
+                  <div className="cc-form-row"><label>Description</label><textarea value={ccMetaForm.description} onChange={e => setCcMetaForm(f => ({ ...f, description: e.target.value }))} rows={2} /></div>
+                  <div className="cc-form-row">
+                    <label><input type="checkbox" checked={ccMetaForm.popular} onChange={e => setCcMetaForm(f => ({ ...f, popular: e.target.checked }))} /> Mark POPULAR</label>
+                    <select value={ccMetaForm.region} onChange={e => setCcMetaForm(f => ({ ...f, region: e.target.value }))} style={{ marginLeft: 16 }}>
+                      <option value="india">India</option><option value="us">US</option><option value="both">Both</option>
+                    </select>
+                  </div>
+                  {ccError && <div className="admin-error-text">{ccError}</div>}
+                  <button className="videos-add-btn" disabled={ccSaving} onClick={createCourseFromDraft} style={{ marginTop: 10 }}>
+                    {ccSaving ? 'Creating…' : 'Create course (draft)'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="cc-panel">
+            <h3 className="cc-panel-title">Existing courses</h3>
+            {courses.length === 0 && <p style={{ color: 'var(--text-muted)' }}>No courses yet.</p>}
+            {courses.map(c => (
+              <CourseCreatorCourseRow
+                key={c.id}
+                course={c}
+                selected={ccSelectedCourseId === c.id}
+                onSelect={() => setCcSelectedCourseId(ccSelectedCourseId === c.id ? null : c.id)}
+                onFreeze={() => freezeCourse(c.id)}
+                onSetTemplate={(moduleId, preset) => setModuleItemTemplate(c.id, moduleId, preset)}
+                onDraftItem={(moduleId, orderIndex, topic, numQ) => draftCourseItem(c.id, moduleId, orderIndex, topic, numQ)}
+                onSaveItem={(moduleId, orderIndex, title, dur, content) => saveCourseItem(c.id, moduleId, orderIndex, title, dur, content)}
+                onPublish={() => publishCourse(c.id)}
+                adminKey={adminKey}
+              />
+            ))}
           </div>
         </div>
       )}
@@ -8745,6 +8924,273 @@ function AdminView({ onBack }) {
       )}
 
       </div>
+    </div>
+  );
+}
+
+// ── Course Creator (admin) ────────────────────────────────────────────────────
+// Generalizes the PV Module 1 pilot's authoring: plan/freeze curriculum, pick a per-module
+// item-type template, then auto-generate-or-hand-write each learning_items row before publish.
+
+const ITEM_TYPE_PRESET_OPTIONS = [
+  { id: 'full_mix', label: 'Full mix — video, reading, walkthrough, practice, dialogue, assessment' },
+  { id: 'dialogue_heavy', label: 'Dialogue-heavy — video, dialogue ×2, graded assessment' },
+  { id: 'reading_and_assessment', label: 'Reading & Assessment only' },
+];
+
+function CourseCreatorCourseRow({ course, selected, onSelect, onFreeze, onSetTemplate, onDraftItem, onSaveItem, onPublish, adminKey }) {
+  const allFrozen = course.modules.length > 0 && course.modules.every(m => m.status === 'frozen');
+  const allItemsSaved = course.modules.every(m => m.items.length >= m.item_type_sequence.length);
+  const readyToPublish = allFrozen && allItemsSaved;
+
+  return (
+    <div className="cc-course-row">
+      <div className="cc-course-header" onClick={onSelect}>
+        <strong>{course.name}</strong>
+        <span className={`cc-course-status cc-course-status--${course.status}`}>{course.status}</span>
+        <span className="cc-course-meta">{course.modules.length} module{course.modules.length === 1 ? '' : 's'}</span>
+      </div>
+      {selected && (
+        <div className="cc-course-body">
+          {!allFrozen && (
+            <button className="videos-add-btn" onClick={onFreeze}>
+              Freeze curriculum ({course.modules.length} module{course.modules.length === 1 ? '' : 's'})
+            </button>
+          )}
+          {course.modules.map(m => (
+            <CourseCreatorModuleEditor
+              key={m.id}
+              module={m}
+              onSetTemplate={(preset) => onSetTemplate(m.id, preset)}
+              onDraftItem={(orderIndex, topic, numQ) => onDraftItem(m.id, orderIndex, topic, numQ)}
+              onSaveItem={(orderIndex, title, dur, content) => onSaveItem(m.id, orderIndex, title, dur, content)}
+              adminKey={adminKey}
+              courseId={course.id}
+            />
+          ))}
+          {course.status !== 'published' ? (
+            <button className="videos-add-btn" disabled={!readyToPublish} onClick={onPublish} style={{ marginTop: 14 }}>
+              🚀 Publish course
+            </button>
+          ) : (
+            <div className="cc-published-note">✓ Published — live in the picker now.</div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CourseCreatorModuleEditor({ module, onSetTemplate, onDraftItem, onSaveItem, adminKey, courseId }) {
+  const sequence = module.item_type_sequence;
+  const isFrozen = module.status === 'frozen';
+
+  return (
+    <div className="cc-module-editor">
+      <div className="cc-module-editor-title">
+        {module.title} <span className="cc-module-status">({module.status})</span>
+      </div>
+      {!isFrozen ? (
+        <div className="cc-module-locked-note">Freeze the curriculum above to start authoring content for this module.</div>
+      ) : (
+        <>
+          <div className="cc-form-row">
+            <label>Item-type template</label>
+            <select onChange={e => { if (e.target.value) onSetTemplate(e.target.value); }} defaultValue="">
+              <option value="" disabled>Choose a preset…</option>
+              {ITEM_TYPE_PRESET_OPTIONS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+            </select>
+          </div>
+          <div className="cc-item-slots">
+            {sequence.map((type, i) => {
+              const orderIndex = i + 1;
+              const existing = module.items.find(it => it.order_index === orderIndex);
+              return (
+                <CourseCreatorItemSlot
+                  key={i}
+                  type={type}
+                  orderIndex={orderIndex}
+                  existing={existing}
+                  onDraft={(topic, numQ) => onDraftItem(orderIndex, topic, numQ)}
+                  onSave={(title, dur, content) => onSaveItem(orderIndex, title, dur, content)}
+                  adminKey={adminKey}
+                  courseId={courseId}
+                  moduleId={module.id}
+                />
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+function CourseCreatorItemSlot({ type, orderIndex, existing, onDraft, onSave, adminKey, courseId, moduleId }) {
+  const [topic, setTopic] = useState(existing?.title || '');
+  const [numQuestions, setNumQuestions] = useState(10);
+  const [draft, setDraft] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [videoPolling, setVideoPolling] = useState(false);
+  const [videoResult, setVideoResult] = useState(null);
+  const [isGraded, setIsGraded] = useState(type === 'graded_assessment');
+  const [passThreshold, setPassThreshold] = useState(type === 'graded_assessment' ? 3 : 7);
+  const saved = !!existing;
+
+  async function handleDraft() {
+    if (!topic.trim()) return;
+    setBusy(true); setError('');
+    try {
+      const d = await onDraft(topic, numQuestions);
+      if (d.status === 'generating') {
+        setVideoPolling(true);
+        pollVideo();
+      } else if (d.draft) {
+        setDraft(d.draft);
+      } else {
+        setError(d.detail || 'Generation failed');
+      }
+    } catch { setError('Generation failed'); }
+    finally { setBusy(false); }
+  }
+
+  async function pollVideo() {
+    for (let i = 0; i < 40; i++) {
+      await new Promise(r => setTimeout(r, 3000));
+      try {
+        const res = await fetch(`/api/admin/concept-videos/${courseId}`, { headers: { 'X-Admin-Key': adminKey } });
+        const map = await res.json();
+        const itemId = `${moduleId}_${orderIndex}`;
+        const row = map[itemId];
+        if (row?.gen_status === 'done') {
+          setVideoResult(row); setVideoPolling(false); return;
+        }
+        if (row?.gen_status === 'error') {
+          setError(row.gen_error || 'Video generation failed'); setVideoPolling(false); return;
+        }
+      } catch {}
+    }
+    setVideoPolling(false);
+    setError('Video generation timed out — check the Videos tab');
+  }
+
+  async function handleSaveVideo() {
+    await onSave(topic, Math.round((videoResult.gen_duration_sec || 60) / 60 * 10) / 10, {
+      video_url: videoResult.local_video_path, duration_sec: videoResult.gen_duration_sec,
+    });
+  }
+
+  async function handleSaveReading() {
+    await onSave(topic, 6, { body_markdown: draft.body_markdown });
+  }
+
+  async function handleSaveAssessment() {
+    await onSave(topic, draft.questions.length * 1.5, { questions: draft.questions, is_graded: isGraded, pass_threshold: passThreshold });
+  }
+
+  async function handleSaveDialogue() {
+    await onSave(topic, 8, draft);
+  }
+
+  function startFromScratch() {
+    if (type === 'reading') setDraft({ body_markdown: '' });
+    else if (type === 'practice_assignment' || type === 'graded_assessment') {
+      setDraft({ questions: Array.from({ length: numQuestions }, () => ({ question: '', options: ['', '', '', ''], correct_index: 0, explanation: '' })) });
+    } else if (type === 'dialogue') {
+      setDraft({ persona_name: '', persona_situation: '', persona_tone: '', resolution_criteria: '', opening_line: '' });
+    }
+  }
+
+  if (saved) {
+    return (
+      <div className="cc-item-slot cc-item-slot--saved">
+        <span className="cc-item-slot-type">{LEARNING_ITEM_TYPE_LABEL[type] || type}</span>
+        <span className="cc-item-slot-title">{existing.title}</span>
+        <span className="cc-item-slot-check">✓ Saved</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="cc-item-slot">
+      <div className="cc-item-slot-header">
+        <span className="cc-item-slot-type">{LEARNING_ITEM_TYPE_LABEL[type] || type}</span>
+        <span className="cc-item-slot-order">Item {orderIndex}</span>
+      </div>
+      <input placeholder="What should this item cover?" value={topic} onChange={e => setTopic(e.target.value)} disabled={busy || videoPolling} />
+      {(type === 'practice_assignment' || type === 'graded_assessment') && !draft && (
+        <div className="cc-form-row">
+          <label>Number of questions</label>
+          <input type="number" value={numQuestions} onChange={e => setNumQuestions(Number(e.target.value))} style={{ width: 70 }} />
+        </div>
+      )}
+      {!draft && !videoResult && (
+        <div className="cc-form-row">
+          <button className="videos-edit-btn" disabled={!topic.trim() || busy || videoPolling} onClick={handleDraft}>
+            {busy ? 'Generating…' : videoPolling ? 'Generating video (this can take a minute)…' : '✨ Auto-generate'}
+          </button>
+          {type !== 'video' && type !== 'screen_capture' && (
+            <button className="videos-edit-btn" disabled={busy || videoPolling} onClick={startFromScratch}>
+              Write from scratch
+            </button>
+          )}
+        </div>
+      )}
+      {error && <div className="admin-error-text">{error}</div>}
+
+      {(type === 'video' || type === 'screen_capture') && videoResult && (
+        <div className="cc-draft-preview">
+          <video src={`/api/admin/concept-videos/${courseId}/${moduleId}_${orderIndex}/file`} controls style={{ width: '100%', maxHeight: 220 }} />
+          <button className="videos-add-btn" onClick={handleSaveVideo}>Save item</button>
+        </div>
+      )}
+
+      {type === 'reading' && draft && (
+        <div className="cc-draft-preview">
+          <textarea rows={10} value={draft.body_markdown} onChange={e => setDraft({ body_markdown: e.target.value })} />
+          <button className="videos-add-btn" onClick={handleSaveReading}>Save item</button>
+        </div>
+      )}
+
+      {(type === 'practice_assignment' || type === 'graded_assessment') && draft && (
+        <div className="cc-draft-preview">
+          <div className="cc-form-row">
+            <label><input type="checkbox" checked={isGraded} onChange={e => setIsGraded(e.target.checked)} /> Graded</label>
+            {isGraded && (
+              <>
+                <label style={{ marginLeft: 12 }}>Pass threshold</label>
+                <input type="number" value={passThreshold} onChange={e => setPassThreshold(Number(e.target.value))} style={{ width: 60 }} />
+                <span style={{ color: 'var(--text-muted)' }}> / {draft.questions.length}</span>
+              </>
+            )}
+          </div>
+          {draft.questions.map((q, qi) => (
+            <div key={qi} className="cc-question-edit">
+              <textarea rows={2} value={q.question} onChange={e => setDraft(d => ({ ...d, questions: d.questions.map((x, j) => j === qi ? { ...x, question: e.target.value } : x) }))} />
+              {q.options.map((opt, oi) => (
+                <div key={oi} className="cc-question-option-row">
+                  <input type="radio" checked={q.correct_index === oi} onChange={() => setDraft(d => ({ ...d, questions: d.questions.map((x, j) => j === qi ? { ...x, correct_index: oi } : x) }))} />
+                  <input value={opt} onChange={e => setDraft(d => ({ ...d, questions: d.questions.map((x, j) => j === qi ? { ...x, options: x.options.map((o, k) => k === oi ? e.target.value : o) } : x) }))} />
+                </div>
+              ))}
+              <textarea rows={2} placeholder="Explanation" value={q.explanation} onChange={e => setDraft(d => ({ ...d, questions: d.questions.map((x, j) => j === qi ? { ...x, explanation: e.target.value } : x) }))} />
+            </div>
+          ))}
+          <button className="videos-add-btn" onClick={handleSaveAssessment}>Save item</button>
+        </div>
+      )}
+
+      {type === 'dialogue' && draft && (
+        <div className="cc-draft-preview">
+          <div className="cc-form-row"><label>Persona name</label><input value={draft.persona_name} onChange={e => setDraft(d => ({ ...d, persona_name: e.target.value }))} /></div>
+          <div className="cc-form-row"><label>Situation</label><textarea rows={2} value={draft.persona_situation} onChange={e => setDraft(d => ({ ...d, persona_situation: e.target.value }))} /></div>
+          <div className="cc-form-row"><label>Tone</label><textarea rows={2} value={draft.persona_tone} onChange={e => setDraft(d => ({ ...d, persona_tone: e.target.value }))} /></div>
+          <div className="cc-form-row"><label>Resolution criteria</label><textarea rows={2} value={draft.resolution_criteria} onChange={e => setDraft(d => ({ ...d, resolution_criteria: e.target.value }))} /></div>
+          <div className="cc-form-row"><label>Opening line</label><textarea rows={2} value={draft.opening_line} onChange={e => setDraft(d => ({ ...d, opening_line: e.target.value }))} /></div>
+          <button className="videos-add-btn" onClick={handleSaveDialogue}>Save item</button>
+        </div>
+      )}
     </div>
   );
 }
@@ -11321,6 +11767,7 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
   const [exploreSwap, setExploreSwap] = useState(null); // subject to swap into explore slot
   const [showShare, setShowShare] = useState(false);
   const [nudgeDismissed, setNudgeDismissed] = useState(false);
+  const [dynamicCourses, setDynamicCourses] = useState([]);
 
   function refreshStatuses() {
     fetch(`/api/subjects/status/${student.id}`).then(r => r.json()).then(setStatuses).catch(() => {});
@@ -11329,6 +11776,17 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
   useEffect(() => {
     fetch(`/api/progress/${student.id}`).then(r => r.json()).then(setProgress).catch(() => {});
     refreshStatuses();
+    // Admin-created courses (Course Creator) are DB-backed, not in the hardcoded SUBJECTS
+    // arrays -- fetched here and merged additively into the explore/all-subjects grid below.
+    fetch(`/api/subjects`).then(r => r.json()).then(rows => {
+      setDynamicCourses(
+        rows
+          .filter(s => s.is_structured_course && (s.region === ACTIVE_REGION || s.region === 'both'))
+          // Normalize DB field names (tutor_name/tutor_role/tutor_org) to the shape SubjectCard/
+          // StructuredCourseView already expect (tutor/role/org), matching the hardcoded SUBJECTS arrays.
+          .map(s => ({ ...s, tutor: s.tutor_name, role: s.tutor_role, org: s.tutor_org }))
+      );
+    }).catch(() => {});
   }, [student.id]);
 
   const career         = careerProfile?.career;
@@ -11337,12 +11795,13 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
   const totalCoveredConcepts = Object.values(progress || {}).reduce((sum, p) => sum + (p.covered_count ?? 0), 0);
   const showCareerNudge = !career && !selectedUsCert && totalCoveredConcepts >= 5 && careerProfile?.motivation === 'stay_ahead' && !nudgeDismissed;
   const activeCount       = Object.values(statuses || {}).filter(s => s.status === 'active').length;
+  const allSubjects       = ACTIVE_REGION === 'us' ? SUBJECTS : [...SUBJECTS, ...dynamicCourses];
   const careerSubjects    = career
     ? (career.relevant_subjects || []).map(id => SUBJECTS.find(s => s.id === id)).filter(Boolean)
     : [];
   const exploreSubjects   = career
-    ? SUBJECTS.filter(s => !recommendedIds.has(s.id))
-    : SUBJECTS;
+    ? allSubjects.filter(s => !recommendedIds.has(s.id))
+    : allSubjects;
   const careerActiveCount = careerSubjects.filter(s => statuses[s.id]?.status === 'active').length;
   const exploreActiveSubject = exploreSubjects.find(s => statuses[s.id]?.status === 'active') || null;
   const continueSubject = !isFirstTime
@@ -11641,7 +12100,7 @@ function HomeView({ student, isFirstTime, careerProfile, onSelect, onViewPath, o
               <p className="subjects-section-sub">Browse all of Bversity's curriculum. <button className="subjects-set-career-link" onClick={onViewPath}>Set a career path</button> to get a personalised recommendation.</p>
             </div>
             <div className="subjects-grid">
-              {SUBJECTS.map(s => (
+              {allSubjects.map(s => (
                 <SubjectCard
                   key={s.id}
                   subject={s}
@@ -11774,9 +12233,10 @@ function SubjectCard({ subject, progress, status, isRecommended, activeCount, on
           onError={e => { e.target.style.display = 'none'; }}
         />
         <div className="subject-card-banner-overlay" style={{ background: `linear-gradient(to top, ${subject.color}DD 0%, ${subject.color}55 55%, rgba(0,0,0,0.2) 100%)` }} />
-        {isLocked && (
+        {(isLocked || subject.popular) && (
           <div className="subject-banner-badges">
-            <span className="subject-badge subject-badge--locked"><IcoLock /></span>
+            {subject.popular && <span className="subject-badge subject-badge--popular">POPULAR</span>}
+            {isLocked && <span className="subject-badge subject-badge--locked"><IcoLock /></span>}
           </div>
         )}
         <div className="subject-banner-tutor">
@@ -12202,6 +12662,387 @@ function QuizModal({ moduleId, moduleName, subjectId, studentId, subjectColor, o
           )}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ── Structured Course (pilot: chat-orchestrated Learning Items) ─────────────
+// Deliberately a separate, self-contained component rather than forking
+// ChatView's ~300 lines of unrelated features (notes, resources, career
+// context, quiz modal, etc.) -- accepts some plumbing duplication for pilot
+// speed, per the plan. Used for any subject with subject.is_structured_course === true.
+
+const LEARNING_ITEM_TYPE_LABEL = {
+  video: 'Video', reading: 'Reading', screen_capture: 'Walkthrough',
+  practice_assignment: 'Practice Assignment', dialogue: 'Dialogue', graded_assessment: 'Graded Assessment',
+};
+
+function InlineVideoCard({ subject, item, studentId, onComplete }) {
+  const [content, setContent] = useState(null);
+  const [watched, setWatched] = useState(item.status === 'completed');
+  useEffect(() => {
+    fetch(`/api/learning-items/${subject.id}/${item.id}/content?student_id=${studentId}`)
+      .then(r => r.json()).then(d => setContent(d.content)).catch(() => {});
+  }, [item.id]);
+  return (
+    <div className="inline-lecture-card">
+      <div className="inline-lecture-title">{LEARNING_ITEM_TYPE_LABEL[item.type]}: {item.title}</div>
+      {content ? (
+        <video className="inline-lecture-frame" src={`/api/learning-items/video-file/${subject.id}/${item.id}`} controls />
+      ) : (
+        <div className="inline-lecture-frame" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94a3b8' }}>Loading…</div>
+      )}
+      <button className="videos-add-btn" style={{ marginTop: 10 }} disabled={watched}
+        onClick={async () => {
+          setWatched(true);
+          await fetch(`/api/learning-items/${studentId}/${subject.id}/${item.id}/complete`, { method: 'POST' });
+          onComplete();
+        }}>
+        {watched ? '✓ Marked as watched' : 'Mark as watched'}
+      </button>
+    </div>
+  );
+}
+
+function ReadingFullScreenView({ subject, item, studentId, onComplete, onClose }) {
+  const [content, setContent] = useState(null);
+  const [read, setRead] = useState(item.status === 'completed');
+  useEffect(() => {
+    fetch(`/api/learning-items/${subject.id}/${item.id}/content?student_id=${studentId}`)
+      .then(r => r.json()).then(d => setContent(d.content)).catch(() => {});
+  }, [item.id]);
+
+  async function handleMarkRead() {
+    setRead(true);
+    await fetch(`/api/learning-items/${studentId}/${subject.id}/${item.id}/complete`, { method: 'POST' });
+    onComplete();
+  }
+
+  return (
+    <div className="sc-reading-overlay">
+      <div className="sc-reading-modal">
+        <div className="sc-reading-modal-header">
+          <div className="sc-reading-modal-eyebrow">Reading</div>
+          <button className="sc-reading-modal-close" onClick={onClose} aria-label="Close">×</button>
+        </div>
+        <h1 className="sc-reading-modal-title">{item.title}</h1>
+        <div className="sc-reading-modal-body">
+          {content ? renderMessageContent(content.body_markdown) : <div style={{ color: '#94a3b8' }}>Loading…</div>}
+        </div>
+        <div className="sc-reading-modal-footer">
+          <button className="videos-add-btn" disabled={read} onClick={handleMarkRead}>
+            {read ? '✓ Marked as read' : 'Mark as read'}
+          </button>
+          <button className="sc-reading-modal-done" style={{ background: subject.color }} onClick={onClose}>
+            {read ? 'Done — back to chat' : 'Close'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function InlineReadingCard({ subject, item, studentId, onComplete }) {
+  const [open, setOpen] = useState(false);
+  const [read, setRead] = useState(item.status === 'completed');
+
+  return (
+    <>
+      <div className="inline-reading-card inline-reading-card--prompt" onClick={() => setOpen(true)}>
+        <div className="inline-reading-card--icon">📖</div>
+        <div className="inline-reading-card--info">
+          <div className="inline-lecture-title">Reading: {item.title}</div>
+          <div className="inline-reading-card--hint">{read ? '✓ Read — tap to review again' : `Opens in a dedicated reading view · ${item.duration_min} min`}</div>
+        </div>
+        <button className="sc-reading-open-btn" style={{ background: subject.color }} onClick={(e) => { e.stopPropagation(); setOpen(true); }}>
+          {read ? 'Reopen' : 'Start reading'}
+        </button>
+      </div>
+      {open && (
+        <ReadingFullScreenView
+          subject={subject}
+          item={item}
+          studentId={studentId}
+          onComplete={() => { setRead(true); onComplete(); }}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </>
+  );
+}
+
+function InlineAssessmentCard({ subject, item, studentId, onComplete }) {
+  const [content, setContent] = useState(null);
+  const [answers, setAnswers] = useState({});
+  const [results, setResults] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    fetch(`/api/learning-items/${subject.id}/${item.id}/content?student_id=${studentId}`)
+      .then(r => r.json()).then(d => setContent(d.content)).catch(() => {});
+  }, [item.id]);
+
+  async function handleSubmit() {
+    if (!content || Object.keys(answers).length < content.questions.length) return;
+    setSubmitting(true);
+    try {
+      const r = await fetch(`/api/learning-items/${studentId}/${subject.id}/${item.id}/submit`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ answers: content.questions.map((_, i) => answers[i] ?? -1) }),
+      });
+      const d = await r.json();
+      setResults(d);
+      if (!content.is_graded || d.passed) onComplete();
+    } finally { setSubmitting(false); }
+  }
+
+  if (!content) return <div className="inline-reading-card" style={{ color: '#94a3b8' }}>Loading…</div>;
+  const allAnswered = Object.keys(answers).length === content.questions.length;
+
+  return (
+    <div className="quiz-modal-body inline-assessment-card">
+      <div className="inline-lecture-title">{LEARNING_ITEM_TYPE_LABEL[item.type]}: {item.title}</div>
+      {results && (
+        <div className={`quiz-results-banner ${results.passed ? 'passed' : 'failed'}`} style={results.passed ? { borderColor: subject.color + '66', background: subject.color + '15' } : {}}>
+          <div className="quiz-results-score">
+            <span className="quiz-results-num">{results.correct}/{results.total}</span>
+            <span className="quiz-results-label">correct</span>
+          </div>
+          <div className="quiz-results-right">
+            <div className="quiz-results-verdict" style={results.passed ? { color: subject.color } : {}}>{results.passed ? '✓ Passed' : '✗ Not quite'}</div>
+          </div>
+        </div>
+      )}
+      {content.questions.map((q, qi) => {
+        const res = results?.results?.[qi];
+        return (
+          <div key={qi} className={`quiz-q-block ${results && res ? (res.student_answer === res.correct_index ? 'q-correct' : 'q-wrong') : ''}`}>
+            <div className="quiz-q-num">Q{qi + 1}</div>
+            <div className="quiz-q-text">{q.question}</div>
+            <div className="quiz-options">
+              {q.options.map((opt, oi) => {
+                let cls = 'quiz-option';
+                if (results && res) {
+                  if (oi === res.correct_index) cls += ' opt-correct';
+                  else if (oi === res.student_answer && res.student_answer !== res.correct_index) cls += ' opt-wrong';
+                } else if (answers[qi] === oi) cls += ' opt-selected';
+                return (
+                  <label key={oi} className={cls} style={results && res && oi === res.correct_index ? { borderColor: subject.color, background: subject.color + '18' } : {}}>
+                    <input type="radio" name={`si-q${qi}`} value={oi} disabled={!!results}
+                      checked={answers[qi] === oi}
+                      onChange={() => !results && setAnswers(prev => ({ ...prev, [qi]: oi }))} />
+                    <span className="opt-letter">{String.fromCharCode(65 + oi)}</span>
+                    <span className="opt-text">{opt}</span>
+                  </label>
+                );
+              })}
+            </div>
+            {results && res && (
+              <div className={`quiz-explanation${res.student_answer === res.correct_index ? ' quiz-explanation--correct' : ''}`}>
+                <strong>{res.student_answer === res.correct_index ? '' : 'Why: '}</strong>{res.explanation}
+              </div>
+            )}
+          </div>
+        );
+      })}
+      {!results && (
+        <button className="quiz-submit-btn" disabled={!allAnswered || submitting} style={{ background: allAnswered ? subject.color : undefined }} onClick={handleSubmit}>
+          {submitting ? 'Scoring…' : `Submit Answers (${Object.keys(answers).length}/${content.questions.length})`}
+        </button>
+      )}
+      {results && content.is_graded && !results.passed && (
+        <button className="quiz-submit-btn" style={{ background: subject.color }}
+          onClick={() => { setAnswers({}); setResults(null); }}>
+          Try Again
+        </button>
+      )}
+    </div>
+  );
+}
+
+function LearningItemCard({ subject, item, studentId, onComplete }) {
+  if (item.type === 'video' || item.type === 'screen_capture') return <InlineVideoCard subject={subject} item={item} studentId={studentId} onComplete={onComplete} />;
+  if (item.type === 'reading') return <InlineReadingCard subject={subject} item={item} studentId={studentId} onComplete={onComplete} />;
+  if (item.type === 'practice_assignment' || item.type === 'graded_assessment') return <InlineAssessmentCard subject={subject} item={item} studentId={studentId} onComplete={onComplete} />;
+  return null; // dialogue: no card, just the tutor's tone shifting in the thread
+}
+
+function StructuredCourseSidebar({ items, completedCount, total, moduleTitle, onSelectItem }) {
+  return (
+    <div className="sc-sidebar">
+      <div className="sc-sidebar-header">
+        <div className="sc-sidebar-title">{moduleTitle}</div>
+        <div className="sc-progress-row">
+          <div className="sc-progress-bar"><div className="sc-progress-fill" style={{ width: `${total ? (completedCount / total) * 100 : 0}%` }} /></div>
+          <span className="sc-progress-label">{completedCount}/{total} items</span>
+        </div>
+      </div>
+      <div className="sc-sidebar-list">
+        {items.map(it => (
+          <div key={it.id} className={`sc-sidebar-item sc-sidebar-item--clickable ${it.status}`}
+            role="button" tabIndex={0}
+            onClick={() => onSelectItem(it)}
+            onKeyDown={e => e.key === 'Enter' && onSelectItem(it)}>
+            <span className="sc-sidebar-check">{it.status === 'completed' ? '✓' : '○'}</span>
+            <div className="sc-sidebar-item-info">
+              <div className="sc-sidebar-item-title">{it.title}</div>
+              <div className="sc-sidebar-item-meta">{LEARNING_ITEM_TYPE_LABEL[it.type]} · {it.duration_min} min</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ItemReviewOverlay({ subject, item, studentId, onClose }) {
+  const [content, setContent] = useState(null);
+  useEffect(() => {
+    fetch(`/api/learning-items/${subject.id}/${item.id}/content?student_id=${studentId}`)
+      .then(r => r.json()).then(d => setContent(d.content)).catch(() => {});
+  }, [item.id]);
+
+  if (item.type === 'reading') {
+    return <ReadingFullScreenView subject={subject} item={item} studentId={studentId} onComplete={() => {}} onClose={onClose} />;
+  }
+
+  return (
+    <div className="sc-reading-overlay">
+      <div className="sc-reading-modal">
+        <div className="sc-reading-modal-header">
+          <div className="sc-reading-modal-eyebrow">{LEARNING_ITEM_TYPE_LABEL[item.type]} · Review</div>
+          <button className="sc-reading-modal-close" onClick={onClose} aria-label="Close">×</button>
+        </div>
+        <h1 className="sc-reading-modal-title">{item.title}</h1>
+        <div className="sc-reading-modal-body">
+          {!content ? (
+            <div style={{ color: '#94a3b8' }}>Loading…</div>
+          ) : item.type === 'video' || item.type === 'screen_capture' ? (
+            <video className="inline-lecture-frame" src={`/api/learning-items/video-file/${subject.id}/${item.id}`} controls autoPlay />
+          ) : item.type === 'practice_assignment' || item.type === 'graded_assessment' ? (
+            <InlineAssessmentCard subject={subject} item={item} studentId={studentId} onComplete={() => {}} />
+          ) : item.type === 'dialogue' ? (
+            <div>
+              <p>This item was a live conversational practice exercise with the tutor, not a standalone viewer — the transcript lives earlier in this chat.</p>
+              <p><strong>Scenario:</strong> {content.persona_situation}</p>
+            </div>
+          ) : null}
+        </div>
+        <div className="sc-reading-modal-footer">
+          <button className="sc-reading-modal-done" style={{ background: subject.color }} onClick={onClose}>Close</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function StructuredCourseView({ subject, student, onBack }) {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [items, setItems] = useState([]);
+  const [completedCount, setCompletedCount] = useState(0);
+  const [total, setTotal] = useState(0);
+  const [moduleTitle, setModuleTitle] = useState(subject.name);
+  const [reviewItem, setReviewItem] = useState(null);
+  const lastShownItemId = useRef(null);
+  const bottomRef = useRef(null);
+  const startedRef = useRef(false);
+
+  async function loadItems() {
+    // Resolves whichever module the student is currently on -- courses can have any number
+    // of modules, so the frontend never hardcodes a module id.
+    const res = await fetch(`/api/learning-items-current/${subject.id}?student_id=${student.id}`);
+    const data = await res.json();
+    setItems(data.items); setCompletedCount(data.completed_count); setTotal(data.total);
+    setModuleTitle(data.module_title);
+  }
+
+  async function sendMessageText(text, isAutoOpen) {
+    if (loading) return;
+    if (!isAutoOpen) setMessages(prev => [...prev, { role: 'user', content: text }]);
+    setLoading(true);
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ student_id: student.id, subject_id: subject.id, message: text, auto_open: !!isAutoOpen }),
+      });
+      const data = await res.json();
+      const newMsgs = [{ role: 'bot', content: data.reply }];
+      if (data.next_item && data.next_item.id !== lastShownItemId.current) {
+        newMsgs.push({ role: 'learning-item', item: data.next_item });
+        lastShownItemId.current = data.next_item.id;
+      }
+      setMessages(prev => [...prev, ...newMsgs]);
+      if (data.newly_completed_item_ids?.length || data.next_item) loadItems();
+    } catch {
+      setMessages(prev => [...prev, { role: 'bot', content: 'Something went wrong. Please try again.' }]);
+    } finally { setLoading(false); }
+  }
+
+  useEffect(() => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    loadItems();
+    sendMessageText('[session_open]', true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  function handleSend() {
+    const text = input.trim();
+    if (!text || loading) return;
+    setInput('');
+    sendMessageText(text, false);
+  }
+
+  function handleItemComplete() {
+    loadItems();
+    // Nudge the tutor to look at fresh progress and introduce whatever's next.
+    sendMessageText('[item_completed]', true);
+  }
+
+  return (
+    <div className="sc-layout">
+      <div className="sc-main">
+        <div className="sc-header">
+          <button className="chat-back-btn" onClick={onBack}>← Back</button>
+          <div className="sc-header-info">
+            <div className="sc-header-name">{subject.tutor}</div>
+            <div className="sc-header-role">{subject.role}, {subject.org}</div>
+          </div>
+        </div>
+        <div className="sc-messages">
+          {messages.map((msg, i) => {
+            if (msg.role === 'learning-item') {
+              return <div key={i} className="message-row bot"><LearningItemCard subject={subject} item={msg.item} studentId={student.id} onComplete={handleItemComplete} /></div>;
+            }
+            return (
+              <div key={i} className={`message-row ${msg.role}`}>
+                <div className={`message-avatar ${msg.role}`}>
+                  {msg.role === 'bot' ? (subject.tutor?.replace(/^Dr\.\s*/, '') || 'E').charAt(0) : student.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="message-body">
+                  <div className="message-bubble">{renderMessageContent(msg.content)}</div>
+                </div>
+              </div>
+            );
+          })}
+          {loading && <div className="message-row bot"><div className="message-avatar bot">{(subject.tutor?.replace(/^Dr\.\s*/, '') || 'E').charAt(0)}</div><div className="message-body"><div className="message-bubble">…</div></div></div>}
+          <div ref={bottomRef} />
+        </div>
+        <div className="sc-input-row">
+          <input className="chat-input" value={input} placeholder="Type your response…"
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }} />
+          <button className="sc-send-btn" style={{ background: subject.color }} disabled={loading || !input.trim()} onClick={handleSend}>Send</button>
+        </div>
+      </div>
+      <StructuredCourseSidebar items={items} completedCount={completedCount} total={total} moduleTitle={moduleTitle} onSelectItem={setReviewItem} />
+      {reviewItem && (
+        <ItemReviewOverlay subject={subject} item={reviewItem} studentId={student.id} onClose={() => setReviewItem(null)} />
+      )}
     </div>
   );
 }
@@ -13721,6 +14562,12 @@ export default function App() {
             }}
           />
         )
+      ) : view === 'chat' && selectedSubject && selectedSubject.is_structured_course ? (
+        <StructuredCourseView
+          subject={selectedSubject}
+          student={student}
+          onBack={handleBack}
+        />
       ) : view === 'chat' && selectedSubject ? (
         <ChatView
           subject={selectedSubject}

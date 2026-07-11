@@ -33,5 +33,14 @@ services:
       - backend
     restart: unless-stopped
 
+  ph-frontend:
+    build:
+      context: ./ph-frontend
+    ports:
+      - "3002:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
 volumes:
   db_data:

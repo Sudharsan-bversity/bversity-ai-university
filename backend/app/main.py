@@ -111,7 +111,9 @@ def init_db():
     conn = get_db()
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS students (
-            id TEXT PRIMARY KEY, name TEXT NOT NULL, email TEXT UNIQUE NOT NULL, created_at TEXT NOT NULL
+            id TEXT PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL, created_at TEXT NOT NULL,
+            tenant_id TEXT NOT NULL DEFAULT 'bversity',
+            UNIQUE(email, tenant_id)
         );
         CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT, student_id TEXT NOT NULL, subject_id TEXT NOT NULL,
@@ -286,6 +288,92 @@ def init_db():
             notes       TEXT NOT NULL DEFAULT '',
             updated_at  TEXT NOT NULL,
             PRIMARY KEY (subject_id, concept_id)
+        );
+        CREATE TABLE IF NOT EXISTS learning_items (
+            id            TEXT PRIMARY KEY,
+            subject_id    TEXT NOT NULL,
+            module_id     TEXT NOT NULL,
+            section_id    TEXT,
+            order_index   INTEGER NOT NULL,
+            type          TEXT NOT NULL,
+            title         TEXT NOT NULL,
+            duration_min  INTEGER,
+            content_json  TEXT NOT NULL,
+            created_at    TEXT NOT NULL,
+            updated_at    TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS learning_item_progress (
+            id           INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id   TEXT NOT NULL,
+            subject_id   TEXT NOT NULL,
+            item_id      TEXT NOT NULL,
+            status       TEXT NOT NULL,
+            completed_at TEXT,
+            UNIQUE(student_id, subject_id, item_id)
+        );
+        CREATE TABLE IF NOT EXISTS courses (
+            id            TEXT PRIMARY KEY,
+            name          TEXT NOT NULL,
+            tutor_name    TEXT NOT NULL,
+            tutor_role    TEXT NOT NULL,
+            tutor_org     TEXT NOT NULL,
+            color         TEXT NOT NULL,
+            description   TEXT NOT NULL,
+            popular       INTEGER NOT NULL DEFAULT 0,
+            region        TEXT NOT NULL DEFAULT 'india',
+            status        TEXT NOT NULL DEFAULT 'draft',
+            created_at    TEXT NOT NULL,
+            updated_at    TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS course_modules (
+            id                  TEXT PRIMARY KEY,
+            course_id           TEXT NOT NULL,
+            order_index         INTEGER NOT NULL,
+            title               TEXT NOT NULL,
+            topics_desc         TEXT NOT NULL,
+            target_hours        REAL,
+            item_type_sequence  TEXT NOT NULL,
+            status              TEXT NOT NULL DEFAULT 'draft',
+            created_at          TEXT NOT NULL,
+            updated_at          TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS tenants (
+            id                TEXT PRIMARY KEY,
+            name              TEXT NOT NULL,
+            domain            TEXT,
+            compliance_body   TEXT,
+            licensure_body    TEXT,
+            academic_mandates TEXT,
+            color             TEXT,
+            logo_url          TEXT,
+            created_at        TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS competency_areas (
+            id          TEXT PRIMARY KEY,
+            tenant_id   TEXT NOT NULL,
+            code        TEXT NOT NULL,
+            label       TEXT NOT NULL,
+            order_index INTEGER
+        );
+        CREATE TABLE IF NOT EXISTS lab_scenarios (
+            id                TEXT PRIMARY KEY,
+            tenant_id         TEXT NOT NULL,
+            course_id         TEXT NOT NULL,
+            discipline        TEXT NOT NULL,
+            title             TEXT NOT NULL,
+            context_profile   TEXT NOT NULL,
+            intro_message     TEXT NOT NULL,
+            scenario_json     TEXT NOT NULL,
+            required_item_id  TEXT
+        );
+        CREATE TABLE IF NOT EXISTS lab_action_log (
+            id              INTEGER PRIMARY KEY AUTOINCREMENT,
+            student_id      TEXT NOT NULL,
+            scenario_id     TEXT NOT NULL,
+            action_id       TEXT NOT NULL,
+            competency_area TEXT,
+            score_delta     REAL,
+            created_at      TEXT NOT NULL
         );
         CREATE TABLE IF NOT EXISTS saved_concepts (
             id          TEXT PRIMARY KEY,
@@ -462,11 +550,34 @@ def init_db():
         "ALTER TABLE concept_videos ADD COLUMN gen_completed_at TEXT",
         "ALTER TABLE concept_videos ADD COLUMN local_video_path TEXT",
         "ALTER TABLE concept_videos ADD COLUMN gen_duration_sec REAL",
+        "ALTER TABLE courses ADD COLUMN tenant_id TEXT NOT NULL DEFAULT 'bversity'",
+        "ALTER TABLE students ADD COLUMN tenant_id TEXT NOT NULL DEFAULT 'bversity'",
+        "ALTER TABLE lab_scenarios ADD COLUMN required_item_id TEXT",
     ]:
         try:
             conn.execute(col)
         except Exception:
             pass
+
+    # One-time rebuild: older DBs have a single-column UNIQUE(email) on students, which blocks
+    # two different tenants from ever sharing an email address. Multi-tenancy needs UNIQUE(email,
+    # tenant_id) instead -- SQLite can't ALTER a column constraint in place, so recreate the table.
+    existing_sql = conn.execute(
+        "SELECT sql FROM sqlite_master WHERE type='table' AND name='students'"
+    ).fetchone()
+    if existing_sql and "email TEXT UNIQUE" in existing_sql[0]:
+        conn.executescript("""
+            ALTER TABLE students RENAME TO students_old_unique_email;
+            CREATE TABLE students (
+                id TEXT PRIMARY KEY, name TEXT NOT NULL, email TEXT NOT NULL, created_at TEXT NOT NULL,
+                tenant_id TEXT NOT NULL DEFAULT 'bversity',
+                UNIQUE(email, tenant_id)
+            );
+            INSERT INTO students (id, name, email, created_at, tenant_id)
+                SELECT id, name, email, created_at, COALESCE(tenant_id, 'bversity') FROM students_old_unique_email;
+            DROP TABLE students_old_unique_email;
+        """)
+
     conn.execute("""
         INSERT OR IGNORE INTO platform_config (product, mode, trial_days, updated_at) VALUES
             ('career_pathways', 'self_serve', 5, datetime('now')),
@@ -1351,6 +1462,9 @@ Your knowledge for exam prep: clinical data management foundations and regulator
 
 How you teach for certification: you are systematic and detail-oriented, because CDM is a detail-oriented field where errors have real consequences. You use the SCDM Good Clinical Data Management Practices (GCDMP) guidelines as your reference framework throughout. You drill the CDISC standards hard because they are high-weight on the exam and where most people lose points. You use practical examples: "here's a CRF design with three common errors  -  find them." You make sure learners understand not just what to do but why  -  because a CDM professional who understands the regulatory rationale for data integrity standards is far more valuable than one who just follows a checklist.""",
     },
+    # clinical_research_foundations (Module 1: Pharmacovigilance) is now DB-backed via the
+    # `courses`/`course_modules` tables (see migrate_pv_pilot_to_courses.py) and served through
+    # get_subject_dynamic() -- no longer hardcoded here.
 }
 
 # ── Careers ───────────────────────────────────────────────────────────────────
@@ -1804,7 +1918,8 @@ CAPSTONES = {
 # ── Career-filtered curriculum helper ────────────────────────────────────────
 
 def effective_curriculum(subject_id: str, career: dict = None) -> list:
-    curriculum = CURRICULUM[subject_id]
+    curriculum = CURRICULUM.get(subject_id, [])  # structured courses (DB-backed) have no
+    # concept-tracker curriculum at all -- they're driven entirely by learning_items instead.
     if not career or not career.get("key_concepts"):
         return curriculum
     career_keys = set(career["key_concepts"])
@@ -2052,6 +2167,131 @@ These notes were written by the course faculty. Incorporate this guidance when t
     return base + voice_block + curriculum_block + notes_block + memory_block + teaching_note + career_block + rag_block + tagging + career_tagging
 
 
+# Legacy fallback for structured-course subjects registered before the courses/course_modules
+# tables existed (single hardcoded module id each) -- resolve_structured_course() checks this
+# first, then falls through to the DB-backed courses/course_modules tables for everything else.
+# Empty now that the PV pilot has been migrated (see migrate_pv_pilot_to_courses.py).
+STRUCTURED_COURSE_MODULES = {}
+
+
+def build_structured_course_prompt(subject: dict, student_name: str, items: list, current_item: dict,
+                                    module_title: str, module_number: int = 1, total_modules: int = 1,
+                                    next_module_title: str = None, is_first_visit: bool = False,
+                                    is_new_module: bool = False) -> str:
+    """Deliberately separate from build_system_prompt (not a retrofit): this course tracks
+    progress via learning_items/learning_item_progress, not the concept-tracker model
+    (curriculum_block, covered_ids/mastered_ids) that function is built around.
+
+    Generalized beyond the original single-module PV pilot: module_title/module_number/total_modules
+    let the same function drive any admin-authored course with any number of modules."""
+    base = subject["system_prompt"]
+    is_last_module = module_number >= total_modules
+
+    all_done = current_item["status"] == "completed"  # get_learning_items_state falls back to the
+    # last item once every item (including it) is completed -- distinguish that from "still pending".
+    sequence_lines = []
+    for it in items:
+        marker = "✓" if it["status"] == "completed" else ("→" if it["id"] == current_item["id"] and not all_done else "○")
+        sequence_lines.append(f"  {marker} {it['title']} ({it['type']}, {it['duration_min']} min)")
+    sequence_block = "\n".join(sequence_lines)
+
+    intro_block = ""
+    if (is_first_visit or is_new_module) and not all_done:
+        item_list_prose = ", then ".join(
+            f"a {it['type'].replace('_', ' ')} ({it['title']})" for it in items
+        )
+        if is_first_visit:
+            intro_block = f"""
+━━ FIRST MESSAGE FOR THIS STUDENT ━━
+This is {student_name}'s very first message in this course. Before introducing the first item, spend one short
+paragraph properly welcoming them: introduce yourself briefly (who you are, your role), explain in one sentence
+why {module_title} matters, then preview the FULL sequence they're about to go through in plain
+conversational language: {item_list_prose}. Make it feel personal and set expectations, not like a bare list.
+Then transition naturally into introducing the first item as normal below. Do this only once, in this message."""
+        else:
+            intro_block = f"""
+━━ NEW MODULE FOR THIS STUDENT ━━
+{student_name} just finished the previous module and is starting {module_title} for the first time. Before
+introducing the first item, spend one short paragraph transitioning: briefly congratulate them on finishing the
+previous module, explain in one sentence why {module_title} matters, then preview the sequence they're about to go
+through in plain conversational language: {item_list_prose}. Then transition naturally into introducing the first
+item as normal below. Do this only once, in this message."""
+
+    if all_done:
+        item_recap = "\n".join(f"  - {it['title']} ({it['type'].replace('_', ' ')})" for it in items)
+        if is_last_module:
+            next_line = "This is the final module -- congratulate them on completing the entire course."
+        elif next_module_title:
+            next_line = f"End with one encouraging line about {next_module_title} coming soon."
+        else:
+            next_line = "End with one encouraging line about more content coming soon."
+        return f"""{base}
+
+━━ STRUCTURED COURSE MODE — MODULE COMPLETE ━━
+{student_name} has just completed every learning item in {module_title}. Here's exactly what they went through, in order:
+{item_recap}
+
+Write a genuine completion message (not a generic "congrats!"). It should:
+1. Open by naming the module and marking it done, warmly.
+2. Give a real recap of the *journey*, referencing at least 3 of the specific items above by name/topic, tied to
+   what they can now actually do as a result (concrete skills/knowledge, not vague praise).
+3. Make it feel earned and specific to THIS student's path, not boilerplate.
+4. {next_line}
+Keep it to one solid paragraph (or two short ones) -- warm and substantive, not a wall of text. Do not re-introduce
+or ask them to redo any item -- everything above is done. Do not emit any <<<...>>> tags in this message.
+"""
+
+    content = json.loads(current_item["content_json"]) if isinstance(current_item["content_json"], str) else current_item["content_json"]
+
+    if current_item["type"] == "dialogue":
+        item_instruction = f"""This item is a DIALOGUE practice exercise. Stay in character as the persona below for this
+part of the conversation -- do not teach or explain, just roleplay naturally as {student_name} practices handling the situation.
+
+Persona: {content['persona_name']}
+Situation: {content['persona_situation']}
+Tone: {content['persona_tone']}
+Opening line to use (only if you haven't already said something like it): "{content['opening_line']}"
+
+The exercise is complete once: {content['resolution_criteria']}
+Once that's genuinely met, break character briefly to congratulate {student_name}, then emit <<<ITEM_COMPLETE:{current_item['id']}>>> on its own line at the very end of your reply."""
+    elif current_item["type"] in ("video", "screen_capture", "reading"):
+        item_instruction = f"""This item ("{current_item['title']}") is delivered as a {current_item['type']} embedded directly in the
+chat, right below your message -- the student will see the real video/reading there, rendered by the app.
+You do NOT have the actual content of this item and must NOT invent, summarize, or write out what you think it
+probably covers -- you have no way of knowing if that matches what's really shown, and getting it wrong undermines
+trust. Only say something like "here's a short {current_item['type'].replace('_', ' ')} on {current_item['title']}"
+(1 sentence, topic/title only), then tell {student_name} to look at it below and let you know once they're done. Do
+not emit <<<ITEM_COMPLETE:...>>> yourself for this item -- the student marks it complete with a button, and you'll
+be told when that happens."""
+    else:  # practice_assignment / graded_assessment
+        item_instruction = f"""This item ("{current_item['title']}") is a {current_item['type'].replace('_', ' ')} rendered inline in
+the chat as a question card -- the student answers it directly in that card, not by typing to you. Briefly introduce
+it in 1-2 sentences, then tell {student_name} to go ahead and answer it. Do not emit <<<ITEM_COMPLETE:...>>> yourself --
+you'll be told the result once they submit."""
+
+    return f"""{base}
+
+━━ STRUCTURED COURSE MODE ━━
+You are guiding {student_name} through a fixed sequence of learning items for {module_title}.
+Do not teach open-endedly or deviate from the sequence below -- your job is to introduce each item, wait for
+completion, and move to the next one in order. Keep messages short and conversational, like a mentor checking in,
+not a lecture.
+
+IMPORTANT: the sequence below reflects {student_name}'s ACTUAL progress, taken directly from the app -- trust it
+completely, even if it seems to jump ahead of where your last message left off. Items get marked ✓ by the student
+clicking things in the app UI (watching a video, submitting a question), not by telling you in chat -- so it's
+normal for an item to already be done without you having discussed it. Never ask {student_name} to confirm or
+re-report something the sequence already shows as ✓. Always introduce whatever is marked → (current), even if that
+means picking up mid-sequence.
+
+Sequence:
+{sequence_block}
+{intro_block}
+━━ CURRENT ITEM ━━
+{item_instruction}
+"""
+
+
 def build_quiz_prompt(subject: dict, student_name: str, covered_ids: list, mastered_ids: list, career: dict = None) -> str:
     curriculum = effective_curriculum(subject["id"], career)
     covered_set, mastered_set = set(covered_ids), set(mastered_ids)
@@ -2110,6 +2350,7 @@ MOCK_RESPONSES = {
 class RegisterRequest(BaseModel):
     name: str
     email: str
+    tenant_id: str = "bversity"
 
 class ChatRequest(BaseModel):
     student_id: str
@@ -2135,12 +2376,14 @@ class RequestCodeRequest(BaseModel):
     email: str
     name: str
     product: str = "career_pathways"
+    tenant_id: str = "bversity"
 
 class VerifyCodeRequest(BaseModel):
     email: str
     name: str
     code: str
     product: str = "career_pathways"
+    tenant_id: str = "bversity"
 
 
 # ── Email ─────────────────────────────────────────────────────────────────────
@@ -2757,29 +3000,40 @@ def read_root():
     return {"status": "ok", "message": "Bversity AI University backend"}
 
 @app.get("/subjects")
-def get_subjects():
-    return [{k: v for k, v in s.items() if k != "system_prompt"} for s in SUBJECTS.values()]
+def get_subjects(tenant_id: str = "bversity"):
+    subjects = [{k: v for k, v in s.items() if k != "system_prompt"} for s in SUBJECTS.values()] if tenant_id == "bversity" else []
+    conn = get_db()
+    course_rows = conn.execute("SELECT * FROM courses WHERE status='published' AND tenant_id=?", (tenant_id,)).fetchall()
+    conn.close()
+    for row in course_rows:
+        subjects.append({
+            "id": row["id"], "name": row["name"],
+            "tutor_name": row["tutor_name"], "tutor_role": row["tutor_role"], "tutor_org": row["tutor_org"],
+            "color": row["color"], "icon": "🎓", "description": row["description"],
+            "is_structured_course": True, "popular": bool(row["popular"]), "region": row["region"],
+        })
+    return subjects
 
 @app.post("/register")
 async def register(req: RegisterRequest, background_tasks: BackgroundTasks):
     if not req.name.strip() or not req.email.strip():
         raise HTTPException(status_code=400, detail="Name and email are required")
     conn = get_db()
-    existing = conn.execute("SELECT * FROM students WHERE email = ?", (req.email.lower().strip(),)).fetchone()
+    existing = conn.execute("SELECT * FROM students WHERE email = ? AND tenant_id = ?", (req.email.lower().strip(), req.tenant_id)).fetchone()
     if existing:
         conn.close()
         return {"student_id": existing["id"], "name": existing["name"], "returning": True}
     student_id = str(uuid.uuid4())
-    conn.execute("INSERT INTO students (id, name, email, created_at) VALUES (?, ?, ?, ?)",
-                 (student_id, req.name.strip(), req.email.lower().strip(), datetime.utcnow().isoformat()))
+    conn.execute("INSERT INTO students (id, name, email, created_at, tenant_id) VALUES (?, ?, ?, ?, ?)",
+                 (student_id, req.name.strip(), req.email.lower().strip(), datetime.utcnow().isoformat(), req.tenant_id))
     conn.commit(); conn.close()
     background_tasks.add_task(send_welcome_email, req.email.lower().strip(), req.name.strip())
     return {"student_id": student_id, "name": req.name.strip(), "returning": False}
 
 @app.get("/check-email")
-async def check_email_endpoint(email: str):
+async def check_email_endpoint(email: str, tenant_id: str = "bversity"):
     conn = get_db()
-    student = conn.execute("SELECT name FROM students WHERE email = ?", (email.lower().strip(),)).fetchone()
+    student = conn.execute("SELECT name FROM students WHERE email = ? AND tenant_id = ?", (email.lower().strip(), tenant_id)).fetchone()
     conn.close()
     if student:
         return {"exists": True, "name": student["name"]}
@@ -2832,13 +3086,13 @@ def verify_code(req: VerifyCodeRequest):
         raise HTTPException(status_code=400, detail="Invalid or expired code. Please request a new one.")
     conn.execute("UPDATE verification_codes SET used = 1 WHERE id = ?", (row["id"],))
 
-    existing = conn.execute("SELECT * FROM students WHERE email = ?", (email,)).fetchone()
+    existing = conn.execute("SELECT * FROM students WHERE email = ? AND tenant_id = ?", (email, req.tenant_id)).fetchone()
     if existing:
         student_id = existing["id"]
     else:
         student_id = str(uuid.uuid4())
-        conn.execute("INSERT INTO students (id, name, email, created_at) VALUES (?, ?, ?, ?)",
-                     (student_id, name, email, now))
+        conn.execute("INSERT INTO students (id, name, email, created_at, tenant_id) VALUES (?, ?, ?, ?, ?)",
+                     (student_id, name, email, now, req.tenant_id))
 
     # create trial subscription if self_serve and none exists
     config = conn.execute("SELECT mode, trial_days FROM platform_config WHERE product = ?", (product,)).fetchone()
@@ -3999,9 +4253,16 @@ def get_all_progress(student_id: str):
 
 @app.get("/progress/{student_id}/{subject_id}")
 def get_subject_progress(student_id: str, subject_id: str):
-    if subject_id not in SUBJECTS:
-        raise HTTPException(status_code=400, detail="Invalid subject")
     conn = get_db()
+    if subject_id not in SUBJECTS:
+        # Structured courses (DB-backed via courses/course_modules) don't use concept_progress --
+        # their progress is served by /learning-items/... instead. Return a benign empty shape
+        # here rather than erroring, so generic subject-detail screens don't break.
+        if not get_subject_dynamic(conn, subject_id):
+            conn.close()
+            raise HTTPException(status_code=400, detail="Invalid subject")
+        conn.close()
+        return {"covered_count": 0, "mastered_count": 0, "total": 0, "concepts": []}
     profile_row = conn.execute("SELECT career_id FROM student_profile WHERE student_id = ?", (student_id,)).fetchone()
     career = CAREERS.get(profile_row["career_id"]) if profile_row and profile_row["career_id"] else None
     rows = conn.execute(
@@ -4331,9 +4592,10 @@ def get_subject_statuses(student_id: str):
 
 @app.post("/subjects/unlock/{student_id}/{subject_id}")
 def unlock_subject(student_id: str, subject_id: str):
-    if subject_id not in SUBJECTS:
-        raise HTTPException(status_code=400, detail="Invalid subject")
     conn = get_db()
+    if not get_subject_dynamic(conn, subject_id):
+        conn.close()
+        raise HTTPException(status_code=400, detail="Invalid subject")
     existing = conn.execute(
         "SELECT status FROM subject_status WHERE student_id = ? AND subject_id = ?",
         (student_id, subject_id)
@@ -4656,6 +4918,471 @@ def admin_get_concept_video_file(subject_id: str, concept_id: str, x_admin_key: 
         raise HTTPException(status_code=404, detail="Video file missing on disk")
     return FileResponse(full_path, media_type="video/mp4")
 
+# ── Admin: Course Creator (structured-course authoring, generalized from the PV pilot) ────
+# Two-phase flow: plan/freeze curriculum (courses + course_modules), then author content
+# per module (learning_items, reusing the exact table/shape the PV pilot already uses).
+
+ITEM_TYPE_PRESETS = {
+    "full_mix": ["video", "reading", "screen_capture", "practice_assignment", "dialogue", "graded_assessment"],
+    "dialogue_heavy": ["video", "dialogue", "dialogue", "graded_assessment"],
+    "reading_and_assessment": ["reading", "reading", "practice_assignment", "graded_assessment"],
+}
+
+def _slugify(text: str) -> str:
+    slug = re.sub(r"[^a-z0-9]+", "_", text.lower()).strip("_")
+    return slug or str(uuid.uuid4())[:8]
+
+class PlanCurriculumRequest(BaseModel):
+    topic: str
+    target_hours: float = 20
+    num_modules: int = 3
+
+@app.post("/admin/courses/plan-curriculum")
+def admin_plan_curriculum(req: PlanCurriculumRequest, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    from app import course_gen
+    try:
+        modules = course_gen.generate_curriculum_draft(req.topic, req.target_hours, req.num_modules)
+    except course_gen.CourseGenError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+    return {"modules": modules}
+
+class CourseModuleInput(BaseModel):
+    title: str
+    topics_desc: str
+    target_hours: Optional[float] = None
+
+class CreateCourseRequest(BaseModel):
+    name: str
+    tutor_name: str
+    tutor_role: str
+    tutor_org: str
+    color: str = "#7C5CFC"
+    description: str = ""
+    popular: bool = False
+    region: str = "india"
+    tenant_id: str = "bversity"
+    modules: list[CourseModuleInput]
+
+@app.get("/admin/courses")
+def admin_list_courses(x_admin_key: str = Header(None), tenant_id: str = "bversity"):
+    require_admin(x_admin_key)
+    conn = get_db()
+    courses = [dict(r) for r in conn.execute("SELECT * FROM courses WHERE tenant_id=? ORDER BY created_at DESC", (tenant_id,)).fetchall()]
+    for c in courses:
+        c["modules"] = [dict(m) for m in conn.execute(
+            "SELECT * FROM course_modules WHERE course_id=? ORDER BY order_index", (c["id"],)
+        ).fetchall()]
+        for m in c["modules"]:
+            m["item_type_sequence"] = json.loads(m["item_type_sequence"])
+            m["items"] = [
+                {k: v for k, v in dict(it).items() if k != "content_json"}
+                for it in conn.execute(
+                    "SELECT * FROM learning_items WHERE subject_id=? AND module_id=? ORDER BY order_index",
+                    (c["id"], m["id"]),
+                ).fetchall()
+            ]
+    conn.close()
+    return courses
+
+@app.post("/admin/courses")
+def admin_create_course(req: CreateCourseRequest, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    if not req.modules:
+        raise HTTPException(status_code=400, detail="At least one module is required")
+    conn = get_db()
+    course_id = _slugify(req.name)
+    if conn.execute("SELECT 1 FROM courses WHERE id=?", (course_id,)).fetchone():
+        course_id = f"{course_id}_{str(uuid.uuid4())[:6]}"
+    now = datetime.utcnow().isoformat()
+    conn.execute(
+        """INSERT INTO courses (id, name, tutor_name, tutor_role, tutor_org, color, description, popular, region, tenant_id, status, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)""",
+        (course_id, req.name, req.tutor_name, req.tutor_role, req.tutor_org, req.color, req.description,
+         int(req.popular), req.region, req.tenant_id, now, now),
+    )
+    for i, m in enumerate(req.modules):
+        conn.execute(
+            """INSERT INTO course_modules (id, course_id, order_index, title, topics_desc, target_hours, item_type_sequence, status, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)""",
+            (f"{course_id}_m{i+1}", course_id, i + 1, m.title, m.topics_desc, m.target_hours,
+             json.dumps(ITEM_TYPE_PRESETS["full_mix"]), now, now),
+        )
+    conn.commit()
+    conn.close()
+    return {"status": "ok", "course_id": course_id}
+
+@app.put("/admin/courses/{course_id}")
+def admin_update_course(course_id: str, req: CreateCourseRequest, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    if not conn.execute("SELECT 1 FROM courses WHERE id=?", (course_id,)).fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Course not found")
+    now = datetime.utcnow().isoformat()
+    conn.execute(
+        """UPDATE courses SET name=?, tutor_name=?, tutor_role=?, tutor_org=?, color=?, description=?,
+           popular=?, region=?, updated_at=? WHERE id=?""",
+        (req.name, req.tutor_name, req.tutor_role, req.tutor_org, req.color, req.description,
+         int(req.popular), req.region, now, course_id),
+    )
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
+
+@app.put("/admin/courses/{course_id}/modules")
+def admin_update_course_modules(course_id: str, modules: list[CourseModuleInput], x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    existing = conn.execute("SELECT id, status FROM course_modules WHERE course_id=?", (course_id,)).fetchall()
+    if any(m["status"] == "frozen" for m in existing):
+        conn.close()
+        raise HTTPException(status_code=400, detail="Curriculum is frozen; cannot restructure modules")
+    now = datetime.utcnow().isoformat()
+    conn.execute("DELETE FROM course_modules WHERE course_id=?", (course_id,))
+    for i, m in enumerate(modules):
+        conn.execute(
+            """INSERT INTO course_modules (id, course_id, order_index, title, topics_desc, target_hours, item_type_sequence, status, created_at, updated_at)
+               VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', ?, ?)""",
+            (f"{course_id}_m{i+1}", course_id, i + 1, m.title, m.topics_desc, m.target_hours,
+             json.dumps(ITEM_TYPE_PRESETS["full_mix"]), now, now),
+        )
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
+
+@app.post("/admin/courses/{course_id}/freeze")
+def admin_freeze_course(course_id: str, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    now = datetime.utcnow().isoformat()
+    conn.execute("UPDATE course_modules SET status='frozen', updated_at=? WHERE course_id=?", (now, course_id))
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
+
+class ItemTemplateRequest(BaseModel):
+    preset: Optional[str] = None       # one of ITEM_TYPE_PRESETS, or omit and pass item_type_sequence directly
+    item_type_sequence: Optional[list[str]] = None
+
+@app.put("/admin/courses/{course_id}/modules/{module_id}/item-template")
+def admin_set_item_template(course_id: str, module_id: str, req: ItemTemplateRequest, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    sequence = req.item_type_sequence or ITEM_TYPE_PRESETS.get(req.preset or "")
+    if not sequence:
+        raise HTTPException(status_code=400, detail="Provide a known preset or an explicit item_type_sequence")
+    conn = get_db()
+    conn.execute(
+        "UPDATE course_modules SET item_type_sequence=?, updated_at=? WHERE id=? AND course_id=?",
+        (json.dumps(sequence), datetime.utcnow().isoformat(), module_id, course_id),
+    )
+    conn.commit()
+    conn.close()
+    return {"status": "ok", "item_type_sequence": sequence}
+
+class DraftItemRequest(BaseModel):
+    item_topic: str
+    num_questions: int = 10   # only used for practice_assignment/graded_assessment
+
+@app.post("/admin/courses/{course_id}/modules/{module_id}/items/{order_index}/draft")
+def admin_draft_item(course_id: str, module_id: str, order_index: int, req: DraftItemRequest, background_tasks: BackgroundTasks,
+                      x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    module = conn.execute("SELECT * FROM course_modules WHERE id=? AND course_id=?", (module_id, course_id)).fetchone()
+    conn.close()
+    if not module:
+        raise HTTPException(status_code=404, detail="Module not found")
+    sequence = json.loads(module["item_type_sequence"])
+    if order_index < 1 or order_index > len(sequence):
+        raise HTTPException(status_code=400, detail="order_index out of range for this module's item-type sequence")
+    item_type = sequence[order_index - 1]
+
+    from app import course_gen
+    try:
+        if item_type in ("video", "screen_capture"):
+            # Reuses the exact existing video pipeline -- same free-tier constraint, same generation
+            # path as the concept-video admin feature. Runs as a background task like that feature;
+            # admin polls GET .../items/{order_index} (via admin_list_courses) for completion.
+            from app import video_gen
+            if video_gen.video_gen_lock:
+                raise HTTPException(status_code=409, detail="A video is already generating, try again shortly")
+            item_id = f"{module_id}_{order_index}"
+            concept = {"id": item_id, "name": req.item_topic, "desc": req.item_topic}
+            conn2 = get_db()
+            course_row = conn2.execute("SELECT * FROM courses WHERE id=?", (course_id,)).fetchone()
+            subject_meta = {"id": course_id, "name": course_row["name"], "color": course_row["color"]}
+            now = datetime.utcnow().isoformat()
+            conn2.execute(
+                """INSERT INTO concept_videos (subject_id, concept_id, drive_url, title, added_at, gen_status, gen_started_at, gen_error)
+                   VALUES (?, ?, '', ?, ?, 'pending', ?, NULL)
+                   ON CONFLICT(subject_id, concept_id) DO UPDATE SET gen_status='pending', gen_started_at=excluded.gen_started_at, gen_error=NULL""",
+                (course_id, item_id, req.item_topic, now, now),
+            )
+            conn2.commit()
+            conn2.close()
+            background_tasks.add_task(video_gen.generate_concept_video, course_id, item_id, concept, subject_meta, VIDEOS_DIR, DB_PATH)
+            return {"status": "generating", "type": item_type}
+        elif item_type == "reading":
+            draft = course_gen.generate_reading_draft(module["title"], req.item_topic)
+        elif item_type in ("practice_assignment", "graded_assessment"):
+            draft = course_gen.generate_assessment_draft(module["title"], req.item_topic, req.num_questions)
+        elif item_type == "dialogue":
+            draft = course_gen.generate_dialogue_draft(module["title"], req.item_topic)
+        else:
+            raise HTTPException(status_code=400, detail=f"Unsupported item type: {item_type}")
+    except course_gen.CourseGenError as e:
+        raise HTTPException(status_code=502, detail=str(e))
+    return {"status": "ok", "type": item_type, "draft": draft}
+
+class SaveItemRequest(BaseModel):
+    title: str
+    duration_min: Optional[float] = None
+    content_json: dict
+
+@app.put("/admin/courses/{course_id}/modules/{module_id}/items/{order_index}")
+def admin_save_item(course_id: str, module_id: str, order_index: int, req: SaveItemRequest, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    module = conn.execute("SELECT * FROM course_modules WHERE id=? AND course_id=?", (module_id, course_id)).fetchone()
+    if not module:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Module not found")
+    sequence = json.loads(module["item_type_sequence"])
+    if order_index < 1 or order_index > len(sequence):
+        conn.close()
+        raise HTTPException(status_code=400, detail="order_index out of range for this module's item-type sequence")
+    item_type = sequence[order_index - 1]
+    item_id = f"{module_id}_{order_index}"
+    now = datetime.utcnow().isoformat()
+    conn.execute(
+        """INSERT INTO learning_items (id, subject_id, module_id, section_id, order_index, type, title, duration_min, content_json, created_at, updated_at)
+           VALUES (?, ?, ?, NULL, ?, ?, ?, ?, ?, ?, ?)
+           ON CONFLICT(id) DO UPDATE SET
+             title=excluded.title, duration_min=excluded.duration_min, content_json=excluded.content_json, updated_at=excluded.updated_at""",
+        (item_id, course_id, module_id, order_index, item_type, req.title, req.duration_min, json.dumps(req.content_json), now, now),
+    )
+    conn.commit()
+    conn.close()
+    return {"status": "ok", "item_id": item_id}
+
+@app.post("/admin/courses/{course_id}/publish")
+def admin_publish_course(course_id: str, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    modules = conn.execute("SELECT * FROM course_modules WHERE course_id=? ORDER BY order_index", (course_id,)).fetchall()
+    if not modules:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Course has no modules")
+    for m in modules:
+        if m["status"] != "frozen":
+            conn.close()
+            raise HTTPException(status_code=400, detail=f"Module '{m['title']}' curriculum is not frozen yet")
+        sequence = json.loads(m["item_type_sequence"])
+        item_count = conn.execute(
+            "SELECT COUNT(*) FROM learning_items WHERE subject_id=? AND module_id=?", (course_id, m["id"])
+        ).fetchone()[0]
+        if item_count < len(sequence):
+            conn.close()
+            raise HTTPException(status_code=400, detail=f"Module '{m['title']}' is missing content ({item_count}/{len(sequence)} items saved)")
+    conn.execute("UPDATE courses SET status='published', updated_at=? WHERE id=?", (datetime.utcnow().isoformat(), course_id))
+    conn.commit()
+    conn.close()
+    return {"status": "published"}
+
+# ── Practice Labs (PH gov platform: scripted lab scenarios, distinct from the ──
+# ── existing /labs/{student_id}/{project_id} Innovation Labs capstone feature) ──
+
+@app.get("/practice-labs/scenario/{scenario_id}")
+def get_practice_lab_scenario(scenario_id: str):
+    conn = get_db()
+    row = conn.execute("SELECT * FROM lab_scenarios WHERE id=?", (scenario_id,)).fetchone()
+    conn.close()
+    if not row:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    result = dict(row)
+    result["scenario_json"] = json.loads(result["scenario_json"])
+    return result
+
+@app.get("/practice-labs/{course_id}/{discipline}")
+def list_practice_labs(course_id: str, discipline: str, student_id: str = None):
+    conn = get_db()
+    rows = conn.execute(
+        "SELECT id, title, context_profile, required_item_id FROM lab_scenarios WHERE course_id=? AND discipline=?",
+        (course_id, discipline),
+    ).fetchall()
+    result = []
+    for r in rows:
+        locked = False
+        if r["required_item_id"] and student_id:
+            done = conn.execute(
+                "SELECT 1 FROM learning_item_progress WHERE student_id=? AND item_id=? AND status='completed'",
+                (student_id, r["required_item_id"]),
+            ).fetchone()
+            locked = not done
+        result.append({"id": r["id"], "title": r["title"], "context_profile": r["context_profile"], "locked": locked})
+    conn.close()
+    return result
+
+class PracticeLabActionRequest(BaseModel):
+    action_id: str
+    step_index: int = 0
+
+@app.post("/practice-labs/{student_id}/{scenario_id}/action")
+def submit_practice_lab_action(student_id: str, scenario_id: str, req: PracticeLabActionRequest):
+    conn = get_db()
+    scenario = conn.execute("SELECT scenario_json FROM lab_scenarios WHERE id=?", (scenario_id,)).fetchone()
+    if not scenario:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    scenario_data = json.loads(scenario["scenario_json"])
+    steps = scenario_data.get("steps", [])
+    if req.step_index < 0 or req.step_index >= len(steps):
+        conn.close()
+        raise HTTPException(status_code=400, detail="step_index out of range for this scenario")
+    actions = steps[req.step_index].get("actions", [])
+    action = next((a for a in actions if a["id"] == req.action_id), None)
+    if not action:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Unknown action_id for this step")
+    now = datetime.utcnow().isoformat()
+    conn.execute(
+        "INSERT INTO lab_action_log (student_id, scenario_id, action_id, competency_area, score_delta, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+        (student_id, scenario_id, req.action_id, action.get("competency_area"), action.get("score_delta"), now),
+    )
+    conn.commit()
+    conn.close()
+    advance = action.get("advance", True)
+    next_step_index = req.step_index + 1 if advance else req.step_index
+    return {
+        "trigger_type": action.get("trigger_type"),
+        "response_message": action.get("response_message"),
+        "advance": advance,
+        "next_step_index": next_step_index,
+        "next_step_prompt": steps[next_step_index].get("prompt") if advance and next_step_index < len(steps) else None,
+        "scenario_complete": advance and next_step_index >= len(steps),
+        "competency_area": action.get("competency_area"),
+        "score_delta": action.get("score_delta"),
+    }
+
+class PracticeLabVivaRequest(BaseModel):
+    answer: str
+
+@app.post("/practice-labs/{student_id}/{scenario_id}/viva")
+async def submit_practice_lab_viva(student_id: str, scenario_id: str, req: PracticeLabVivaRequest):
+    check_rate_limit(student_id)
+    conn = get_db()
+    scenario = conn.execute("SELECT scenario_json FROM lab_scenarios WHERE id=?", (scenario_id,)).fetchone()
+    conn.close()
+    if not scenario:
+        raise HTTPException(status_code=404, detail="Scenario not found")
+    scenario_data = json.loads(scenario["scenario_json"])
+    viva_question = scenario_data.get("viva_question")
+    if not viva_question:
+        raise HTTPException(status_code=400, detail="This scenario has no viva question")
+
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=500, detail="Grading unavailable (no API key configured)")
+    import anthropic
+    client = anthropic.Anthropic(api_key=api_key)
+    prompt = f"""You are an instructor conducting a brief oral defense to verify a student actually understands
+their own code submission, not just that it happens to run (anti-plagiarism/anti-copy-paste check).
+
+Question asked: {viva_question}
+
+Student's answer: {req.answer}
+
+Judge whether the answer demonstrates real understanding of the underlying logic/reasoning, or is vague/generic/
+evasive (a sign they didn't write or understand the code themselves). Respond with exactly two lines:
+PASSED: yes or no
+FEEDBACK: one or two sentences of specific feedback on their answer"""
+    response = client.messages.create(model="claude-sonnet-4-6", max_tokens=300, messages=[{"role": "user", "content": prompt}])
+    text = response.content[0].text
+    passed_match = re.search(r'PASSED:\s*(yes|no)', text, re.IGNORECASE)
+    feedback_match = re.search(r'FEEDBACK:\s*(.+)', text, re.IGNORECASE | re.DOTALL)
+    return {
+        "passed": bool(passed_match and passed_match.group(1).lower() == "yes"),
+        "feedback": feedback_match.group(1).strip() if feedback_match else text.strip(),
+    }
+
+@app.get("/skill-passport/{student_id}")
+def get_skill_passport(student_id: str, tenant_id: str = "bversity"):
+    conn = get_db()
+    areas = conn.execute(
+        "SELECT code, label FROM competency_areas WHERE tenant_id=? ORDER BY order_index", (tenant_id,)
+    ).fetchall()
+    action_rows = conn.execute(
+        """SELECT competency_area, score_delta FROM lab_action_log
+           WHERE student_id=? AND competency_area IS NOT NULL""",
+        (student_id,),
+    ).fetchall()
+    course_completions = conn.execute(
+        "SELECT subject_id, completed_at, credential_id FROM subject_completions WHERE student_id=?", (student_id,)
+    ).fetchall()
+    conn.close()
+
+    deltas_by_area = {}
+    for r in action_rows:
+        deltas_by_area.setdefault(r["competency_area"], []).append(r["score_delta"] or 0)
+
+    competency_matrix = []
+    for area in areas:
+        deltas = deltas_by_area.get(area["code"], [])
+        # Score is the running average of all logged deltas for this area (0-100 scale expected
+        # from each scenario's score_delta values) -- starts unscored until the student has taken
+        # at least one action that touches this competency area.
+        pct = round(sum(deltas) / len(deltas), 1) if deltas else None
+        competency_matrix.append({
+            "code": area["code"], "label": area["label"], "value": pct,
+            "status": "unscored" if pct is None else ("pass" if pct >= 70 else "warning" if pct >= 50 else "fail"),
+        })
+
+    # Licensure exams like the NLE have a floor rule: score below 60 in ANY single area fails
+    # the whole exam regardless of average. So the headline predictive metric must be the
+    # weakest scored area, not a mean that can mask a fatal gap in one competency.
+    scored = [c for c in competency_matrix if c["value"] is not None]
+    weakest = min(scored, key=lambda c: c["value"]) if scored else None
+
+    return {
+        "competency_matrix": competency_matrix,
+        "course_completions": [dict(r) for r in course_completions],
+        "limiting_area": {"code": weakest["code"], "label": weakest["label"], "value": weakest["value"]} if weakest else None,
+    }
+
+@app.get("/faculty/roster/{tenant_id}")
+def get_faculty_roster(tenant_id: str, x_admin_key: str = Header(None)):
+    require_admin(x_admin_key)
+    conn = get_db()
+    students = conn.execute("SELECT id, name, email FROM students WHERE tenant_id=?", (tenant_id,)).fetchall()
+    areas = conn.execute(
+        "SELECT code, label FROM competency_areas WHERE tenant_id=?", (tenant_id,)
+    ).fetchall()
+    area_codes = {a["code"] for a in areas}
+    roster = []
+    for s in students:
+        action_rows = conn.execute(
+            "SELECT competency_area, score_delta FROM lab_action_log WHERE student_id=? AND competency_area IS NOT NULL",
+            (s["id"],),
+        ).fetchall()
+        deltas_by_area = {}
+        for r in action_rows:
+            deltas_by_area.setdefault(r["competency_area"], []).append(r["score_delta"] or 0)
+        at_risk_areas = [
+            code for code in area_codes
+            if deltas_by_area.get(code) and (sum(deltas_by_area[code]) / len(deltas_by_area[code])) < 50
+        ]
+        completed_items = conn.execute(
+            "SELECT COUNT(*) FROM learning_item_progress WHERE student_id=? AND status='completed'", (s["id"],)
+        ).fetchone()[0]
+        roster.append({
+            "student_id": s["id"], "name": s["name"], "email": s["email"],
+            "completed_items": completed_items,
+            "at_risk_areas": at_risk_areas,
+        })
+    conn.close()
+    return roster
+
 # ── Module quiz routes ────────────────────────────────────────────────────────
 
 @app.get("/quiz/status/{student_id}/{subject_id}")
@@ -4827,6 +5554,264 @@ def delete_quiz_questions(subject_id: str, module_id: str, x_admin_key: str = He
     conn.execute("DELETE FROM module_quiz_questions WHERE subject_id = ? AND module_id = ?", (subject_id, module_id))
     conn.commit(); conn.close()
     return {"status": "deleted"}
+
+# ── Learning items (structured-course pilot) ──────────────────────────────────
+# Progress is tracked in learning_item_progress, independent of concept_progress.
+# This is a bespoke content model (content_json blob per item), not a fit for
+# the existing /quiz/* routes (those depend on a module_a/_b/_c concept-id
+# regex convention) -- reuses only the grading logic, not the routes.
+
+def _item_content_for_student(item, is_assessment):
+    content = json.loads(item["content_json"])
+    if is_assessment:
+        # Never leak answer keys to the client.
+        content = dict(content)
+        content["questions"] = [
+            {"question": q["question"], "options": q["options"]} for q in content["questions"]
+        ]
+    return content
+
+def get_learning_items_state(conn, subject_id, module_id, student_id):
+    """Shared by GET /learning-items and the /chat structured-course prompt path."""
+    items = conn.execute(
+        "SELECT id, type, title, duration_min, order_index, content_json FROM learning_items WHERE subject_id=? AND module_id=? ORDER BY order_index",
+        (subject_id, module_id),
+    ).fetchall()
+    progress = conn.execute(
+        "SELECT item_id, status FROM learning_item_progress WHERE student_id=? AND subject_id=?",
+        (student_id, subject_id),
+    ).fetchall()
+    progress_map = {p["item_id"]: p["status"] for p in progress}
+    result = [
+        {
+            "id": it["id"], "type": it["type"], "title": it["title"],
+            "duration_min": it["duration_min"], "order_index": it["order_index"],
+            "content_json": it["content_json"],
+            "status": progress_map.get(it["id"], "not_started"),
+        }
+        for it in items
+    ]
+    current_item = next((it for it in result if it["status"] != "completed"), (result[-1] if result else None))
+    return result, current_item
+
+def get_subject_dynamic(conn, subject_id):
+    """Checks the hardcoded SUBJECTS dict first (existing flat-chat subjects, plus any
+    not-yet-migrated legacy structured-course pilots), else looks up an admin-authored
+    course from the `courses` table and assembles an equivalent dict shape, tagged
+    is_structured_course=True. Returns None if subject_id doesn't exist anywhere."""
+    if subject_id in SUBJECTS:
+        return SUBJECTS[subject_id]
+    row = conn.execute("SELECT * FROM courses WHERE id=?", (subject_id,)).fetchone()
+    if not row:
+        return None
+    return {
+        "id": row["id"], "name": row["name"],
+        "tutor_name": row["tutor_name"], "tutor_role": row["tutor_role"], "tutor_org": row["tutor_org"],
+        "color": row["color"], "icon": "🎓",
+        "description": row["description"],
+        "system_prompt": f"You are {row['tutor_name']}, {row['tutor_role']}, guiding a student through a structured course module.",
+        "is_structured_course": True,
+        "popular": bool(row["popular"]), "region": row["region"], "status": row["status"],
+    }
+
+def resolve_structured_course(conn, subject_id, student_id):
+    """Generalizes the original single-module PV pilot (once hardcoded in STRUCTURED_COURSE_MODULES)
+    to any number of admin-authored modules per course, stored in course_modules. Falls back to the
+    legacy hardcoded dict first so nothing breaks before a course is migrated into the DB tables.
+    Returns None if subject_id isn't a structured course at all, else a dict with everything
+    build_structured_course_prompt and /chat need: items, current_item, module_title, module_number,
+    total_modules, next_module_title, is_new_module."""
+    if subject_id in STRUCTURED_COURSE_MODULES:
+        module_id = STRUCTURED_COURSE_MODULES[subject_id]
+        items, current_item = get_learning_items_state(conn, subject_id, module_id, student_id)
+        if not current_item:
+            return None
+        return {
+            "items": items, "current_item": current_item,
+            "module_title": SUBJECTS[subject_id]["name"], "module_number": 1, "total_modules": 1,
+            "next_module_title": None, "is_new_module": False,
+        }
+
+    modules = conn.execute(
+        "SELECT id, title FROM course_modules WHERE course_id=? AND status='frozen' ORDER BY order_index",
+        (subject_id,),
+    ).fetchall()
+    candidates = []
+    for m in modules:
+        items, current_item = get_learning_items_state(conn, subject_id, m["id"], student_id)
+        if not items:
+            continue  # module frozen but content authoring not finished yet -- not playable
+        candidates.append({"id": m["id"], "title": m["title"], "items": items, "current_item": current_item})
+    if not candidates:
+        return None
+
+    total_modules = len(candidates)
+    active_index = next(
+        (i for i, c in enumerate(candidates) if c["current_item"]["status"] != "completed"),
+        total_modules - 1,
+    )
+    active = candidates[active_index]
+    is_new_module = (
+        active_index > 0
+        and active["current_item"]["id"] == active["items"][0]["id"]
+        and active["current_item"]["status"] == "not_started"
+    )
+    next_module_title = candidates[active_index + 1]["title"] if active_index + 1 < total_modules else None
+
+    return {
+        "items": active["items"], "current_item": active["current_item"],
+        "module_title": active["title"], "module_number": active_index + 1, "total_modules": total_modules,
+        "next_module_title": next_module_title, "is_new_module": is_new_module,
+    }
+
+@app.get("/course-modules/{course_id}")
+def list_course_modules_for_student(course_id: str, student_id: str):
+    """Lists every frozen module for a course (not just the currently-active one, unlike
+    resolve_structured_course) so a catalog view can show the whole sequence -- module N+1 is
+    locked until module N is fully completed, matching resolve_structured_course's own ordering."""
+    conn = get_db()
+    modules = conn.execute(
+        "SELECT id, title, topics_desc, order_index FROM course_modules WHERE course_id=? AND status='frozen' ORDER BY order_index",
+        (course_id,),
+    ).fetchall()
+    result = []
+    unlocked = True
+    for m in modules:
+        items, current_item = get_learning_items_state(conn, course_id, m["id"], student_id)
+        if not items:
+            continue  # authoring not finished yet -- not playable
+        completed_count = sum(1 for it in items if it["status"] == "completed")
+        module_complete = completed_count == len(items)
+        status = "completed" if module_complete else ("in_progress" if unlocked else "locked")
+        result.append({
+            "id": m["id"], "title": m["title"], "topics_desc": m["topics_desc"], "order_index": m["order_index"],
+            "item_count": len(items), "completed_count": completed_count, "status": status,
+        })
+        unlocked = unlocked and module_complete
+    conn.close()
+    return result
+
+@app.get("/learning-items/{subject_id}/{module_id}")
+def get_learning_items(subject_id: str, module_id: str, student_id: str):
+    conn = get_db()
+    items, _ = get_learning_items_state(conn, subject_id, module_id, student_id)
+    conn.close()
+    items = [{k: v for k, v in it.items() if k != "content_json"} for it in items]
+    completed_count = sum(1 for r in items if r["status"] == "completed")
+    return {"items": items, "completed_count": completed_count, "total": len(items)}
+
+@app.get("/learning-items-current/{subject_id}")
+def get_current_learning_items(subject_id: str, student_id: str):
+    """Sidebar data for the structured-course UI -- resolves whichever module the student is
+    currently on (any number of modules per course), so the frontend never needs to know a
+    hardcoded module id. Generalizes what used to be a single hardcoded MODULE_ID per course."""
+    conn = get_db()
+    structured = resolve_structured_course(conn, subject_id, student_id)
+    conn.close()
+    if not structured:
+        raise HTTPException(status_code=404, detail="Not a structured course")
+    items = [{k: v for k, v in it.items() if k != "content_json"} for it in structured["items"]]
+    completed_count = sum(1 for r in items if r["status"] == "completed")
+    return {
+        "items": items, "completed_count": completed_count, "total": len(items),
+        "module_title": structured["module_title"], "module_number": structured["module_number"],
+        "total_modules": structured["total_modules"],
+    }
+
+@app.get("/learning-items/{subject_id}/{item_id}/content")
+def get_learning_item_content(subject_id: str, item_id: str, student_id: str):
+    conn = get_db()
+    item = conn.execute("SELECT * FROM learning_items WHERE subject_id=? AND id=?", (subject_id, item_id)).fetchone()
+    conn.close()
+    if not item:
+        raise HTTPException(status_code=404, detail="Learning item not found")
+    is_assessment = item["type"] in ("practice_assignment", "graded_assessment")
+    return {
+        "id": item["id"], "type": item["type"], "title": item["title"],
+        "duration_min": item["duration_min"], "content": _item_content_for_student(item, is_assessment),
+    }
+
+@app.post("/learning-items/{student_id}/{subject_id}/{item_id}/complete")
+def complete_learning_item(student_id: str, subject_id: str, item_id: str):
+    conn = get_db()
+    conn.execute(
+        """INSERT INTO learning_item_progress (student_id, subject_id, item_id, status, completed_at)
+           VALUES (?, ?, ?, 'completed', ?)
+           ON CONFLICT(student_id, subject_id, item_id) DO UPDATE SET status='completed', completed_at=excluded.completed_at""",
+        (student_id, subject_id, item_id, datetime.utcnow().isoformat()),
+    )
+    conn.commit(); conn.close()
+    return {"status": "ok"}
+
+class LearningItemSubmitRequest(BaseModel):
+    answers: list[int]
+
+@app.post("/learning-items/{student_id}/{subject_id}/{item_id}/submit")
+def submit_learning_item(student_id: str, subject_id: str, item_id: str, req: LearningItemSubmitRequest):
+    conn = get_db()
+    item = conn.execute("SELECT * FROM learning_items WHERE subject_id=? AND id=?", (subject_id, item_id)).fetchone()
+    if not item:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Learning item not found")
+    content = json.loads(item["content_json"])
+    questions = content["questions"]
+    answers = [int(a) for a in req.answers]
+    correct = sum(1 for i, q in enumerate(questions) if i < len(answers) and answers[i] == q["correct_index"])
+    threshold = content.get("pass_threshold", 0)
+    passed = correct >= threshold
+
+    # Practice assignments (is_graded=False) complete on submission regardless of score;
+    # graded assessments only mark complete on a passing score.
+    if not content.get("is_graded", False) or passed:
+        conn.execute(
+            """INSERT INTO learning_item_progress (student_id, subject_id, item_id, status, completed_at)
+               VALUES (?, ?, ?, 'completed', ?)
+               ON CONFLICT(student_id, subject_id, item_id) DO UPDATE SET status='completed', completed_at=excluded.completed_at""",
+            (student_id, subject_id, item_id, datetime.utcnow().isoformat()),
+        )
+
+    # Unit assessments tagged with a competency_area feed the Skill Passport through the exact
+    # same lab_action_log table Practice Labs write to -- no separate aggregation logic needed,
+    # get_skill_passport already sums every row by competency_area regardless of scenario_id.
+    competency_area = content.get("competency_area")
+    if competency_area:
+        conn.execute(
+            "INSERT INTO lab_action_log (student_id, scenario_id, action_id, competency_area, score_delta, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+            (student_id, item_id, "assessment_submit", competency_area,
+             round(correct / len(questions) * 100, 1) if questions else 0, datetime.utcnow().isoformat()),
+        )
+
+    conn.commit()
+    conn.close()
+
+    return {
+        "correct": correct,
+        "total": len(questions),
+        "passed": passed,
+        "results": [
+            {"correct_index": q["correct_index"], "explanation": q["explanation"],
+             "student_answer": answers[i] if i < len(answers) else -1}
+            for i, q in enumerate(questions)
+        ],
+    }
+
+@app.get("/learning-items/video-file/{subject_id}/{item_id}")
+def get_learning_item_video_file(subject_id: str, item_id: str):
+    # Deliberately unauthenticated -- local pilot only. Not production-safe as-is;
+    # would need auth (or a signed URL) before ever being deployed.
+    conn = get_db()
+    item = conn.execute("SELECT content_json FROM learning_items WHERE subject_id=? AND id=?", (subject_id, item_id)).fetchone()
+    conn.close()
+    if not item:
+        raise HTTPException(status_code=404, detail="Learning item not found")
+    content = json.loads(item["content_json"])
+    video_url = content.get("video_url")
+    if not video_url:
+        raise HTTPException(status_code=404, detail="No video for this item")
+    full_path = os.path.join(VIDEOS_DIR, video_url)
+    if not os.path.exists(full_path):
+        raise HTTPException(status_code=404, detail="Video file missing on disk")
+    return FileResponse(full_path, media_type="video/mp4")
 
 # ── Resource library routes ───────────────────────────────────────────────────
 
@@ -6254,8 +7239,6 @@ def delete_material(material_id: str):
 
 @app.post("/chat")
 async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
-    if req.subject_id not in SUBJECTS:
-        raise HTTPException(status_code=400, detail="Invalid subject")
     check_rate_limit(req.student_id)
     conn = get_db()
     student = conn.execute("SELECT * FROM students WHERE id = ?", (req.student_id,)).fetchone()
@@ -6277,7 +7260,10 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
             conn.close()
             raise HTTPException(status_code=402, detail="subscription_expired")
 
-    subject = SUBJECTS[req.subject_id]
+    subject = get_subject_dynamic(conn, req.subject_id)
+    if not subject:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Unknown subject")
     profile_row = conn.execute("SELECT career_id FROM student_profile WHERE student_id = ?", (req.student_id,)).fetchone()
     career = CAREERS.get(profile_row["career_id"]) if profile_row and profile_row["career_id"] else None
 
@@ -6354,7 +7340,16 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
     if archetype_key and archetype_key in ARCHETYPES:
         archetype_instruction = "\n\n## Learner Archetype\n" + ARCHETYPES[archetype_key]["tutor_instruction"]
 
-    if req.quiz_mode:
+    structured_course = resolve_structured_course(conn, req.subject_id, req.student_id)
+    structured_current_item = structured_course["current_item"] if structured_course else None
+
+    if structured_course:
+        system = build_structured_course_prompt(
+            subject, student["name"], structured_course["items"], structured_course["current_item"],
+            structured_course["module_title"], structured_course["module_number"], structured_course["total_modules"],
+            structured_course["next_module_title"], is_first_visit, structured_course["is_new_module"],
+        )
+    elif req.quiz_mode:
         system = build_quiz_prompt(subject, student["name"], covered_ids, mastered_ids, career)
     elif req.recall_warmup:
         base_system = build_system_prompt(subject, student["name"], is_first_visit, covered_ids, mastered_ids, rag_context, career, session_memory, concept_notes_map, pending_question)
@@ -6453,6 +7448,23 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
             )
             conn.commit()
 
+    newly_completed_item_ids = []
+    item_complete_tag = re.search(r'<<<ITEM_COMPLETE:([^>]*)>>>', reply)
+    reply = re.sub(r'\n?<<<ITEM_COMPLETE:[^>]*>>>', '', reply).strip()
+    if item_complete_tag and api_key and structured_current_item:
+        completed_id = item_complete_tag.group(1).strip()
+        # Only trust completion of the item we actually told the model was current --
+        # prevents an arbitrary/hallucinated item_id from marking the wrong thing done.
+        if completed_id == structured_current_item["id"]:
+            conn.execute(
+                """INSERT INTO learning_item_progress (student_id, subject_id, item_id, status, completed_at)
+                   VALUES (?, ?, ?, 'completed', ?)
+                   ON CONFLICT(student_id, subject_id, item_id) DO UPDATE SET status='completed', completed_at=excluded.completed_at""",
+                (req.student_id, req.subject_id, completed_id, datetime.utcnow().isoformat()),
+            )
+            conn.commit()
+            newly_completed_item_ids = [completed_id]
+
     conn.execute(
         "INSERT INTO messages (student_id, subject_id, role, content, created_at) VALUES (?, ?, ?, ?, ?)",
         (req.student_id, req.subject_id, "assistant", reply, datetime.utcnow().isoformat()),
@@ -6531,6 +7543,17 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
     if user_msg_count == 5 or (user_msg_count > 5 and user_msg_count % 10 == 0):
         background_tasks.add_task(score_session_archetype, req.student_id, req.subject_id)
 
+    next_item = None
+    if structured_course is not None:
+        # Recompute so a completion that just happened this turn (button-triggered,
+        # or the <<<ITEM_COMPLETE:...>>> tag above) is reflected immediately -- may now be a
+        # different module than the one used to build the prompt above, if the last item of
+        # the previous module was just completed.
+        refreshed = resolve_structured_course(conn, req.subject_id, req.student_id)
+        next_item = refreshed["current_item"] if refreshed else None
+        if next_item:
+            next_item = {k: v for k, v in next_item.items() if k != "content_json"}
+
     conn.close()
 
     curr     = effective_curriculum(req.subject_id, career)
@@ -6560,6 +7583,8 @@ async def chat(req: ChatRequest, background_tasks: BackgroundTasks):
         "capstone_now_unlocked":   capstone_now_unlocked,
         "modules_completed":       modules_completed,
         "subject_completed":       subject_completed,
+        "newly_completed_item_ids": newly_completed_item_ids,
+        "next_item":               next_item,
     }
 
 

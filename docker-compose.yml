@@ -23,3 +23,14 @@ services:
       - "3000:80"
     depends_on:
       - backend
+
+  ph-frontend:
+    build:
+      context: ./ph-frontend
+    volumes:
+      - ./ph-frontend:/app:delegated
+      - /app/node_modules
+    ports:
+      - "3002:80"
+    depends_on:
+      - backend
